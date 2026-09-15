@@ -32,11 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Async;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author tycoding
@@ -51,7 +51,7 @@ public class ModelStoreFactory {
     @Autowired
     private List<ModelBuildHandler> modelBuildHandlers;
 
-    private final List<AigcModel> modelStore = new ArrayList<>();
+    private final List<AigcModel> modelStore = new CopyOnWriteArrayList<>();
     private final Map<String, StreamingChatLanguageModel> streamingChatMap = new ConcurrentHashMap<>();
     private final Map<String, ChatLanguageModel> chatLanguageMap = new ConcurrentHashMap<>();
     private final Map<String, EmbeddingModel> embeddingModelMap = new ConcurrentHashMap<>();
@@ -81,15 +81,14 @@ public class ModelStoreFactory {
     }
 
     private void chatHandler(AigcModel model) {
-        try {
-            String type = model.getType();
-            if (!ModelTypeEnum.CHAT.name().equals(type)) {
-                return;
-            }
-            modelBuildHandlers.forEach(x -> {
-                StreamingChatLanguageModel streamingChatLanguageModel = x.buildStreamingChat(model);
-                if (ObjectUtil.isNotEmpty(streamingChatLanguageModel)) {
-                    streamingChatMap.put(model.getId(), streamingChatLanguageModel);
+        if (!ModelTypeEnum.CHAT.name().equals(model.getType())) {
+            return;
+        }
+        modelBuildHandlers.forEach(x -> {
+            try {
+                StreamingChatLanguageModel streamingModel = x.buildStreamingChat(model);
+                if (ObjectUtil.isNotEmpty(streamingModel)) {
+                    streamingChatMap.put(model.getId(), streamingModel);
                     modelStore.add(model);
                 }
 
@@ -97,47 +96,44 @@ public class ModelStoreFactory {
                 if (ObjectUtil.isNotEmpty(languageModel)) {
                     chatLanguageMap.put(model.getId() + ModelConst.TEXT_SUFFIX, languageModel);
                 }
-            });
-        } catch (Exception e) {
-            log.error("model 【 id: {} name: {}】streaming chat 配置报错", model.getId(), model.getName());
-        }
+            } catch (Exception e) {
+                log.error("model [id: {} name: {}] chat 配置报错", model.getId(), model.getName(), e);
+            }
+        });
     }
 
     private void embeddingHandler(AigcModel model) {
-        try {
-            String type = model.getType();
-            if (!ModelTypeEnum.EMBEDDING.name().equals(type)) {
-                return;
-            }
-            modelBuildHandlers.forEach(x -> {
+        if (!ModelTypeEnum.EMBEDDING.name().equals(model.getType())) {
+            return;
+        }
+        modelBuildHandlers.forEach(x -> {
+            try {
                 EmbeddingModel embeddingModel = x.buildEmbedding(model);
                 if (ObjectUtil.isNotEmpty(embeddingModel)) {
                     embeddingModelMap.put(model.getId(), embeddingModel);
                     modelStore.add(model);
                 }
-            });
-
-        } catch (Exception e) {
-            log.error("model 【id{} name{}】 embedding 配置报错", model.getId(), model.getName());
-        }
+            } catch (Exception e) {
+                log.error("model [id: {} name: {}] embedding 配置报错", model.getId(), model.getName(), e);
+            }
+        });
     }
 
     private void imageHandler(AigcModel model) {
-        try {
-            String type = model.getType();
-            if (!ModelTypeEnum.TEXT_IMAGE.name().equals(type)) {
-                return;
-            }
-            modelBuildHandlers.forEach(x -> {
+        if (!ModelTypeEnum.TEXT_IMAGE.name().equals(model.getType())) {
+            return;
+        }
+        modelBuildHandlers.forEach(x -> {
+            try {
                 ImageModel imageModel = x.buildImage(model);
                 if (ObjectUtil.isNotEmpty(imageModel)) {
                     imageModelMap.put(model.getId(), imageModel);
                     modelStore.add(model);
                 }
-            });
-        } catch (Exception e) {
-            log.error("model 【id{} name{}】 image 配置报错", model.getId(), model.getName());
-        }
+            } catch (Exception e) {
+                log.error("model [id: {} name: {}] image 配置报错", model.getId(), model.getName(), e);
+            }
+        });
     }
 
     public StreamingChatLanguageModel getStreamingChatModel(String modelId) {

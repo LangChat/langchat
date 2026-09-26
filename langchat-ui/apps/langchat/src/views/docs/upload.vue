@@ -21,6 +21,7 @@ import {
   buildKnowledgeDocsRouteLocation,
   buildKnowledgePreviewRouteLocation,
   buildKnowledgeUploadRouteLocation,
+  DOC_PARSE_MODE_OPTIONS,
   formatDocsFileSize,
   normalizeRouteParam,
   removeDocsFileExtension,
@@ -65,8 +66,23 @@ const uploadForm = ref({
   knowledgeId: '',
   openPreviewAfterUpload: true,
   overlapSize: 120,
+  parseMode: 'BUILTIN',
   type: '',
 });
+
+const parseModeOptions = computed<SelectMixedOption[]>(() =>
+  DOC_PARSE_MODE_OPTIONS.map((item) => ({
+    label: item.label,
+    value: item.value,
+  })),
+);
+
+const currentParseModeDescription = computed(
+  () =>
+    DOC_PARSE_MODE_OPTIONS.find(
+      (item) => item.value === uploadForm.value.parseMode,
+    )?.description ?? '',
+);
 
 const typeOptions = computed<SelectMixedOption[]>(() => [
   { label: '自动识别', value: '' },
@@ -260,6 +276,7 @@ async function submitUploadQueue() {
           buildDocsIngestionConfig(
             uploadForm.value.chunkSize,
             uploadForm.value.overlapSize,
+            uploadForm.value.parseMode,
           ),
         );
         if (uploadForm.value.type) {
@@ -539,6 +556,21 @@ function buildUid(sourceKey: string) {
             </div>
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
+                解析模式
+              </div>
+              <NSelect
+                v-model:value="uploadForm.parseMode"
+                :options="parseModeOptions"
+                placeholder="默认内置解析"
+              />
+              <div class="mt-1.5 text-xs text-muted-foreground">
+                {{
+                  currentParseModeDescription
+                }}
+              </div>
+            </div>
+            <div>
+              <div class="mb-2 text-sm font-medium text-foreground">
                 切片大小
               </div>
               <NInputNumber
@@ -609,6 +641,10 @@ function buildUid(sourceKey: string) {
                 重叠大小用于维持上下文连续性，通常设置为切片大小的 10% 到 20%。
               </div>
               <div>
+                解析模式决定正文抽取方式：内置解析开箱可用；Docling 需要后端单独部署
+                docling-serve，对复杂 PDF 的版面与表格还原更好。
+              </div>
+              <div>
                 这里的参数会写入每个文档的 ingestionConfig，并在后续预览页复用。
               </div>
             </div>
@@ -664,6 +700,13 @@ function buildUid(sourceKey: string) {
                 <div>切片大小：{{ uploadForm.chunkSize }}</div>
                 <div>重叠大小：{{ uploadForm.overlapSize }}</div>
                 <div>类型覆盖：{{ uploadForm.type || '自动识别' }}</div>
+                <div>
+                  解析模式：{{
+                    DOC_PARSE_MODE_OPTIONS.find(
+                      (item) => item.value === uploadForm.parseMode,
+                    )?.label || '内置解析'
+                  }}
+                </div>
               </div>
             </div>
             <div class="rounded-lg border border-border bg-muted/30 p-4">

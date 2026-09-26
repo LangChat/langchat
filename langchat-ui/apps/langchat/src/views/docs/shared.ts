@@ -77,13 +77,34 @@ export function resolveDocsTypeByFilename(filename = '') {
   }
 }
 
+export const DOC_PARSE_MODE_OPTIONS = [
+  {
+    description: '使用内置 Tika / PDFBox 解析，无需外部服务',
+    label: '内置解析',
+    value: 'BUILTIN',
+  },
+  {
+    description: '使用 Docling 服务解析，复杂排版还原效果更好',
+    label: 'Docling 解析',
+    value: 'DOCLING',
+  },
+  {
+    description: '优先 Docling，服务不可用时自动回退内置解析',
+    label: '自动（Docling 优先）',
+    value: 'AUTO',
+  },
+] as const;
+
 export function buildDocsIngestionConfig(
   chunkSize?: number | null,
   overlapSize?: number | null,
+  parseMode?: null | string,
 ) {
+  const mode = parseMode && parseMode !== 'BUILTIN' ? parseMode : undefined;
   return JSON.stringify({
     chunkSize: chunkSize ?? undefined,
     overlapSize: overlapSize ?? undefined,
+    parseMode: mode,
   });
 }
 
@@ -92,6 +113,7 @@ export function parseDocsIngestionConfig(ingestionConfig?: null | string) {
     return {
       chunkSize: undefined,
       overlapSize: undefined,
+      parseMode: 'BUILTIN',
     };
   }
 
@@ -100,13 +122,20 @@ export function parseDocsIngestionConfig(ingestionConfig?: null | string) {
     return {
       chunkSize: toOptionalNumber(parsed.chunkSize ?? parsed.chunk_size),
       overlapSize: toOptionalNumber(parsed.overlapSize ?? parsed.overlap_size),
+      parseMode: normalizeParseMode(parsed.parseMode ?? parsed.parse_mode),
     };
   } catch {
     return {
       chunkSize: undefined,
       overlapSize: undefined,
+      parseMode: 'BUILTIN',
     };
   }
+}
+
+function normalizeParseMode(value: unknown) {
+  const mode = typeof value === 'string' ? value.trim().toUpperCase() : '';
+  return mode === 'DOCLING' || mode === 'AUTO' ? mode : 'BUILTIN';
 }
 
 export function formatDocsFileSize(size?: null | number) {

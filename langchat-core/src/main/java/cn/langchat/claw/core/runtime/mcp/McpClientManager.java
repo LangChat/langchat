@@ -9,7 +9,6 @@ import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import dev.langchain4j.service.tool.ToolProvider;
@@ -162,19 +161,11 @@ public class McpClientManager implements DisposableBean {
         Duration timeout = Duration.ofSeconds(mcp.getTimeout() == null ? 30 : mcp.getTimeout());
         Map<String, String> headers = parseHeaders(mcp.getHeaders());
         return switch (transport) {
-            case "SSE" -> {
+            // langchain4j 1.19 起移除了旧的 HttpMcpTransport（HTTP+SSE 协议），
+            // MCP 规范已统一到 Streamable HTTP：单端点、POST 请求体内按需返回 SSE 流。
+            case "SSE", "HTTP" -> {
                 if (!StringUtils.hasText(mcp.getSseUrl())) {
-                    throw new BizException("MCP_CONFIG_INVALID", "SSE 模式必须配置 SSE 地址");
-                }
-                yield HttpMcpTransport.builder()
-                        .sseUrl(mcp.getSseUrl().trim())
-                        .customHeaders(headers)
-                        .timeout(timeout)
-                        .build();
-            }
-            case "HTTP" -> {
-                if (!StringUtils.hasText(mcp.getSseUrl())) {
-                    throw new BizException("MCP_CONFIG_INVALID", "HTTP 模式必须配置服务端点地址");
+                    throw new BizException("MCP_CONFIG_INVALID", "网络模式必须配置服务端点地址");
                 }
                 yield StreamableHttpMcpTransport.builder()
                         .url(mcp.getSseUrl().trim())

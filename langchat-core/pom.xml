@@ -91,10 +91,21 @@
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-parsers-standard-package</artifactId>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-document-parser-docling</artifactId>
+        </dependency>
+        <!-- docling-serve-client 在 langchain4j 中是 optional 的 runtime 依赖，不会自动传递；
+             缺少它 DoclingServeApi.builder() 会因找不到 SPI 工厂而抛 IllegalStateException。 -->
+        <dependency>
+            <groupId>ai.docling</groupId>
+            <artifactId>docling-serve-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

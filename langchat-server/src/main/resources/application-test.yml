@@ -15,6 +15,13 @@ management:
       show-details: always
 
 langchat:
+  core:
+    docling:
+      # Docling 文档解析（需独立部署 docling-serve）。开启后文档导入可选择
+      # DOCLING/AUTO 解析模式；未开启时统一走内置 Tika/PDFBox 解析。
+      enabled: ${LANGCHAT_TEST_DOCLING_ENABLED:false}
+      base-url: ${LANGCHAT_TEST_DOCLING_BASE_URL:http://127.0.0.1:5001}
+      timeout-seconds: 300
   auth:
     super-admin-username: ${LANGCHAT_TEST_ADMIN_USERNAME:admin}
     local-users:

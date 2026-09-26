@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.tika.Tika;
@@ -57,8 +59,19 @@ public class DocumentContentParseService {
     private static final String PARSER_TIKA = "tika-parser";
     private static final String PARSER_PDFBOX = "pdfbox-parser";
 
+    /** 解析模式：内置 Tika/PDFBox。 */
+    private static final String PARSE_MODE_BUILTIN = "BUILTIN";
+    /** 解析模式：Docling 服务。 */
+    private static final String PARSE_MODE_DOCLING = "DOCLING";
+    /** 解析模式：优先 Docling，不可用或失败时回退内置解析。 */
+    private static final String PARSE_MODE_AUTO = "AUTO";
+    /** ingestionConfig 中解析模式字段名。 */
+    private static final String CONFIG_PARSE_MODE = "parseMode";
+    private static final String CONFIG_PARSE_MODE_ALT = "parse_mode";
+
     private final AigcOssService aigcOssService;
     private final ObjectMapper objectMapper;
+    private final DoclingParseService doclingParseService;
     private final Tika tika = new Tika();
 
     /**
@@ -233,7 +246,12 @@ public class DocumentContentParseService {
         String source = resolveFileSource(docs, oss);
         KnowledgeFileTypeEnum fileType = KnowledgeFileTypeEnum.fromExtension(firstNonBlank(docs.getExt(), oss == null ? null : oss.getExt()));
         try {
-            log.info("开始解析文件文档，docsId={}, fileType={}, source={}", docs.getId(), fileType, source);
+            log.info("开始解析文件文档，docsId={}, fileType={}, parseMode={}, source={}",
+                    docs.getId(), fileType, resolveParseMode(docs), source);
+            ParsedFileContent doclingResult = parseWithDocling(source, docs, fileType);
+            if (doclingResult != null) {
+                return doclingResult;
+            }
             return switch (fileType) {
                 case PDF -> parsePdf(source);
                 case MARKDOWN -> new ParsedFileContent(parsePlainTextFile(source), PARSER_MARKDOWN);
@@ -243,6 +261,62 @@ public class DocumentContentParseService {
         } catch (Exception ex) {
             log.warn("Tika/PDF 解析失败，docsId={}, source={}", docs.getId(), source, ex);
             throw new IllegalStateException("文档解析失败: " + ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * 按文档的解析模式尝试 Docling 解析。
+     *
+     * <p>{@code DOCLING} 为显式指定，未启用时直接报错；
+     * {@code AUTO} 为优先尝试，不可用或失败时返回 {@code null} 由调用方回退；
+     * 其余情况（默认）走内置解析，不调用外部服务。</p>
+     */
+    private ParsedFileContent parseWithDocling(String source, AigcDocs docs, KnowledgeFileTypeEnum fileType) {
+        String parseMode = resolveParseMode(docs);
+        if (PARSE_MODE_BUILTIN.equals(parseMode)) {
+            return null;
+        }
+        if (PARSE_MODE_DOCLING.equals(parseMode) && !doclingParseService.isAvailable()) {
+            throw new BizException(CoreErrorCode.KNOWLEDGE_NOT_FOUND.code(),
+                    "当前文档指定使用 Docling 解析，但后端未启用该服务，请检查 langchat.core.docling 配置");
+        }
+        if (!doclingParseService.isAvailable()) {
+            return null;
+        }
+        try (InputStream inputStream = openSourceStream(source)) {
+            String markdown = doclingParseService.parseToMarkdown(inputStream);
+            if (markdown == null || markdown.isBlank()) {
+                return null;
+            }
+            return new ParsedFileContent(markdown, doclingParseService.parserName());
+        } catch (Exception ex) {
+            log.warn("Docling 解析异常，docsId={}, fileType={}, source={}", docs.getId(), fileType, source, ex);
+            return null;
+        }
+    }
+
+    /**
+     * 读取文档的解析模式，取值 {@code BUILTIN} / {@code DOCLING} / {@code AUTO}，默认 {@code BUILTIN}。
+     */
+    private String resolveParseMode(AigcDocs docs) {
+        String raw = docs.getIngestionConfig();
+        if (raw == null || raw.isBlank()) {
+            return PARSE_MODE_BUILTIN;
+        }
+        try {
+            Map<String, Object> config = objectMapper.readValue(raw, MAP_TYPE);
+            Object value = config.getOrDefault(CONFIG_PARSE_MODE, config.get(CONFIG_PARSE_MODE_ALT));
+            if (value == null) {
+                return PARSE_MODE_BUILTIN;
+            }
+            String mode = String.valueOf(value).trim().toUpperCase(Locale.ROOT);
+            return switch (mode) {
+                case PARSE_MODE_DOCLING, PARSE_MODE_AUTO -> mode;
+                default -> PARSE_MODE_BUILTIN;
+            };
+        } catch (Exception ex) {
+            log.warn("解析 ingestionConfig 失败，按内置解析处理，docsId={}, ingestionConfig={}", docs.getId(), raw);
+            return PARSE_MODE_BUILTIN;
         }
     }
 
@@ -340,19 +414,19 @@ public class DocumentContentParseService {
 
     private PDDocument loadPdfDocument(String source) throws Exception {
         if (source.startsWith(FILE_URI_SCHEME)) {
-            return PDDocument.load(Path.of(URI.create(source)).toFile());
+            return Loader.loadPDF(Path.of(URI.create(source)).toFile());
         }
         if (source.startsWith(HTTP_URI_SCHEME) || source.startsWith(HTTPS_URI_SCHEME)) {
             try (InputStream inputStream = openSourceStream(source)) {
-                return PDDocument.load(inputStream.readAllBytes());
+                return Loader.loadPDF(inputStream.readAllBytes());
             }
         }
         Path path = Path.of(source);
         if (Files.exists(path)) {
-            return PDDocument.load(path.toFile());
+            return Loader.loadPDF(path.toFile());
         }
         try (InputStream inputStream = openSourceStream(source)) {
-            return PDDocument.load(inputStream.readAllBytes());
+            return Loader.loadPDF(inputStream.readAllBytes());
         }
     }
 

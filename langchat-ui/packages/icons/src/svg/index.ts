@@ -29,7 +29,6 @@ const SvgMinimaxIcon = createIconifyIcon('svg:minimax');
 const SvgModelEmbeddingsIcon = createIconifyIcon('svg:model-embeddings');
 const SvgModelImage2TextIcon = createIconifyIcon('svg:model-image2text');
 const SvgModelOCRIcon = createIconifyIcon('svg:model-ocr');
-const SvgModelRerankIcon = createIconifyIcon('svg:model-rerank');
 const SvgModelSpeech2TextIcon = createIconifyIcon('svg:model-speech2text');
 const SvgModelText2ImageIcon = createIconifyIcon('svg:model-text2image');
 const SvgModelText2SpeechIcon = createIconifyIcon('svg:model-text2speech');
@@ -73,7 +72,6 @@ export {
   SvgModelEmbeddingsIcon,
   SvgModelImage2TextIcon,
   SvgModelOCRIcon,
-  SvgModelRerankIcon,
   SvgModelSpeech2TextIcon,
   SvgModelText2ImageIcon,
   SvgModelText2SpeechIcon,

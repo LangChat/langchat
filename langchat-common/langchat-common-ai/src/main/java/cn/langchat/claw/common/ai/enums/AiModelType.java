@@ -15,8 +15,5 @@ public enum AiModelType {
     REASONING,
 
     /** 向量模型。 */
-    EMBEDDING,
-
-    /** 重排模型。 */
-    RERANK
+    EMBEDDING
 }

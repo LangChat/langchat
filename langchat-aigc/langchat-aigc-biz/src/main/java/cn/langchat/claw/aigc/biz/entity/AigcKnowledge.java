@@ -29,18 +29,10 @@ public class AigcKnowledge extends BaseDO {
     private Integer maxResults;
     /** 最低分数阈值。 */
     private Double minScore;
-    /** 检索模型 ID。 */
-    private String modelId;
-    /** 视觉模型 ID。 */
-    private String visionModelId;
     /** 向量库 ID。 */
     private String vectorStoreId;
     /** 向量模型 ID。 */
     private String vectorModelId;
-    /** 是否开启重排。 */
-    private Boolean rerank;
-    /** 重排模型 ID。 */
-    private String rerankModelId;
     /** 描述。 */
     private String description;
     /** 标签。 */

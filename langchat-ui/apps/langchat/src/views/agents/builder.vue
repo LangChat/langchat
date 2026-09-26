@@ -141,8 +141,7 @@ const knowledgeRelationOptions = computed(() =>
     .map((item) => {
       const vectorModelLabel =
         lookups.value.models.find(
-          (option) =>
-            String(option.value) === String(item.vectorModelId || item.modelId),
+          (option) => String(option.value) === String(item.vectorModelId),
         )?.label || '--';
       return {
         description:
@@ -154,7 +153,7 @@ const knowledgeRelationOptions = computed(() =>
           `TopK ${item.maxResults ?? '--'}`,
           '文档 --',
         ],
-        tags: [item.rerank ? '重排开启' : '无重排', '知识库'],
+        tags: ['知识库'],
         value: String(item.id || ''),
       };
     })

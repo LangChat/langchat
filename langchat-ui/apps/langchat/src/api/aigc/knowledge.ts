@@ -10,14 +10,10 @@ export interface AigcKnowledge extends BaseEntity {
   description?: string;
   maxResults?: number;
   minScore?: number;
-  modelId?: string;
   name?: string;
-  rerank?: boolean;
-  rerankModelId?: string;
   tags?: string;
   vectorModelId?: string;
   vectorStoreId?: string;
-  visionModelId?: string;
 }
 
 export const knowledgeApi = createCrudApi<AigcKnowledge>('/v1/aigc/knowledges');

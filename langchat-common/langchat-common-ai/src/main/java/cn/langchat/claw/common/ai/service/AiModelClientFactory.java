@@ -17,9 +17,4 @@ public interface AiModelClientFactory {
      * 获取向量模型客户端。
      */
     EmbeddingModelClient getEmbeddingClient(String providerType);
-
-    /**
-     * 获取重排模型客户端。
-     */
-    RerankModelClient getRerankClient(String providerType);
 }

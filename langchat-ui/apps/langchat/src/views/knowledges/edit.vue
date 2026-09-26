@@ -49,7 +49,6 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       size: 64,
     },
     fieldName: 'coverUrl',
-    formItemClass: 'sm:cols-span-2',
     label: '知识库图标',
     modelPropName: 'modelValue',
   },
@@ -72,38 +71,6 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     fieldName: 'vectorModelId',
     label: '向量模型',
     rules: 'selectRequired',
-  },
-  {
-    component: 'Select',
-    componentProps: {
-      clearable: true,
-      options: props.modelOptions,
-    },
-    fieldName: 'modelId',
-    label: '检索模型',
-  },
-  {
-    component: 'Select',
-    componentProps: {
-      clearable: true,
-      options: props.modelOptions,
-    },
-    fieldName: 'visionModelId',
-    label: '视觉模型',
-  },
-  {
-    component: 'Select',
-    componentProps: {
-      clearable: true,
-      options: props.modelOptions,
-    },
-    fieldName: 'rerankModelId',
-    label: '重排模型',
-  },
-  {
-    component: 'Switch',
-    fieldName: 'rerank',
-    label: '开启重排',
   },
   {
     component: 'InputNumber',
@@ -132,7 +99,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       placeholder: '请选择标签',
     },
     fieldName: 'tags',
-    formItemClass: 'sm:cols-span-2',
+    formItemClass: 'sm:col-span-2',
     label: '标签',
   },
   {
@@ -143,7 +110,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       type: 'textarea',
     },
     fieldName: 'description',
-    formItemClass: 'sm:cols-span-2',
+    formItemClass: 'sm:col-span-2',
     label: '知识库描述',
   },
 ]);
@@ -152,7 +119,7 @@ const [Form, formApi] = useVbenForm({
   layout: 'vertical',
   schema: formSchema.value,
   showDefaultActions: false,
-  wrapperClass: 'grid-cols-1 px-3',
+  wrapperClass: 'grid-cols-1 gap-x-4 px-3 sm:grid-cols-2',
 });
 
 watch(
@@ -227,7 +194,6 @@ watch(
         coverUrl: '',
         maxResults: 5,
         minScore: 0.5,
-        rerank: false,
         ...(props.modelValue ?? {}),
         tags: parseTagList(props.modelValue?.tags),
       },

@@ -7,7 +7,6 @@ export const MODEL_TYPE_OPTIONS: LabelOption[] = [
   { label: '聊天模型', value: 'CHAT' },
   { label: '推理模型', value: 'REASONING' },
   { label: '向量模型', value: 'EMBEDDING' },
-  { label: '重排模型', value: 'RERANK' },
   { label: '视觉模型', value: 'VISION' },
   { label: '语音模型', value: 'SPEECH' },
 ];

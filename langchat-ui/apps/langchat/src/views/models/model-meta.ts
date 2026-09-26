@@ -1,7 +1,6 @@
 import type { LabelOption } from '#/views/shared/aigc/options';
 import type { Component } from 'vue';
 import {
-  ArrowUpWideNarrow,
   AudioLines,
   AudioWaveform,
   Bot,
@@ -22,7 +21,6 @@ export type ModelTypeKey =
   | 'EMBEDDINGS'
   | 'IMAGE2TEXT'
   | 'OCR'
-  | 'RERANK'
   | 'SPEECH2TEXT'
   | 'TEXT2IMAGE'
   | 'TEXT2SPEECH'
@@ -48,7 +46,6 @@ const MODEL_TYPE_ALIAS_MAP: Record<string, ModelTypeKey> = {
   EMBEDDING: 'EMBEDDINGS',
   IMAGE2TEXT: 'IMAGE2TEXT',
   OCR: 'OCR',
-  RERANK: 'RERANK',
   REASONING: 'TEXT2TEXT',
   SPEECH: 'SPEECH2TEXT',
   SPEECH2TEXT: 'SPEECH2TEXT',
@@ -84,12 +81,6 @@ export const MODEL_TYPE_META: Record<ModelTypeKey, ModelTypeMeta> = {
     description: '图文识别、结构化抽取',
     icon: FileSearch,
     label: '光学识别',
-  },
-  RERANK: {
-    configItems: ['timeout', 'baseUrl', 'apiKey'],
-    description: '检索结果相关性重排',
-    icon: ArrowUpWideNarrow,
-    label: '重排模型',
   },
   SPEECH2TEXT: {
     configItems: ['timeout', 'baseUrl', 'apiKey'],

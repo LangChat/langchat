@@ -9,7 +9,6 @@ import { Database, SquarePen, Trash2 } from '@vben/icons';
 import { NButton, NSpace } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
-import LcStatusTag from '#/components/LcStatusTag/index.vue';
 
 interface Props {
   item: AigcKnowledge;
@@ -26,8 +25,10 @@ const emit = defineEmits<{
   index: [item: AigcKnowledge];
 }>();
 
-const modelLabel = computed(() => {
-  const found = props.modelOptions.find((o) => o.value === props.item.modelId);
+const vectorModelLabel = computed(() => {
+  const found = props.modelOptions.find(
+    (o) => o.value === props.item.vectorModelId,
+  );
   return found?.label || '未配置';
 });
 
@@ -39,15 +40,11 @@ const vectorStoreLabel = computed(() => {
 });
 
 const metaItems = computed(() => [
-  { label: '模型', value: modelLabel.value },
+  { label: '向量模型', value: vectorModelLabel.value },
   { label: '向量库', value: vectorStoreLabel.value },
   {
     label: '召回',
     value: props.item.maxResults ? `Top ${props.item.maxResults}` : '默认',
-  },
-  {
-    label: '重排',
-    value: props.item.rerank ? '已启用' : '未启用',
   },
 ]);
 
@@ -79,15 +76,8 @@ function formatTime(timestamp?: number) {
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        {{ item.description || '用于承载文档切片、向量召回和重排配置。' }}
+        {{ item.description || '用于承载文档切片与向量召回配置。' }}
       </p>
-    </template>
-
-    <template #header-extra>
-      <LcStatusTag
-        :label="item.rerank ? '已启用重排' : '未启用重排'"
-        :type="item.rerank ? 'success' : 'warning'"
-      />
     </template>
 
     <template #footer-extra>

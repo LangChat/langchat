@@ -4,10 +4,17 @@
      / /___/ /_/ / / / / /_/ /  / /___/ / / / /_/ / /_
     /_____/\__,_/_/ /_/\__, /   \____/_/ /_/\__,_/\__/
                       /____/
-    Copyright (c) 2025 LangChat. TyCoding All Rights Reserved.
 
-    产品名称: LangChat
-    产品作者: LangChat Team
-    产品官网: https://langchat.cn
-    联系微信: LangchainChat
-    联系邮箱: langchat@outlook.com
+========================================================================
+  LangChat
+  开源 AI Agent 应用平台 · 由 LangChat Team 开发与维护
+------------------------------------------------------------------------
+  项目官网  https://langchat.cn
+  开源仓库  https://github.com/LangChat/langchat
+  项目文档  https://docs.langchat.cn
+  API 文档  /docs/index.html
+  开源协议  Apache License 2.0
+------------------------------------------------------------------------
+  Copyright (c) 2024-2026 LangChat Team.
+  欢迎使用、学习和参与 LangChat 开源项目建设。
+========================================================================

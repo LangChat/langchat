@@ -21,6 +21,7 @@ BACKEND_PID_FILE="$RUN_DIR/backend.pid"
 FRONTEND_PID_FILE="$RUN_DIR/frontend.pid"
 BACKEND_LOG="$LOG_DIR/backend.log"
 FRONTEND_LOG="$LOG_DIR/frontend.log"
+LOG_TAIL_PID=""
 
 BACKEND_PORT="${LANGCHAT_BACKEND_PORT:-8080}"
 FRONTEND_PORT="${LANGCHAT_FRONTEND_PORT:-5888}"
@@ -82,10 +83,18 @@ stop_all() {
   ok "前后端服务已停止"
 }
 
-wait_port_up() { # $1=端口 $2=超时秒
+wait_port_up() { # $1=端口 $2=超时秒 $3=pid 文件（可选）
   local waited=0
+  local pid_file="${3:-}"
+  local process_pid=""
   while [ "$waited" -lt "$2" ]; do
     [ -n "$(port_pids "$1")" ] && return 0
+    if [ -n "$pid_file" ]; then
+      process_pid="$(read_pid "$pid_file")"
+      if ! alive "$process_pid"; then
+        return 2
+      fi
+    fi
     sleep 2
     waited=$((waited + 2))
   done
@@ -110,42 +119,63 @@ start_frontend() {
   : > "$FRONTEND_LOG"
   (
     cd "$ROOT/langchat-ui/apps/langchat" || exit 1
-    nohup pnpm dev >>"$FRONTEND_LOG" 2>&1 &
+    nohup env COREPACK_ENABLE_PROJECT_SPEC=0 pnpm dev >>"$FRONTEND_LOG" 2>&1 &
     echo $! >"$FRONTEND_PID_FILE"
   )
   ok "前端进程已拉起 (pid $(read_pid "$FRONTEND_PID_FILE"))，日志: $FRONTEND_LOG"
 }
 
-run_attached() {
-  local tail_pid=""
-  cleanup() {
+start_log_stream() {
+  if alive "$LOG_TAIL_PID"; then
+    return 0
+  fi
+  info "开始实时输出前后端日志（从本次启动的第一行开始）"
+  printf "%s\n" "==================== LangChat 前后端日志 ===================="
+  tail -n +1 -F "$BACKEND_LOG" "$FRONTEND_LOG" &
+  LOG_TAIL_PID=$!
+}
+
+stop_log_stream() {
+  if alive "$LOG_TAIL_PID"; then
+    kill "$LOG_TAIL_PID" 2>/dev/null
+    wait "$LOG_TAIL_PID" 2>/dev/null
+  fi
+  LOG_TAIL_PID=""
+}
+
+cleanup_attached() {
+    local exit_code="${1:-0}"
     trap '' INT TERM HUP
     printf "\n"
     info "检测到退出，正在停止前后端服务..."
-    [ -n "$tail_pid" ] && kill "$tail_pid" 2>/dev/null
+    stop_log_stream
     stop_all
     ok "已全部停止，再见"
-    exit 0
-  }
-  trap cleanup INT TERM HUP
+    exit "$exit_code"
+}
+
+enable_attached_mode() {
+  trap 'cleanup_attached 130' INT
+  trap 'cleanup_attached 143' TERM HUP
+  start_log_stream
+}
+
+run_attached() {
   info "实时输出前后端日志，按 Ctrl+C 或 Ctrl+D 停止服务并退出"
-  printf "%s\n" "==================== LangChat 前后端日志 ===================="
-  tail -n 20 -F "$BACKEND_LOG" "$FRONTEND_LOG" &
-  tail_pid=$!
   if [ -t 0 ]; then
     # 终端里运行：读到 EOF（Ctrl+D）时退出
-    while kill -0 "$tail_pid" 2>/dev/null; do
+    while alive "$LOG_TAIL_PID"; do
       read -r -t 5
       rc=$?
       [ "$rc" -eq 1 ] && break
     done
   else
     # 非终端运行（如后台脚本）：轮询代替 wait，确保 trap 信号能被处理
-    while kill -0 "$tail_pid" 2>/dev/null; do
+    while alive "$LOG_TAIL_PID"; do
       sleep 1
     done
   fi
-  cleanup
+  cleanup_attached 0
 }
 
 cmd_start() {
@@ -169,6 +199,7 @@ cmd_start() {
       show_status
       return 0
     fi
+    enable_attached_mode
     run_attached
     return 0
   fi
@@ -176,7 +207,7 @@ cmd_start() {
   if [ "$skip_backend" = 0 ]; then
     if [ "$nobuild" = 0 ]; then
       info "编译后端模块（增量编译，可用 --no-build 跳过）..."
-      (cd "$ROOT" && mvn -q -pl langchat-server -am install -DskipTests) || { err "后端编译失败"; exit 1; }
+      (cd "$ROOT" && mvn -pl langchat-server -am install -DskipTests) || { err "后端编译失败"; exit 1; }
     fi
     start_backend
   fi
@@ -184,20 +215,40 @@ cmd_start() {
     start_frontend
   fi
 
+  if [ "$daemon" = 0 ]; then
+    enable_attached_mode
+  fi
+
   info "等待服务就绪..."
   if [ "$skip_backend" = 0 ]; then
-    if ! wait_port_up "$BACKEND_PORT" 180; then
-      err "后端未在 180 秒内监听 $BACKEND_PORT 端口，最近日志:"
+    wait_port_up "$BACKEND_PORT" 180 "$BACKEND_PID_FILE"
+    wait_status=$?
+    if [ "$wait_status" -ne 0 ]; then
+      if [ "$wait_status" -eq 2 ]; then
+        err "后端进程已提前退出，最近日志:"
+      else
+        err "后端未在 180 秒内监听 $BACKEND_PORT 端口，最近日志:"
+      fi
       tail -n 40 "$BACKEND_LOG"
-      exit 1
+      stop_log_stream
+      stop_all
+      return 1
     fi
     ok "后端已就绪: http://localhost:$BACKEND_PORT"
   fi
   if [ "$skip_frontend" = 0 ]; then
-    if ! wait_port_up "$FRONTEND_PORT" 60; then
-      err "前端未在 60 秒内监听 $FRONTEND_PORT 端口，最近日志:"
+    wait_port_up "$FRONTEND_PORT" 60 "$FRONTEND_PID_FILE"
+    wait_status=$?
+    if [ "$wait_status" -ne 0 ]; then
+      if [ "$wait_status" -eq 2 ]; then
+        err "前端进程已提前退出，最近日志:"
+      else
+        err "前端未在 60 秒内监听 $FRONTEND_PORT 端口，最近日志:"
+      fi
       tail -n 40 "$FRONTEND_LOG"
-      exit 1
+      stop_log_stream
+      stop_all
+      return 1
     fi
     ok "前端已就绪: http://localhost:$FRONTEND_PORT"
   fi

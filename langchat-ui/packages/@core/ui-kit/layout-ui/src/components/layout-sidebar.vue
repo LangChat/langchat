@@ -191,7 +191,7 @@ const contentStyle = computed((): CSSProperties => {
   const { collapseHeight, floatingMode, headerHeight } = props;
 
   return {
-    ...(floatingMode
+    ...(floatingMode || slots['sidebar-footer']
       ? { minHeight: 0 }
       : { height: `calc(100% - ${headerHeight + collapseHeight}px)` }),
     paddingTop: '8px',
@@ -338,11 +338,10 @@ onUnmounted(() => {
     @mouseleave="handleMouseleave"
   >
     <div
-      class="h-full overflow-hidden"
+      class="flex h-full flex-col overflow-hidden"
       :class="[
         {
-          'flex flex-col rounded-lg border border-border bg-sidebar':
-            floatingMode,
+          'rounded-lg border border-border bg-sidebar': floatingMode,
           'bg-sidebar-deep': isSidebarMixed && !floatingMode,
           'border-r border-border bg-sidebar': !isSidebarMixed && !floatingMode,
         },
@@ -357,7 +356,7 @@ onUnmounted(() => {
         <slot name="logo"></slot>
       </div>
       <VbenScrollbar
-        :class="{ 'min-h-0 flex-1': floatingMode }"
+        :class="{ 'min-h-0 flex-1': floatingMode || slots['sidebar-footer'] }"
         :style="contentStyle"
         shadow
         shadow-border
@@ -366,7 +365,7 @@ onUnmounted(() => {
       </VbenScrollbar>
 
       <div
-        v-if="floatingMode && slots['sidebar-footer']"
+        v-if="slots['sidebar-footer']"
         class="sidebar-footer shrink-0 border-t border-border px-3 py-3"
       >
         <slot name="sidebar-footer"></slot>

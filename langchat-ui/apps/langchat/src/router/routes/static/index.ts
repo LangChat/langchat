@@ -104,6 +104,7 @@ const routes: RouteRecordRaw[] = [
     name: 'About',
     component: () => import('#/views/about/index.vue'),
     meta: {
+      hideInMenu: true,
       icon: Info,
       keepAlive: true,
       order: 999,

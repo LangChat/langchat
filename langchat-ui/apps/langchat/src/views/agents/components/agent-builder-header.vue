@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+
 import {
   ArrowLeft,
   Ban,
-  Bot,
   BrainCircuit,
   ChartColumn,
   ChevronDown,
@@ -14,8 +14,11 @@ import {
   Save,
   SlidersHorizontal,
 } from '@vben/icons';
+
 import { NButton, NPopover, NTag } from 'naive-ui';
+
 import LcIconDisplay from '#/components/LcIcon/display.vue';
+import LcStatusTag from '#/components/LcStatusTag/index.vue';
 
 type BuilderTab = 'config' | 'keys' | 'logs' | 'stats';
 
@@ -121,26 +124,19 @@ function handlePublish() {
           </template>
         </NButton>
 
-        <div
-          class="inline-flex size-11 items-center justify-center rounded-xl bg-background"
-        >
-          <LcIconDisplay
-            v-if="appIcon"
-            :icon="appIcon"
-            :fallback-icon="'lucide:bot'"
-            :size="36"
-          />
-          <Bot v-else class="size-5 text-primary" />
-        </div>
+        <LcIconDisplay
+          :icon="appIcon"
+          fallback-icon="lucide:bot"
+          :size="40"
+          class="shrink-0 rounded-[10px] border-border/80 bg-background"
+        />
 
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <div class="truncate text-lg font-semibold text-foreground">
               {{ pageTitle }}
             </div>
-            <NTag :bordered="false" :type="statusType" round>
-              {{ statusLabel }}
-            </NTag>
+            <LcStatusTag :label="statusLabel" :type="statusType" />
           </div>
           <div
             class="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-4 text-muted-foreground"

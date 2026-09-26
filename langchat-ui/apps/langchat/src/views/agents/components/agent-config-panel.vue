@@ -67,9 +67,9 @@ function toggleGroup(name: string) {
         @click="toggleGroup('model')"
       >
         <span
-          class="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground"
+          class="inline-flex items-center gap-2 text-sm font-semibold text-foreground"
         >
-          <BrainCircuit class="size-3.5 text-primary" />
+          <BrainCircuit class="size-4 text-primary" />
           模型信息配置
         </span>
         <ChevronUp
@@ -95,19 +95,19 @@ function toggleGroup(name: string) {
 
     <section class="rounded-lg border border-border/70 bg-card">
       <div
-        class="flex items-center justify-between gap-1 rounded-lg py-1 pl-2.5 pr-1.5 transition-colors hover:bg-muted/60"
+        class="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 transition-colors hover:bg-muted/60"
       >
         <button
-          class="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 py-0.5 text-left"
+          class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
           type="button"
           @click="toggleGroup('knowledge-relation')"
         >
-          <Database class="size-3.5 shrink-0 text-primary" />
-          <span class="truncate text-xs font-medium text-foreground">
+          <Database class="size-4 shrink-0 text-primary" />
+          <span class="truncate text-sm font-semibold text-foreground">
             知识库关联
           </span>
           <span
-            class="shrink-0 rounded bg-muted px-1 text-[10px] leading-4 text-muted-foreground"
+            class="shrink-0 rounded bg-muted px-1.5 text-[11px] leading-[18px] text-muted-foreground"
           >
             {{ formModel.knowledgeIdsList.length }}
           </span>
@@ -115,7 +115,7 @@ function toggleGroup(name: string) {
         <div class="flex shrink-0 items-center gap-0.5">
           <button
             v-tippy="'添加知识库'"
-            class="flex cursor-pointer items-center gap-0.5 rounded p-1 text-[10px] text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+            class="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="knowledgePickerRef?.open()"
           >
@@ -137,11 +137,8 @@ function toggleGroup(name: string) {
       </div>
       <div
         v-if="isExpanded('knowledge-relation')"
-        class="border-t border-border/60 px-2 py-2"
+        class="border-t border-border/60 p-2.5"
       >
-        <div class="mb-1.5 text-[10px] leading-4 text-muted-foreground">
-          关联用于检索增强的知识来源，支持多选。
-        </div>
         <RelationCardPicker
           ref="knowledgePickerRef"
           v-model="formModel.knowledgeIdsList"
@@ -157,19 +154,19 @@ function toggleGroup(name: string) {
 
     <section class="rounded-lg border border-border/70 bg-card">
       <div
-        class="flex items-center justify-between gap-1 rounded-lg py-1 pl-2.5 pr-1.5 transition-colors hover:bg-muted/60"
+        class="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 transition-colors hover:bg-muted/60"
       >
         <button
-          class="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 py-0.5 text-left"
+          class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
           type="button"
           @click="toggleGroup('skill-relation')"
         >
-          <Wrench class="size-3.5 shrink-0 text-primary" />
-          <span class="truncate text-xs font-medium text-foreground">
+          <Wrench class="size-4 shrink-0 text-primary" />
+          <span class="truncate text-sm font-semibold text-foreground">
             技能关联
           </span>
           <span
-            class="shrink-0 rounded bg-muted px-1 text-[10px] leading-4 text-muted-foreground"
+            class="shrink-0 rounded bg-muted px-1.5 text-[11px] leading-[18px] text-muted-foreground"
           >
             {{ formModel.skillIdsList.length }}
           </span>
@@ -177,7 +174,7 @@ function toggleGroup(name: string) {
         <div class="flex shrink-0 items-center gap-0.5">
           <button
             v-tippy="'添加技能'"
-            class="flex cursor-pointer items-center gap-0.5 rounded p-1 text-[10px] text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+            class="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="skillPickerRef?.open()"
           >
@@ -196,11 +193,8 @@ function toggleGroup(name: string) {
       </div>
       <div
         v-if="isExpanded('skill-relation')"
-        class="border-t border-border/60 px-2 py-2"
+        class="border-t border-border/60 p-2.5"
       >
-        <div class="mb-1.5 text-[10px] leading-4 text-muted-foreground">
-          关联可调用的工具技能，支持多选。
-        </div>
         <RelationCardPicker
           ref="skillPickerRef"
           v-model="formModel.skillIdsList"
@@ -216,19 +210,19 @@ function toggleGroup(name: string) {
 
     <section class="rounded-lg border border-border/70 bg-card">
       <div
-        class="flex items-center justify-between gap-1 rounded-lg py-1 pl-2.5 pr-1.5 transition-colors hover:bg-muted/60"
+        class="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 transition-colors hover:bg-muted/60"
       >
         <button
-          class="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 py-0.5 text-left"
+          class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
           type="button"
           @click="toggleGroup('mcp-relation')"
         >
-          <PlugZap class="size-3.5 shrink-0 text-primary" />
-          <span class="truncate text-xs font-medium text-foreground">
+          <PlugZap class="size-4 shrink-0 text-primary" />
+          <span class="truncate text-sm font-semibold text-foreground">
             MCP 关联
           </span>
           <span
-            class="shrink-0 rounded bg-muted px-1 text-[10px] leading-4 text-muted-foreground"
+            class="shrink-0 rounded bg-muted px-1.5 text-[11px] leading-[18px] text-muted-foreground"
           >
             {{ formModel.mcpIdsList.length }}
           </span>
@@ -236,7 +230,7 @@ function toggleGroup(name: string) {
         <div class="flex shrink-0 items-center gap-0.5">
           <button
             v-tippy="'添加 MCP 服务'"
-            class="flex cursor-pointer items-center gap-0.5 rounded p-1 text-[10px] text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+            class="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="mcpPickerRef?.open()"
           >
@@ -255,11 +249,8 @@ function toggleGroup(name: string) {
       </div>
       <div
         v-if="isExpanded('mcp-relation')"
-        class="border-t border-border/60 px-2 py-2"
+        class="border-t border-border/60 p-2.5"
       >
-        <div class="mb-1.5 text-[10px] leading-4 text-muted-foreground">
-          关联 MCP 服务，用于扩展外部工具能力，支持多选。
-        </div>
         <RelationCardPicker
           ref="mcpPickerRef"
           v-model="formModel.mcpIdsList"

@@ -28,10 +28,10 @@ import { openWindow } from '@vben/utils';
 
 import { VbenFullScreen, VbenIconButton } from '@vben-core/shadcn-ui';
 
+import LcSidebarProductLinks from '#/components/LcSidebarProductLinks/index.vue';
+import { LANGCHAT_PRODUCT_LINKS } from '#/constants/product';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
-
-const LANGCHAT_GITHUB_URL = 'https://github.com/langchat-team/langchat';
 
 const notifications = ref<NotificationItem[]>([]);
 
@@ -54,7 +54,7 @@ const menus = computed(() => [
   },
   {
     handler: () => {
-      openWindow(LANGCHAT_GITHUB_URL, {
+      openWindow(LANGCHAT_PRODUCT_LINKS.github, {
         target: '_blank',
       });
     },
@@ -63,7 +63,7 @@ const menus = computed(() => [
   },
   {
     handler: () => {
-      openWindow(`${LANGCHAT_GITHUB_URL}/issues`, {
+      openWindow(`${LANGCHAT_PRODUCT_LINKS.github}/issues`, {
         target: '_blank',
       });
     },
@@ -150,9 +150,11 @@ watch(
         @make-all="handleMakeAll"
       />
     </template>
-    <template v-if="preferences.sidebar.floatingMode" #sidebar-footer>
+    <template #sidebar-footer>
       <div class="flex w-full flex-col gap-2">
+        <LcSidebarProductLinks :collapsed="preferences.sidebar.collapsed" />
         <UserDropdown
+          v-if="preferences.sidebar.floatingMode"
           :avatar
           :menus
           :text="userStore.userInfo?.realName"
@@ -161,7 +163,10 @@ watch(
           tag-text="LangChat"
           @logout="handleLogout"
         />
-        <div class="flex items-center justify-between gap-1 [&_button]:size-8">
+        <div
+          v-if="preferences.sidebar.floatingMode"
+          class="flex items-center justify-between gap-1 [&_button]:size-8"
+        >
           <VbenIconButton
             v-if="preferences.widget.sidebarToggle"
             @click="toggleSidebar"

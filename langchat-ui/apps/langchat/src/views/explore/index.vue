@@ -5,7 +5,16 @@ import {computed, onMounted, ref, watch} from 'vue';
 import {useRouter} from 'vue-router';
 
 import {Page} from '@vben/common-ui';
-import {Box, Coins, Globe, LayoutGrid, MessageSquare, UserRound} from '@vben/icons';
+import {
+  Box,
+  Coins,
+  ExternalLink,
+  Globe,
+  LayoutGrid,
+  MessageSquare,
+  SvgGithubIcon,
+  UserRound,
+} from '@vben/icons';
 import {EchartsUI, useEcharts} from '@vben/plugins/echarts';
 import {preferences, usePreferences} from '@vben/preferences';
 
@@ -13,6 +22,10 @@ import {NSpin, NTag} from 'naive-ui';
 
 import {getExploreOverviewApi} from '#/api/core/explore';
 import LcCard from '#/components/LcCard/index.vue';
+import {
+  LANGCHAT_PRODUCT_LINKS,
+  LANGCHAT_PRODUCT_TEAM,
+} from '#/constants/product';
 
 const router = useRouter();
 const { isDark } = usePreferences();
@@ -180,45 +193,123 @@ onMounted(async () => {
   <Page>
     <div class="flex flex-col gap-2">
       <!-- 产品品牌横幅 -->
-      <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3"
+      <section
+        class="relative overflow-hidden rounded-xl border border-border bg-card px-4 py-4 sm:px-5"
       >
-        <div class="flex min-w-0 items-center gap-3">
-          <img
-            v-if="logoSrc"
-            :alt="appName"
-            :src="logoSrc"
-            class="size-9 shrink-0 rounded-md"
-          />
-          <div class="min-w-0">
-            <div class="text-base font-semibold text-foreground">
-              {{ appName }}
+        <div
+          class="pointer-events-none absolute -right-12 -top-24 size-64 rounded-full bg-primary/10 blur-3xl"
+        ></div>
+        <div
+          class="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between"
+        >
+          <div class="flex min-w-0 items-start gap-3.5">
+            <div
+              class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/20 bg-primary/10"
+            >
+              <img
+                v-if="logoSrc"
+                :alt="appName"
+                :src="logoSrc"
+                class="size-8 object-contain"
+              />
+              <span v-else class="text-sm font-bold text-primary">LC</span>
             </div>
-            <div class="mt-0.5 truncate text-xs text-muted-foreground">
-              开箱即用的企业级 AIGC 应用平台
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 class="text-lg font-semibold tracking-tight text-foreground">
+                  {{ appName }}
+                </h1>
+                <span
+                  class="rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
+                >
+                  Open Source
+                </span>
+              </div>
+              <p class="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+                面向知识增强与智能体应用构建的全栈开源平台，统一连接模型、知识库、Agent、Skills 与 MCP 能力。
+              </p>
+              <div
+                class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground"
+              >
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="size-1.5 rounded-full bg-primary"></span>
+                  由
+                  <strong class="font-medium text-foreground">
+                    {{ LANGCHAT_PRODUCT_TEAM }}
+                  </strong>
+                  开发维护
+                </span>
+                <button
+                  class="inline-flex cursor-pointer items-center gap-1 transition-colors hover:text-primary"
+                  type="button"
+                  @click="openRoute('/about')"
+                >
+                  了解项目
+                  <ExternalLink class="size-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="shrink-0 xl:min-w-[420px]">
+            <div
+              class="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground"
+            >
+              官方与开源地址
+            </div>
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
+              <a
+                class="group flex h-9 items-center gap-2 rounded-lg border border-border bg-background/70 px-3 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                :href="LANGCHAT_PRODUCT_LINKS.github"
+                rel="noopener"
+                target="_blank"
+              >
+                <SvgGithubIcon class="size-3.5 shrink-0" />
+                GitHub
+                <ExternalLink
+                  class="ml-auto size-3 text-muted-foreground transition-colors group-hover:text-primary"
+                />
+              </a>
+              <a
+                class="group flex h-9 items-center gap-2 rounded-lg border border-border bg-background/70 px-3 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                :href="LANGCHAT_PRODUCT_LINKS.gitee"
+                rel="noopener"
+                target="_blank"
+              >
+                <span class="font-semibold text-[#c71d23]">G</span>
+                Gitee
+                <ExternalLink
+                  class="ml-auto size-3 text-muted-foreground transition-colors group-hover:text-primary"
+                />
+              </a>
+              <a
+                class="group flex h-9 items-center gap-2 rounded-lg border border-border bg-background/70 px-3 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                :href="LANGCHAT_PRODUCT_LINKS.gitcode"
+                rel="noopener"
+                target="_blank"
+              >
+                <span class="font-semibold text-primary">GC</span>
+                GitCode
+                <ExternalLink
+                  class="ml-auto size-3 text-muted-foreground transition-colors group-hover:text-primary"
+                />
+              </a>
+              <a
+                class="group flex h-9 items-center gap-2 rounded-lg border border-border bg-background/70 px-3 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                :href="LANGCHAT_PRODUCT_LINKS.website"
+                rel="noopener"
+                target="_blank"
+              >
+                <Globe class="size-3.5 shrink-0" />
+                官方网站
+                <ExternalLink
+                  class="ml-auto size-3 text-muted-foreground transition-colors group-hover:text-primary"
+                />
+              </a>
             </div>
           </div>
         </div>
-
-        <div
-          class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground"
-        >
-          <span>
-            由
-            <span class="font-medium text-foreground/80">LangChat Team</span>
-            打造
-          </span>
-          <a
-            class="inline-flex items-center gap-1 transition-colors hover:text-primary"
-            href="https://langchat.cn"
-            rel="noopener"
-            target="_blank"
-          >
-            <Globe class="size-3.5" />
-            langchat.cn
-          </a>
-        </div>
-      </div>
+      </section>
 
       <NSpin :show="loading">
         <div

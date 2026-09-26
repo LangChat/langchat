@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
+
 import { computed, ref } from 'vue';
+
 import { CheckCircle2, Circle, Link, Plus, X } from '@vben/icons';
+
 import { useVbenModal } from '@vben-core/popup-ui';
+
 import { NButton, NInput, NTag } from 'naive-ui';
 
 interface RelationOption {
@@ -74,7 +78,7 @@ defineExpose({ open: openSelectModal });
 </script>
 
 <template>
-  <div :class="compact ? 'space-y-1' : 'space-y-2.5'">
+  <div :class="compact ? 'space-y-1.5' : 'space-y-2.5'">
     <div
       v-if="!compact"
       class="flex items-center justify-between gap-3"
@@ -118,18 +122,18 @@ defineExpose({ open: openSelectModal });
       <div
         v-for="option in selectedOptions"
         :key="`selected-${option.value}`"
-        class="group flex items-center justify-between gap-2 rounded-md border border-border/70 bg-muted/20 px-2 py-1.5"
+        class="group flex items-center justify-between gap-2 rounded-md border border-border/70 bg-muted/20 px-2.5 py-2"
       >
         <div class="min-w-0 flex-1">
           <div class="flex min-w-0 items-center gap-1.5">
-            <component :is="icon" class="size-3 shrink-0 text-primary" />
-            <div class="truncate text-[11px] font-medium text-foreground">
+            <component :is="icon" class="size-3.5 shrink-0 text-primary" />
+            <div class="truncate text-xs font-medium text-foreground">
               {{ option.label }}
             </div>
           </div>
           <div
             v-if="option.description"
-            class="mt-0.5 truncate text-[10px] leading-4 text-muted-foreground"
+            class="mt-0.5 truncate text-xs leading-5 text-muted-foreground"
           >
             {{ option.description }}
           </div>
@@ -166,9 +170,9 @@ defineExpose({ open: openSelectModal });
 
     <div
       v-else-if="compact"
-      class="px-0.5 text-[10px] leading-4 text-muted-foreground"
+      class="rounded-md bg-muted/25 px-2.5 py-2 text-xs leading-5 text-muted-foreground"
     >
-      暂未关联，点击右上角 + 添加
+      暂无关联
     </div>
 
     <Modal

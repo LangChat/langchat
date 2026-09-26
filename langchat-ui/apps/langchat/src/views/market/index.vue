@@ -1,19 +1,27 @@
 <script lang="ts" setup>
-import type {AigcAgent} from '#/api/aigc/agent';
+import type { AigcAgent } from '#/api/aigc/agent';
 
-import {computed, onMounted, onUnmounted, ref} from 'vue';
-import {useRouter} from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-import {Page} from '@vben/common-ui';
-import {Search} from '@vben/icons';
-import {preferences, usePreferences} from '@vben/preferences';
+import { Page } from '@vben/common-ui';
+import {
+  ArrowRight,
+  Bot,
+  Search,
+  SvgGithubIcon,
+} from '@vben/icons';
+import { preferences, usePreferences } from '@vben/preferences';
 
-import {NInput, NSpin} from 'naive-ui';
+import { NInput, NSpin } from 'naive-ui';
 
-import {message} from '#/adapter/naive';
-import {agentApi} from '#/api/aigc/agent';
-import LcEmptyState from '#/components/LcEmptyState/index.vue';
-import {useAigcLookups} from '#/views/shared/aigc/lookups';
+import { message } from '#/adapter/naive';
+import { agentApi } from '#/api/aigc/agent';
+import {
+  LANGCHAT_PRODUCT_LINKS,
+  LANGCHAT_PRODUCT_TEAM,
+} from '#/constants/product';
+import { useAigcLookups } from '#/views/shared/aigc/lookups';
 
 import MarketCard from './card.vue';
 
@@ -62,6 +70,10 @@ async function loadList() {
   }
 }
 
+function openRoute(path: string) {
+  void router.push(path);
+}
+
 function enterMarketAgent(item: AigcAgent) {
   const id = String(item.id || '');
   if (!id) {
@@ -71,135 +83,126 @@ function enterMarketAgent(item: AigcAgent) {
   void router.push(`/market/${id}/chat`);
 }
 
-// —— 产品场景打字机效果 ——
-const MARKET_FEATURE_WORDS = [
-  'AIGC 应用构建',
-  '知识库检索问答',
-  '技能编排调度',
-  'MCP 工具集成',
-  '智能问数分析',
-  '图片理解生成',
-];
-const typedText = ref('');
-let typeTimer: null | ReturnType<typeof setTimeout> = null;
-let typeWordIndex = 0;
-let typeCharIndex = 0;
-let typeDeleting = false;
-
-function typeTick() {
-  const word = MARKET_FEATURE_WORDS[typeWordIndex] ?? '';
-  if (!typeDeleting) {
-    typeCharIndex += 1;
-    typedText.value = word.slice(0, typeCharIndex);
-    if (typeCharIndex >= word.length) {
-      typeDeleting = true;
-      typeTimer = setTimeout(typeTick, 2000);
-      return;
-    }
-    typeTimer = setTimeout(typeTick, 150);
-  } else {
-    typeCharIndex -= 1;
-    typedText.value = word.slice(0, typeCharIndex);
-    if (typeCharIndex <= 0) {
-      typeDeleting = false;
-      typeWordIndex = (typeWordIndex + 1) % MARKET_FEATURE_WORDS.length;
-      typeTimer = setTimeout(typeTick, 400);
-      return;
-    }
-    typeTimer = setTimeout(typeTick, 70);
-  }
-}
-
 async function initializePage() {
   await Promise.all([loadLookups(), loadList()]);
 }
 
 onMounted(() => {
-  initializePage();
-  typeTimer = setTimeout(typeTick, 500);
-});
-
-onUnmounted(() => {
-  if (typeTimer) {
-    clearTimeout(typeTimer);
-  }
+  void initializePage();
 });
 </script>
 
 <template>
   <Page>
-    <div class="flex flex-col items-center">
-      <!-- 居中产品 Hero -->
-      <div
-        class="flex flex-col items-center gap-3 pb-2 pt-10 text-center md:pt-14"
+    <div class="market-page flex flex-col gap-4">
+      <section
+        class="market-hero relative overflow-hidden rounded-lg border border-border bg-card"
       >
-        <div class="relative inline-block">
-          <h1 class="market-title text-5xl font-extrabold tracking-tight md:text-6xl">
-            LangChat
-          </h1>
-          <!-- 手绘感渐变下划线 -->
-          <svg
-            class="absolute -bottom-3 left-1/2 h-4 w-[110%] -translate-x-1/2"
-            fill="none"
-            preserveAspectRatio="none"
-            viewBox="0 0 320 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <linearGradient id="marketUnderline" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0" stop-color="#3b82f6" />
-                <stop offset="0.5" stop-color="#8b5cf6" />
-                <stop offset="1" stop-color="#0ea5e9" />
-              </linearGradient>
-            </defs>
-            <path
-              class="market-underline"
-              d="M8 13 C 70 4, 130 17, 190 9 S 290 5, 312 11"
-              stroke="url(#marketUnderline)"
-              stroke-linecap="round"
-              stroke-width="5"
-            />
-          </svg>
-          <span class="market-spark absolute -right-8 -top-2 text-2xl text-primary/60">
-            ✦
-          </span>
-        </div>
-        <p
-          class="max-w-2xl text-sm leading-7 text-muted-foreground md:text-base"
-        >
-          开箱即用的企业级 AIGC 应用构建平台，聚合大模型、知识库、技能与 MCP
-          工具，让 AI 能力快速融入你的业务。
-        </p>
-        <div class="flex items-center gap-3 text-sm md:text-base">
-          <span
-            class="hidden h-px w-12 bg-gradient-to-r from-transparent to-primary/40 sm:block"
-          ></span>
-          <span class="text-muted-foreground">已覆盖</span>
-          <span class="font-semibold text-primary">{{ typedText }}</span>
-          <span
-            class="market-cursor inline-block h-4 w-0.5 rounded-full bg-primary md:h-5"
-          ></span>
-          <span
-            class="hidden h-px w-12 bg-gradient-to-l from-transparent to-primary/40 sm:block"
-          ></span>
-        </div>
-        <NInput
-          v-model:value="keyword"
-          class="market-search mt-5 w-full max-w-2xl"
-          clearable
-          placeholder="搜索已发布应用，点击卡片即可进入会话"
-        >
-          <template #prefix>
-            <Search class="size-5 text-muted-foreground" />
-          </template>
-        </NInput>
-      </div>
+        <div class="market-grid pointer-events-none absolute inset-0"></div>
+        <div
+          class="market-glow pointer-events-none absolute -right-20 -top-28 size-80 rounded-full"
+        ></div>
 
-      <!-- 应用卡片 / 空状态 -->
-      <NSpin :show="loading" class="mt-10 w-full">
+        <div
+          class="relative flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
+        >
+          <div class="flex min-w-0 items-start gap-3.5">
+            <div
+              class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/20 bg-primary/10"
+            >
+              <img
+                v-if="logoSrc"
+                :alt="appName"
+                :src="logoSrc"
+                class="size-8 object-contain"
+              />
+              <Bot v-else class="size-5 text-primary" />
+            </div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h1
+                  class="text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+                >
+                  LangChat 应用市场
+                </h1>
+                <span
+                  class="rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
+                >
+                  Open Source
+                </span>
+              </div>
+              <p class="mt-1.5 max-w-3xl text-sm leading-6 text-muted-foreground">
+                发现并使用团队已经发布的 Agent 应用，从知识问答到业务协作，点击卡片即可开始会话。
+              </p>
+              <div
+                class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground"
+              >
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                  {{ LANGCHAT_PRODUCT_TEAM }} 开发维护
+                </span>
+                <span>{{ publishedAgents.length }} 个应用已发布</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex shrink-0 flex-wrap items-center gap-2">
+            <a
+              class="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-background/70 px-3 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+              :href="LANGCHAT_PRODUCT_LINKS.github"
+              rel="noopener"
+              target="_blank"
+            >
+              <SvgGithubIcon class="size-3.5" />
+              开源仓库
+            </a>
+            <button
+              class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              type="button"
+              @click="openRoute('/about')"
+            >
+              了解项目
+              <ArrowRight class="size-3.5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-border bg-card px-4 py-4 sm:px-5">
+        <div
+          class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+        >
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-semibold text-foreground">应用广场</h2>
+              <span
+                class="rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+              >
+                {{ publishedAgents.length }} 个应用
+              </span>
+            </div>
+            <p class="mt-1 text-xs text-muted-foreground">
+              搜索并打开已发布的 Agent，直接开始对话和任务协作
+            </p>
+          </div>
+
+          <NInput
+            v-model:value="keyword"
+            class="market-search w-full lg:w-[420px]"
+            clearable
+            placeholder="搜索应用名称、介绍或标签"
+          >
+            <template #prefix>
+              <Search class="size-4 text-muted-foreground" />
+            </template>
+          </NInput>
+        </div>
+      </section>
+
+      <NSpin :show="loading" class="min-h-[420px] w-full">
         <div
           v-if="filteredPublishedAgents.length > 0"
-          class="mx-auto grid w-full max-w-7xl gap-3 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+          class="grid w-full gap-3 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
         >
           <MarketCard
             v-for="item in filteredPublishedAgents"
@@ -211,138 +214,106 @@ onUnmounted(() => {
             @enter="enterMarketAgent"
           />
         </div>
-        <LcEmptyState
-          v-else
-          class="py-16"
-          :description="
-            keyword.trim()
-              ? '没有找到匹配的应用，换个关键词试试'
-              : '发布 Agent 后会自动出现在这里，点击卡片即可进入会话'
-          "
-          title="暂无已发布应用"
-        />
-      </NSpin>
 
-      <!-- 页脚署名 -->
-      <div
-        class="mt-12 flex flex-col items-center gap-1 pb-2 text-xs text-muted-foreground"
-      >
-        <div class="flex items-center gap-1.5">
-          <img
-            v-if="logoSrc"
-            :alt="appName"
-            :src="logoSrc"
-            class="size-4 rounded"
-          />
-          <span class="text-sm font-semibold text-foreground/80">
-            {{ appName }}
-          </span>
-          <span>· LangChat Team 作品</span>
-        </div>
-        <div>
-          官网：
-          <a
-            class="transition-colors hover:text-primary"
-            href="https://langchat.cn"
-            rel="noopener"
-            target="_blank"
+        <section
+          v-else-if="keyword.trim()"
+          class="flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center"
+        >
+          <div
+            class="flex size-12 items-center justify-center rounded-xl border border-border bg-muted/20 text-muted-foreground"
           >
-            langchat.cn
-          </a>
-        </div>
-      </div>
+            <Search class="size-5" />
+          </div>
+          <h3 class="mt-4 text-sm font-semibold text-foreground">
+            没有找到“{{ keyword.trim() }}”
+          </h3>
+          <p class="mt-1 max-w-md text-xs leading-5 text-muted-foreground">
+            可以尝试应用名称、业务场景或能力标签，也可以清空搜索查看全部已发布应用。
+          </p>
+          <button
+            class="mt-4 cursor-pointer text-xs font-medium text-primary hover:underline"
+            type="button"
+            @click="keyword = ''"
+          >
+            清空搜索条件
+          </button>
+        </section>
+
+        <section
+          v-else
+          class="market-empty relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-card"
+        >
+          <div class="market-empty-grid pointer-events-none absolute inset-0"></div>
+          <div
+            class="relative flex max-w-2xl flex-col items-center px-6 py-12 text-center"
+          >
+            <div
+              class="flex size-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary"
+            >
+              <Bot class="size-5" />
+            </div>
+            <h3 class="mt-4 text-base font-semibold text-foreground">
+              暂无已发布应用
+            </h3>
+            <p class="mt-1.5 text-sm leading-6 text-muted-foreground">
+              发布 Agent 后会自动出现在这里，团队成员可以点击应用卡片直接进入会话。
+            </p>
+            <button
+              class="mt-5 inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              type="button"
+              @click="openRoute('/agents')"
+            >
+              前往应用管理
+              <ArrowRight class="size-3.5" />
+            </button>
+            <div class="mt-5 text-[11px] text-muted-foreground">
+              {{ LANGCHAT_PRODUCT_TEAM }} · LangChat 开源项目
+            </div>
+          </div>
+        </section>
+      </NSpin>
     </div>
   </Page>
 </template>
 
 <style scoped>
-/* 标题渐变 + 流动动效 */
-.market-title {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--primary)) 0%,
-    #7c3aed 30%,
-    hsl(var(--primary)) 60%,
-    #0ea5e9 100%
-  );
-  background-size: 250% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  animation: market-title-flow 8s linear infinite;
+.market-hero {
+  isolation: isolate;
 }
 
-@keyframes market-title-flow {
-  to {
-    background-position: 250% center;
-  }
+.market-grid,
+.market-empty-grid {
+  background-image:
+    linear-gradient(hsl(var(--border) / 35%) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 35%) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(to bottom right, black, transparent 75%);
+  opacity: 0.45;
 }
 
-/* 手绘下划线：入场描画动效 */
-.market-underline {
-  stroke-dasharray: 340;
-  stroke-dashoffset: 340;
-  animation: market-underline-draw 1s ease-out 0.3s forwards;
+.market-glow {
+  background:
+    radial-gradient(
+      circle at 35% 35%,
+      hsl(var(--primary) / 22%),
+      transparent 48%
+    ),
+    radial-gradient(
+      circle at 70% 70%,
+      hsl(199 89% 48% / 16%),
+      transparent 54%
+    );
+  filter: blur(4px);
 }
 
-@keyframes market-underline-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* 标题旁的星形点缀：缓慢闪烁 */
-.market-spark {
-  animation: market-spark-twinkle 3s ease-in-out infinite;
-}
-
-@keyframes market-spark-twinkle {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(0.9) rotate(0deg);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.1) rotate(18deg);
-  }
-}
-
-/* 打字机光标闪烁 */
-.market-cursor {
-  animation: market-cursor-blink 1s steps(2, start) infinite;
-}
-
-@keyframes market-cursor-blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-/* 大号胶囊搜索框：无阴影，文字居中 */
 .market-search {
-  height: 3.5rem;
-  border-radius: 9999px;
-  font-size: 1rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
 }
 
-.market-search :deep(input) {
-  font-size: 1rem;
-  text-align: center;
+.market-empty-grid {
+  mask-image: radial-gradient(circle at 82% 45%, black, transparent 68%);
+  opacity: 0.5;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .market-underline {
-    stroke-dashoffset: 0;
-  }
-
-  .market-spark {
-    animation: none;
-  }
-
-  .market-title {
-    animation: none;
-  }
-}
 </style>

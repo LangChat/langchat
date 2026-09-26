@@ -407,7 +407,7 @@ const headerSlots = computed(() => {
       </VbenLogo>
     </template>
 
-    <template v-if="isFloatingMode" #sidebar-footer>
+    <template v-if="$slots['sidebar-footer']" #sidebar-footer>
       <slot name="sidebar-footer"></slot>
     </template>
 

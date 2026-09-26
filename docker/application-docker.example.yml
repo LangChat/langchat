@@ -1,0 +1,49 @@
+spring:
+  profiles:
+    active: prod
+  datasource:
+    mysql:
+      url: jdbc:mysql://mysql:3306/langchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+      username: root
+      password: 123456
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+langchat:
+  auth:
+    super-admin-username: admin
+    local-users:
+      - user-id: admin
+        username: admin
+        password: change-me
+        display-name: System Admin
+        tenant-id: default
+        roles:
+          - SUPER_ADMIN
+        permissions:
+          - auth:login
+          - auth:logout
+          - auth:me
+  storage:
+    type: s3
+    s3:
+      end-point: http://rustfs:9000
+      access-key: rustfsadmin
+      secret-key: change-me
+      bucket-name: langchat
+      region: us-east-1
+      path-style-access-enabled: true
+      auto-create-bucket: true
+      # 若对象需要被浏览器直接访问，可配置反向代理后的公开地址。
+      # public-base-url: https://oss.example.com
+  core:
+    docling:
+      enabled: false
+      base-url: ""
+      timeout-seconds: 300
+  skill:
+    workspace-dir: /opt/langchat/workspace/skills
+
+management:
+  endpoint:
+    health:
+      show-details: never

@@ -83,4 +83,9 @@ docs/langchat.http
 .env.*.local
 application-*.local.yml
 /workspace/
+/langchat-server/workspace/
 /lefthook.yml
+/docker/application-docker.yml
+/docker/.env
+/release/
+/.release.tmp.*

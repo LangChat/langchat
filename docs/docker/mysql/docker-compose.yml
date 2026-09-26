@@ -1,0 +1,49 @@
+# ==============================================================================
+# MySQL 中间件编排（独立部署）
+#
+# 用途：为 LangChat 提供业务数据库。适用于数据库与容器分离部署的场景
+#       （应用镜像跑在别处，或需要对接已有 MySQL 实例）。
+#
+# 启动：  docker compose -f docs/docker/mysql/docker-compose.yml up -d
+# 停止：  docker compose -f docs/docker/mysql/docker-compose.yml down
+# 查看：  docker compose -f docs/docker/mysql/docker-compose.yml logs -f
+#
+# 连接信息（在应用侧环境变量中配置）：
+#   jdbc:mysql://<host>:3306/langchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+#   username=root  password=123456
+# ==============================================================================
+
+name: langchat-mysql
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: langchat-mysql
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD:-123456}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-langchat}"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+      - --lower_case_table_names=0
+      - --max_connections=1000
+      # 允许较大字段写入（知识库文档内容为 longtext）
+      - --max_allowed_packet=64M
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 首次启动自动导入建表与初始数据（仅在数据目录为空时执行）
+      - ../../../docs/db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mysql-data:

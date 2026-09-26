@@ -1,0 +1,55 @@
+# ==============================================================================
+# Redis 中间件编排（独立部署）
+#
+# 说明：当前版本 LangChat 后端未直接依赖 Redis（会话与缓存由应用内存与
+#       MySQL 承担）。此编排用于以下场景：
+#         1. 后续版本启用 Redis 缓存 / 会话共享 / 限流
+#         2. 与其他需要 Redis 的服务共用实例
+#         3. 作为 Sidecar 供容器内 redis-cli 调试
+#
+# 启动：  docker compose -f docs/docker/redis/docker-compose.yml up -d
+# 连接：  docker exec -it langchat-redis redis-cli -a 123456 ping
+#
+# 应用如需接入，注入以下环境变量即可（Spring Boot 标准配置）：
+#   SPRING_DATA_REDIS_HOST=<host>
+#   SPRING_DATA_REDIS_PORT=6379
+#   SPRING_DATA_REDIS_PASSWORD=123456
+# ==============================================================================
+
+name: langchat-redis
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: langchat-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --requirepass
+      - "${REDIS_PASSWORD:-123456}"
+      - --maxmemory
+      - "${REDIS_MAXMEMORY:-512mb}"
+      # 内存达到上限时淘汰最近最少使用的键
+      - --maxmemory-policy
+      - allkeys-lru
+    environment:
+      TZ: Asia/Shanghai
+      # 供健康检查读取（command 中的密码由 compose 插值，不依赖此变量）
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-123456}"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  redis-data:

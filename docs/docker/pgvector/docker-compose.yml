@@ -1,0 +1,45 @@
+# ==============================================================================
+# PGVector 中间件编排（独立部署）
+#
+# 用途：为 LangChat 知识库提供向量检索存储。pgvector 是 PostgreSQL 的向量扩展，
+#       镜像已内置该扩展，建库后执行 CREATE EXTENSION vector 即可（应用建表时会用到）。
+#
+# 启动：  docker compose -f docs/docker/pgvector/docker-compose.yml up -d
+# 停止：  docker compose -f docs/docker/pgvector/docker-compose.yml down
+#
+# 启用扩展（首次部署需执行一次）：
+#   docker exec -it langchat-pgvector psql -U postgres -d langchat -c "CREATE EXTENSION IF NOT EXISTS vector;"
+#
+# 应用侧配置位置：模型与能力 → 向量存储
+#   host=<宿主机IP>  port=5432  database=langchat  username=postgres  password=postgres
+# ==============================================================================
+
+name: langchat-pgvector
+
+services:
+  pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: langchat-pgvector
+    restart: unless-stopped
+    ports:
+      - "${PGVECTOR_PORT:-5432}:5432"
+    environment:
+      TZ: Asia/Shanghai
+      POSTGRES_USER: "${PGVECTOR_USER:-postgres}"
+      POSTGRES_PASSWORD: "${PGVECTOR_PASSWORD:-postgres}"
+      POSTGRES_DB: "${PGVECTOR_DATABASE:-langchat}"
+      # 中文语义检索场景建议显式指定排序规则
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+      # 首次启动自动启用向量扩展，避免应用建表时报 "type vector does not exist"
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGVECTOR_USER:-postgres} -d ${PGVECTOR_DATABASE:-langchat}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  pgvector-data:

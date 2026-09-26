@@ -1,0 +1,54 @@
+# ==============================================================================
+# Nginx 中间件编排（独立部署）
+#
+# 用途：作为统一入口反向代理，前置 LangChat 应用容器。适合以下场景：
+#       1. 已有域名与 HTTPS 证书，需要统一接入
+#       2. 多个应用共用一个入口网关
+#       3. 需要独立于应用镜像升级 Nginx 配置
+#
+# 说明：一体化应用镜像内部已自带 Nginx（监听 80 端口），
+#       若使用「应用 + 本编排」组合，请把应用容器的 80 端口改为仅本机映射，
+#       由本 Nginx 统一对外，避免端口冲突与双重代理。
+#
+# 启动：  docker compose -f docs/docker/nginx/docker-compose.yml up -d
+# 重载：  docker exec langchat-nginx nginx -s reload
+#
+# 配置：直接编辑同目录的 nginx.conf.template（无需复制）
+#       其中 ${LANGCHAT_UPSTREAM} 由下方环境变量注入，容器启动时完成替换。
+# ==============================================================================
+
+name: langchat-nginx
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: langchat-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HTTP_PORT:-8081}:80"
+      - "${NGINX_HTTPS_PORT:-8443}:443"
+    environment:
+      TZ: Asia/Shanghai
+      # 上游应用地址（默认指向宿主机上的应用容器）
+      #   宿主机应用：host.docker.internal:80
+      #   同网络容器：容器名:端口，如 langchat:80
+      LANGCHAT_UPSTREAM: "${LANGCHAT_UPSTREAM:-host.docker.internal:80}"
+    # Linux 下 host.docker.internal 默认不存在，通过 host-gateway 补齐，
+    # 使默认上游在 Mac / Windows / Linux 三端均可解析
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # 模板方式：官方镜像入口脚本会用 envsubst 替换 ${LANGCHAT_UPSTREAM}，
+      # 普通 .conf 不会被替换，因此必须挂到 templates 目录
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./certs:/etc/nginx/certs:ro
+      - nginx-logs:/var/log/nginx
+    healthcheck:
+      test: ["CMD-SHELL", "nginx -t || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  nginx-logs:

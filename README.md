@@ -107,6 +107,8 @@ flowchart LR
 
 ```text
 langchat
+├── build-release.sh      # 构建后端、前端并生成非 Docker 交付目录
+├── build-docker.sh       # Docker 配置准备、镜像构建与服务管理入口
 ├── langchat-common       # 公共基础能力与依赖管理
 ├── langchat-auth         # 认证、用户、角色、菜单与权限
 ├── langchat-aigc         # 模型、Agent、知识库、Skills 等业务管理
@@ -175,12 +177,83 @@ mvn -pl langchat-server -am spring-boot:run
 pnpm --dir langchat-ui --filter @vben/web-naive dev
 ```
 
+## 构建与部署
+
+项目根目录提供两个统一入口脚本。两者用途不同：`build-release.sh` 用于生成可复制到服务器的传统交付目录，`build-docker.sh` 用于构建和管理 Docker Compose 服务。
+
+### 生成非 Docker 交付目录
+
+执行：
+
+```bash
+bash build-release.sh
+```
+
+脚本会依次完成 Maven 后端打包、Vue 前端生产构建和交付文件检查，并在根目录生成已被 Git 忽略的 `release/`：
+
+```text
+release/
+├── app/langchat.jar
+├── config/
+├── html/
+├── logs/
+├── nginx/default.conf
+├── sql/01-langchat.sql
+└── workspace/skills/
+```
+
+可以通过环境变量修改输出目录：
+
+```bash
+LANGCHAT_RELEASE_DIR=/opt/releases/langchat bash build-release.sh
+```
+
+脚本不会自动安装前端依赖。首次构建前请先在 `langchat-ui/` 中执行 `pnpm install`。部署后端时，应复制并修改 `release/config/application-runtime.example.yml`，再通过 Spring Boot 的 `spring.config.additional-location` 参数加载真实配置。
+
+### Docker Compose 部署
+
+首次部署先生成本地配置：
+
+```bash
+bash build-docker.sh prepare
+```
+
+该命令仅在文件不存在时创建以下配置，不会覆盖已有内容：
+
+- `docker/.env`：MySQL、Pgvector、RustFS 和镜像等基础设施参数；
+- `docker/application-docker.yml`：LangChat 后端数据库、管理员和 S3 客户端配置。
+
+修改两份配置并确保数据库与 RustFS 凭据相互一致，然后执行：
+
+```bash
+bash build-docker.sh deploy
+```
+
+`deploy` 会构建 LangChat 镜像并在后台启动 LangChat、MySQL、Pgvector 与 RustFS。后端业务配置通过 Compose 同目录的 YAML 文件挂载到容器中，不需要在 `docker-compose.yml` 内维护大量应用参数。
+
+常用命令：
+
+| 命令 | 作用 |
+| --- | --- |
+| `bash build-docker.sh build` | 仅构建 LangChat 应用镜像 |
+| `bash build-docker.sh up` | 使用现有镜像启动全部服务 |
+| `bash build-docker.sh down` | 停止并删除容器，保留数据卷 |
+| `bash build-docker.sh restart` | 重启 LangChat 应用容器 |
+| `bash build-docker.sh logs [服务名]` | 持续查看日志，默认服务为 `langchat` |
+| `bash build-docker.sh status` | 查看服务状态 |
+| `bash build-docker.sh config` | 展开并校验 Compose 配置 |
+| `bash build-docker.sh release` | 调用 `build-release.sh` 生成传统交付目录 |
+
+可通过 `LANGCHAT_DOCKER_ENV_FILE` 指定其他 Compose 环境变量文件，通过 `LANGCHAT_CONFIG_SOURCE` 指定相对于 `docker/docker-compose.yml` 的后端 YAML。完整的容器端口、存储和健康检查说明见 [Docker 部署文档](docker/README.md)。
+
 ## 配置与安全
 
 - `application.yml` 保存通用配置。
 - `application-dev.yml`、`application-test.yml` 和 `application-prod.yml` 对应不同运行环境。
 - `application-local.yml` 仅用于本机真实配置，已加入 `.gitignore`。
-- 生产环境配置通过 `LANGCHAT_MYSQL_*`、`LANGCHAT_ADMIN_*` 等环境变量注入。
+- Docker 部署的后端业务参数写入本地 `docker/application-docker.yml`，基础设施参数写入 `docker/.env`；两个文件均已被 Git 忽略。
+- 部署前必须替换示例中的 `change-me`、默认密码和访问密钥；`build-docker.sh` 会拒绝使用仍包含 `change-me` 的配置启动。
+- 非 Docker 部署可以使用外部 YAML 或环境变量覆盖配置，不要直接修改并提交生产凭据。
 - 不要在 Issue、日志、提交记录或截图中公开 API Key、数据库密码和访问令牌。
 
 ## 参与贡献

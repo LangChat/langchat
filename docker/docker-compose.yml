@@ -1,0 +1,131 @@
+name: langchat
+
+services:
+  langchat:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: "${LANGCHAT_IMAGE_NAME:-langchat}:${LANGCHAT_IMAGE_TAG:-latest}"
+    container_name: langchat
+    restart: unless-stopped
+    ports:
+      - "${LANGCHAT_HTTP_PORT:-80}:80"
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: "${LANGCHAT_JAVA_OPTS:--Xms512m -Xmx1024m -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai}"
+      LANGCHAT_CONFIG_FILE: /opt/langchat/config/application-docker.yml
+    volumes:
+      - langchat-logs:/opt/langchat/logs
+      - langchat-workspace:/opt/langchat/workspace
+      - "${LANGCHAT_CONFIG_SOURCE:-./application-docker.yml}:/opt/langchat/config/application-docker.yml:ro"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      pgvector:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+    networks:
+      - langchat-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: langchat-mysql
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-127.0.0.1:3306}:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD:-123456}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-langchat}"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+      - --lower_case_table_names=0
+      - --max_connections=1000
+    volumes:
+      - langchat-mysql-data:/var/lib/mysql
+      - ../docs/db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - langchat-net
+
+  pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: langchat-pgvector
+    restart: unless-stopped
+    ports:
+      - "${PGVECTOR_PORT:-127.0.0.1:5432}:5432"
+    environment:
+      TZ: Asia/Shanghai
+      POSTGRES_USER: "${PGVECTOR_USER:-postgres}"
+      POSTGRES_PASSWORD: "${PGVECTOR_PASSWORD:-postgres}"
+      POSTGRES_DB: "${PGVECTOR_DATABASE:-langchat}"
+    volumes:
+      - langchat-pgvector-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGVECTOR_USER:-postgres} -d ${PGVECTOR_DATABASE:-langchat}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - langchat-net
+
+  rustfs-volume-init:
+    image: alpine:3.22
+    container_name: langchat-rustfs-volume-init
+    user: root
+    command: ["sh", "-c", "chown -R 10001:10001 /data"]
+    volumes:
+      - langchat-rustfs-data:/data
+    restart: "no"
+
+  rustfs:
+    image: rustfs/rustfs:1.0.0
+    container_name: langchat-rustfs
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${RUSTFS_API_PORT:-127.0.0.1:9000}:9000"
+      - "${RUSTFS_CONSOLE_PORT:-127.0.0.1:9001}:9001"
+    environment:
+      TZ: Asia/Shanghai
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY:-rustfsadmin}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY:-change-me}"
+      RUSTFS_OBS_LOGGER_LEVEL: info
+    volumes:
+      - langchat-rustfs-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    depends_on:
+      rustfs-volume-init:
+        condition: service_completed_successfully
+    networks:
+      - langchat-net
+
+volumes:
+  langchat-logs:
+  langchat-workspace:
+  langchat-mysql-data:
+  langchat-pgvector-data:
+  langchat-rustfs-data:
+
+networks:
+  langchat-net:
+    driver: bridge

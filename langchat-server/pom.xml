@@ -85,10 +85,21 @@
     </dependencies>
 
     <build>
+        <finalName>langchat-server</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <!-- 绑定 repackage，产出可直接 java -jar 运行的 fat jar（Docker 镜像依赖此产物）；
+                         本地开发仍可用 mvn spring-boot:run 启动。 -->
+                    <execution>
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

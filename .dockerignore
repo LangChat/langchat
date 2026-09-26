@@ -1,0 +1,61 @@
+# ==============================================================================
+# Docker 构建上下文排除清单
+#
+# 构建上下文为项目根目录，以下内容无需发送给 Docker daemon。
+# 合理排除可显著减小上下文体积并提升构建速度。
+# ==============================================================================
+
+# ------------------------------ 通用 ------------------------------
+.git
+.gitignore
+.gitattributes
+.github
+.env
+.env/
+docker/.env
+docker/application-docker.yml
+lefthook.yml
+.idea
+.vscode
+.DS_Store
+*.log
+*.md
+!docker/README.md
+
+# ------------------------------ 构建产物 ------------------------------
+**/target
+**/dist
+**/dist.zip
+**/.turbo
+**/*.tsbuildinfo
+target
+dist
+.turbo
+
+# ------------------------------ 前端 ------------------------------
+**/node_modules
+node_modules
+langchat-ui/node_modules
+langchat-ui/apps/*/node_modules
+langchat-ui/internal/*/node_modules
+langchat-ui/packages/*/node_modules
+langchat-ui/packages/@core/*/node_modules
+langchat-ui/packages/effects/*/node_modules
+langchat-ui/.changeset
+langchat-ui/docs
+langchat-ui/playground
+langchat-ui/.playwright
+langchat-ui/coverage
+
+# ------------------------------ 运行时数据 ------------------------------
+logs
+.run
+workspace
+*.pid
+release
+.release.tmp.*
+
+# ------------------------------ 其他 ------------------------------
+docs/backend
+docs/frontend
+skills

@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +22,7 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(prefix = "langchat.storage", name = "type", havingValue = "local", matchIfMissing = true)
 @RequiredArgsConstructor
 public class LocalOssServiceImpl implements OssService {
 

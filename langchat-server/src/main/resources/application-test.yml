@@ -15,6 +15,18 @@ management:
       show-details: always
 
 langchat:
+  storage:
+    type: ${LANGCHAT_TEST_STORAGE_TYPE:local}
+    local-base-dir: ${LANGCHAT_TEST_LOCAL_STORAGE_DIR:/tmp/langchat-test-oss}
+    s3:
+      access-key: ${AMAZON_S3_TEST_ACCESS_KEY:change-me}
+      secret-key: ${AMAZON_S3_TEST_SECRET_KEY:change-me}
+      bucket-name: ${AMAZON_S3_TEST_BUCKET_NAME:langchat-test}
+      # 测试环境必须使用独立 Bucket，避免污染开发或生产对象。
+      end-point: ${AMAZON_S3_TEST_END_POINT:http://127.0.0.1:9000}
+      region: ${AMAZON_S3_TEST_REGION:us-east-1}
+      path-style-access-enabled: ${AMAZON_S3_TEST_PATH_STYLE_ACCESS_ENABLED:true}
+      auto-create-bucket: ${AMAZON_S3_TEST_AUTO_CREATE_BUCKET:true}
   core:
     docling:
       # Docling 文档解析（需独立部署 docling-serve）。开启后文档导入可选择

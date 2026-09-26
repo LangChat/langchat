@@ -15,6 +15,18 @@ management:
       show-details: always
 
 langchat:
+  storage:
+    type: ${LANGCHAT_STORAGE_TYPE:local}
+    local-base-dir: ${LANGCHAT_LOCAL_STORAGE_DIR:/tmp/langchat-oss}
+    s3:
+      access-key: ${AMAZON_S3_ACCESS_KEY:change-me}
+      secret-key: ${AMAZON_S3_SECRET_KEY:change-me}
+      bucket-name: ${AMAZON_S3_BUCKET_NAME:langchat}
+      # S3 服务地址末尾不要添加斜杠
+      end-point: ${AMAZON_S3_END_POINT:http://127.0.0.1:9000}
+      region: ${AMAZON_S3_REGION:us-east-1}
+      path-style-access-enabled: ${AMAZON_S3_PATH_STYLE_ACCESS_ENABLED:true}
+      auto-create-bucket: ${AMAZON_S3_AUTO_CREATE_BUCKET:true}
   core:
     docling:
       # Docling 文档解析（需独立部署 docling-serve）。开启后文档导入可选择

@@ -2,7 +2,7 @@ spring:
   application:
     name: langchat-server
   profiles:
-    default: dev
+    default: local
   servlet:
     multipart:
       max-file-size: 500MB
@@ -32,6 +32,7 @@ sa-token:
 
 langchat:
   storage:
+    type: local
     local-base-dir: /tmp/langchat-oss
   skill:
     # 技能工作区根目录（相对运行目录），存放解压后的技能包，运行时直接读取本地副本

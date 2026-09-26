@@ -27,10 +27,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>3.3.5</spring-boot.version>
         <langchain4j.version>1.20.1</langchain4j.version>
+        <aws.sdk.version>2.55.6</aws.sdk.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>cn.langchat</groupId>
                 <artifactId>langchat-common-bom</artifactId>

@@ -10,7 +10,7 @@
   开源 AI Agent 应用平台 · 由 LangChat Team 开发与维护
 ------------------------------------------------------------------------
   项目官网  https://langchat.cn
-  开源仓库  https://github.com/LangChat/langchat
+  开源仓库  https://github.com/langchat/langchat
   项目文档  https://docs.langchat.cn
   API 文档  /docs/index.html
   开源协议  Apache License 2.0

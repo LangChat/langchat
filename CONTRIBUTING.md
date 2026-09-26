@@ -15,7 +15,7 @@
 前端环境：Node.js 22.22+、pnpm 10.32+。
 
 ```bash
-git clone -b next https://github.com/LangChat/langchat.git
+git clone -b next https://github.com/langchat/langchat.git
 cd langchat
 cp langchat-server/src/main/resources/application-local.example.yml \
   langchat-server/src/main/resources/application-local.yml

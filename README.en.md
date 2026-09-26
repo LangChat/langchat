@@ -126,7 +126,7 @@ langchat
 ### 1. Clone the repository
 
 ```bash
-git clone -b next https://github.com/LangChat/langchat.git
+git clone -b next https://github.com/langchat/langchat.git
 cd langchat
 ```
 

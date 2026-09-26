@@ -19,6 +19,9 @@ public class ChatCompletionRequest {
     /** 会话 ID。 */
     private String conversationId;
 
+    /** 已上传的附件元数据。 */
+    private List<ChatAttachment> attachments;
+
     /** 消息列表。 */
     private List<ChatCompletionMessage> messages;
 

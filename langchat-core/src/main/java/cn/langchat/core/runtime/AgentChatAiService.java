@@ -1,10 +1,12 @@
 package cn.langchat.core.runtime;
 
+import dev.langchain4j.data.message.Content;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import java.util.List;
 
 /**
  * Agent 对话 AI Service 定义。
@@ -21,6 +23,6 @@ public interface AgentChatAiService {
     TokenStream chat(
             @MemoryId String conversationId,
             @V("systemPrompt") String systemPrompt,
-            @UserMessage String message
+            @UserMessage List<Content> contents
     );
 }

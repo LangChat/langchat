@@ -92,6 +92,7 @@ public class ChatController {
     public Flux<ServerSentEvent<String>> createCompletion(@RequestBody ChatCompletionRequest request) {
         String agentId = resolveAgentId(request);
         AgentChatStreamRequest streamRequest = new AgentChatStreamRequest();
+        streamRequest.setAttachments(request.getAttachments());
         streamRequest.setConversationId(request.getConversationId());
         streamRequest.setVariables(request.getVariables());
         streamRequest.setMessage(resolveLatestUserMessage(request));

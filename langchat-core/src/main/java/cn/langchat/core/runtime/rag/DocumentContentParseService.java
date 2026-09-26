@@ -4,12 +4,14 @@ import cn.langchat.aigc.biz.entity.AigcDocs;
 import cn.langchat.aigc.biz.entity.AigcOss;
 import cn.langchat.aigc.biz.service.AigcOssService;
 import cn.langchat.common.exception.BizException;
+import cn.langchat.common.oss.service.OssService;
 import cn.langchat.core.chat.enums.KnowledgeDocumentTypeEnum;
 import cn.langchat.core.chat.enums.KnowledgeFileTypeEnum;
 import cn.langchat.core.chat.model.parse.ParsedDocumentContent;
 import cn.langchat.core.support.CoreErrorCode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -70,6 +72,7 @@ public class DocumentContentParseService {
     private static final String CONFIG_PARSE_MODE_ALT = "parse_mode";
 
     private final AigcOssService aigcOssService;
+    private final OssService ossService;
     private final ObjectMapper objectMapper;
     private final DoclingParseService doclingParseService;
     private final Tika tika = new Tika();
@@ -86,6 +89,37 @@ public class DocumentContentParseService {
         };
         log.info("完成文档解析，docsId={}, parserName={}, sectionSize={}", docs.getId(), result.getParserName(), result.getSections().size());
         return result;
+    }
+
+    /**
+     * 使用系统内置 Tika 解析聊天附件正文。
+     */
+    public String parseAttachment(byte[] bytes, String filename) {
+        if (bytes == null || bytes.length == 0) {
+            throw new IllegalStateException("附件内容为空");
+        }
+        try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
+            String content = tika.parseToString(inputStream);
+            String normalized = normalizeText(content);
+            if (normalized.isBlank()) {
+                throw new IllegalStateException("Tika 未提取到可引用的文本内容");
+            }
+            return normalized;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Tika 解析附件失败: " + filename, ex);
+        }
+    }
+
+    /**
+     * 使用 Tika 根据文件内容和文件名识别 MIME 类型。
+     */
+    public String detectContentType(byte[] bytes, String filename) {
+        try {
+            return tika.detect(bytes, filename);
+        } catch (Exception ex) {
+            log.warn("Tika 识别附件类型失败，filename={}", filename, ex);
+            return "application/octet-stream";
+        }
     }
 
     private ParsedDocumentContent parseQaDocument(AigcDocs docs) {
@@ -403,6 +437,14 @@ public class DocumentContentParseService {
     }
 
     private InputStream openSourceStream(String source) throws Exception {
+        if (source.startsWith("s3://")) {
+            URI uri = URI.create(source);
+            String objectKey = uri.getPath();
+            if (objectKey != null && objectKey.startsWith("/")) {
+                objectKey = objectKey.substring(1);
+            }
+            return new ByteArrayInputStream(ossService.download(objectKey));
+        }
         if (source.startsWith(FILE_URI_SCHEME)) {
             return Files.newInputStream(Path.of(URI.create(source)));
         }

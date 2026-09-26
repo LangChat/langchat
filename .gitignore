@@ -78,6 +78,7 @@ docs/langchat.http
 .codex/
 .agent/
 .agents/
+/.env/
 .env.local
 .env.*.local
 application-*.local.yml

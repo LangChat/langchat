@@ -51,6 +51,8 @@ public class SkillPackageServiceImpl implements SkillPackageService {
     private static final List<String> TEXT_EXTENSIONS = List.of(
             "md", "markdown", "txt", "json", "yaml", "yml", "xml", "html", "htm", "css",
             "js", "mjs", "cjs", "ts", "tsx", "jsx", "sh", "bash", "py", "java", "sql",
+            "vue", "svelte", "go", "rs", "c", "h", "cc", "cpp", "hpp", "cs", "kt", "kts",
+            "gradle", "groovy", "php", "rb", "swift", "scala", "lua", "r", "dart", "proto",
             "toml", "ini", "cfg", "conf", "csv", "properties", "env", "gitignore", "dockerfile");
 
     private final SkillProperties skillProperties;
@@ -419,7 +421,7 @@ public class SkillPackageServiceImpl implements SkillPackageService {
 
     private String mergeTags(String externalTags, String frontmatterTags) {
         List<String> merged = new ArrayList<>();
-        for (String source : List.of(externalTags, frontmatterTags)) {
+        for (String source : new String[] {externalTags, frontmatterTags}) {
             if (!StringUtils.hasText(source)) {
                 continue;
             }
@@ -457,7 +459,7 @@ public class SkillPackageServiceImpl implements SkillPackageService {
                 .toList(), paths);
     }
 
-    private List<SkillFileNode> buildChildren(Path dir, List<Path> children, List<Path> allPaths) {
+    private List<SkillFileNode> buildChildren(Path root, List<Path> children, List<Path> allPaths) {
         List<SkillFileNode> nodes = new ArrayList<>();
         for (Path child : children) {
             try {
@@ -467,14 +469,14 @@ public class SkillPackageServiceImpl implements SkillPackageService {
                             .toList();
                     nodes.add(new SkillFileNode(
                             child.getFileName().toString(),
-                            dir.relativize(child).toString().replace('\\', '/'),
+                            root.relativize(child).toString().replace('\\', '/'),
                             true,
                             0,
-                            buildChildren(child, grandChildren, allPaths)));
+                            buildChildren(root, grandChildren, allPaths)));
                 } else {
                     nodes.add(new SkillFileNode(
                             child.getFileName().toString(),
-                            dir.relativize(child).toString().replace('\\', '/'),
+                            root.relativize(child).toString().replace('\\', '/'),
                             false,
                             Files.size(child),
                             List.of()));

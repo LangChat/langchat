@@ -74,7 +74,7 @@ RustFS S3 API 和 Console 默认只绑定宿主机 `127.0.0.1`。生产环境不
 | 卷 | 容器路径 | 内容 |
 |---|---|---|
 | `langchat-logs` | `/opt/langchat/logs` | 应用日志 |
-| `langchat-workspace` | `/opt/langchat/workspace` | 技能解压工作区 |
+| `langchat-workspace` | `/opt/langchat/langchat-workspace` | 技能解压工作区 |
 | `langchat-mysql-data` | `/var/lib/mysql` | MySQL 数据 |
 | `langchat-pgvector-data` | `/var/lib/postgresql/data` | PGVector 数据 |
 | `langchat-rustfs-data` | `/data` | RustFS 对象数据 |

@@ -3,7 +3,14 @@ import type { AigcSkill } from '#/api/aigc/skill';
 
 import { computed } from 'vue';
 
-import { Blocks, Download, SquarePen, Trash2 } from '@vben/icons';
+import {
+  Blocks,
+  Download,
+  Power,
+  PowerOff,
+  SquarePen,
+  Trash2,
+} from '@vben/icons';
 
 import { NButton, NSpace } from 'naive-ui';
 
@@ -118,14 +125,15 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3" />
         </NButton>
         <NButton
-          v-tippy="'启用/停用'"
+          v-tippy="item.enabled ? '停用技能' : '启用技能'"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
           size="small"
           @click.stop="emit('toggle', item)"
         >
-          <span class="text-[11px] leading-none">{{ item.enabled ? '停' : '启' }}</span>
+          <PowerOff v-if="item.enabled" class="size-3.5" />
+          <Power v-else class="size-3.5" />
         </NButton>
         <NButton
           v-tippy="'下载原始包'"

@@ -16,7 +16,7 @@ services:
       LANGCHAT_CONFIG_FILE: /opt/langchat/config/application-docker.yml
     volumes:
       - langchat-logs:/opt/langchat/logs
-      - langchat-workspace:/opt/langchat/workspace
+      - langchat-workspace:/opt/langchat/langchat-workspace
       - "${LANGCHAT_CONFIG_SOURCE:-./application-docker.yml}:/opt/langchat/config/application-docker.yml:ro"
     depends_on:
       mysql:

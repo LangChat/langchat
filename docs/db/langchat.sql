@@ -504,15 +504,8 @@ INSERT INTO `aigc_menu` (`id`, `name`, `parent_id`, `path`, `perms`, `type`, `or
 -- ============================================
 -- 初始化业务数据
 -- 模型、向量存储、知识库、文档、Agent 等业务数据保持空表，
--- 由使用者在控制台自行配置；仅预置技能与 MCP 默认数据。
+-- 由使用者在控制台自行配置；仅预置 MCP 默认数据。
 -- ============================================
-
--- 默认技能：技能包以 zip 上传后归档 OSS，并解压至本地工作区（langchat.skill.workspace-dir），
--- 以下为预置的默认技能记录，local_path 对应工作区内的解压目录。
-INSERT INTO `aigc_skill` (`id`, `name`, `title`, `description`, `version`, `entry_file`, `license`, `tags`, `enabled`, `package_size`, `file_count`, `oss_object_key`, `oss_filename`, `local_path`, `creator`, `updater`, `create_time`, `update_time`) VALUES
-('skill_web_search', 'web-search', '联网搜索', '调用搜索引擎检索实时信息，汇总结果并标注来源链接。', '1.0.0', 'SKILL.md', 'MIT', '搜索,联网,信息检索', 1, 20480, 3, 'skills/web-search-1.0.0.zip', 'web-search-1.0.0.zip', 'web-search', 'system', 'system', 1774310400000, 1774310400000),
-('skill_web_reader', 'web-reader', '网页阅读', '抓取指定网页内容，输出结构化正文与关键摘要。', '1.0.0', 'SKILL.md', 'MIT', '网页,抓取,摘要', 1, 15360, 2, 'skills/web-reader-1.0.0.zip', 'web-reader-1.0.0.zip', 'web-reader', 'system', 'system', 1774310400000, 1774310400000),
-('skill_data_chart', 'data-chart', '图表生成', '根据数据集生成柱状图、折线图、饼图等可视化图表。', '1.0.0', 'SKILL.md', 'MIT', '图表,可视化,数据分析', 1, 18432, 2, 'skills/data-chart-1.0.0.zip', 'data-chart-1.0.0.zip', 'data-chart', 'system', 'system', 1774310400000, 1774310400000);
 
 -- 默认 MCP 服务
 INSERT INTO `aigc_mcp` (`id`, `uuid`, `name`, `mcp_json`, `cover_url`, `tags`, `authorized`, `transport`, `sse_url`, `headers`, `docker_image`, `docker_host`, `site_url`, `timeout`, `description`, `creator`, `updater`, `create_time`, `update_time`) VALUES

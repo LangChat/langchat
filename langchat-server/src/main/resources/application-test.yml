@@ -15,6 +15,9 @@ management:
       show-details: always
 
 langchat:
+  skill:
+    # 相对路径以 JAR 进程的运行目录为基准
+    workspace-dir: ${LANGCHAT_SKILL_WORKSPACE_DIR:./langchat-workspace}
   storage:
     type: ${LANGCHAT_TEST_STORAGE_TYPE:local}
     local-base-dir: ${LANGCHAT_TEST_LOCAL_STORAGE_DIR:/tmp/langchat-test-oss}

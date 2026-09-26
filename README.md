@@ -199,7 +199,7 @@ release/
 ├── logs/
 ├── nginx/default.conf
 ├── sql/01-langchat.sql
-└── workspace/skills/
+└── langchat-workspace/
 ```
 
 可以通过环境变量修改输出目录：

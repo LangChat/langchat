@@ -82,7 +82,9 @@ docs/langchat.http
 .env.local
 .env.*.local
 application-*.local.yml
-/workspace/
+/langchat-workspace/
+/langchat-server/langchat-workspace/
+# 兼容旧版运行目录，升级后仍避免本地技能副本被误提交
 /langchat-server/workspace/
 /lefthook.yml
 /docker/application-docker.yml

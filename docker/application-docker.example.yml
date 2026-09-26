@@ -41,7 +41,7 @@ langchat:
       base-url: ""
       timeout-seconds: 300
   skill:
-    workspace-dir: /opt/langchat/workspace/skills
+    workspace-dir: ${LANGCHAT_SKILL_WORKSPACE_DIR:/opt/langchat/langchat-workspace}
 
 management:
   endpoint:

@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { Compartment, EditorState, type Extension } from '@codemirror/state';
-import { EditorView, placeholder, type ViewUpdate } from '@codemirror/view';
-import { basicSetup } from 'codemirror';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
 import { css } from '@codemirror/lang-css';
 import { html } from '@codemirror/lang-html';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
+import { python } from '@codemirror/lang-python';
 import { sql } from '@codemirror/lang-sql';
 import { yaml } from '@codemirror/lang-yaml';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { Compartment, EditorState, type Extension } from '@codemirror/state';
+import {
+  placeholder as editorPlaceholder,
+  EditorView,
+  type ViewUpdate,
+} from '@codemirror/view';
+import { basicSetup } from 'codemirror';
 
 interface Props {
   disabled?: boolean;
@@ -29,7 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
   readonly: false,
 });
 
-const modelValue = defineModel<null | string>('value', { default: '' });
+const modelValue = defineModel<string>('value', { default: '' });
 const containerRef = ref<HTMLElement>();
 let editorView: EditorView | null = null;
 let internalUpdating = false;
@@ -80,11 +86,14 @@ function resolveLanguageExtension(language: string): Extension {
   if (lang === 'yaml' || lang === 'yml') {
     return yaml();
   }
+  if (lang === 'py' || lang === 'python') {
+    return python();
+  }
   return [];
 }
 
 function resolvePlaceholderExtension(text: string): Extension {
-  return text ? placeholder(text) : [];
+  return text ? editorPlaceholder(text) : [];
 }
 
 function createEditor() {
@@ -156,7 +165,7 @@ watch(
     if (!editorView) {
       return;
     }
-    const next = value || '';
+    const next = value;
     const current = editorView.state.doc.toString();
     if (current === next) {
       return;
@@ -216,7 +225,9 @@ watch(
 </script>
 
 <template>
-  <div class="lc-code-editor rounded-lg border border-border bg-background">
+  <div
+    class="lc-code-editor min-h-0 overflow-hidden rounded-lg border border-border bg-background"
+  >
     <div ref="containerRef" :style="editorStyle"></div>
   </div>
 </template>
@@ -224,6 +235,7 @@ watch(
 <style scoped>
 .lc-code-editor :deep(.cm-editor) {
   height: 100%;
+  min-height: 0;
 }
 
 .lc-code-editor :deep(.cm-scroller) {

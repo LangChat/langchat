@@ -1,16 +1,15 @@
 <script lang="ts" setup>
 import type { UploadFileInfo } from 'naive-ui';
+
 import type { AigcSkill } from '#/api/aigc/skill';
 
 import { computed, onMounted, ref, watch } from 'vue';
 
-import { Page } from '@vben/common-ui';
-import { FolderUp, PackageOpen, RefreshCcw } from '@vben/icons';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { FolderUp, PackageOpen } from '@vben/icons';
 
 import {
   NAlert,
-  NButton,
-  NModal,
   NPagination,
   NRadioButton,
   NRadioGroup,
@@ -30,8 +29,6 @@ import SkillEdit from './edit.vue';
 
 const loading = ref(false);
 const showEdit = ref(false);
-const showUpload = ref(false);
-const uploading = ref(false);
 const uploadMode = ref<'folder' | 'zip'>('zip');
 const zipFileList = ref<UploadFileInfo[]>([]);
 const folderFileList = ref<UploadFileInfo[]>([]);
@@ -84,10 +81,16 @@ watch([keyword, selectedTag], () => {
 });
 
 const actionItems = computed(() => [
-  { key: 'upload-zip', label: '上传技能包 (zip)', icon: PackageOpen },
-  { key: 'upload-folder', label: '上传技能文件夹', icon: FolderUp },
-  { key: 'refresh', label: '刷新列表', icon: RefreshCcw },
+  { key: 'upload', label: '上传技能', icon: PackageOpen },
 ]);
+
+const [UploadModal, uploadModalApi] = useVbenModal({
+  class: 'w-[640px]',
+  confirmDisabled: true,
+  confirmText: '开始上传',
+  title: '上传技能',
+  onConfirm: handleUpload,
+});
 
 async function loadList() {
   loading.value = true;
@@ -98,24 +101,17 @@ async function loadList() {
   }
 }
 
-function openUpload(mode: 'folder' | 'zip') {
-  uploadMode.value = mode;
+function openUpload() {
+  uploadMode.value = 'zip';
   zipFileList.value = [];
   folderFileList.value = [];
-  showUpload.value = true;
+  uploadModalApi.setState({ confirmDisabled: true });
+  uploadModalApi.open();
 }
 
 function handleAction(action: { key: string }) {
-  if (action.key === 'refresh') {
-    void loadList();
-    return;
-  }
-  if (action.key === 'upload-zip') {
-    openUpload('zip');
-    return;
-  }
-  if (action.key === 'upload-folder') {
-    openUpload('folder');
+  if (action.key === 'upload') {
+    openUpload();
   }
 }
 
@@ -125,7 +121,7 @@ function resolveRelativePath(option: UploadFileInfo) {
 }
 
 async function handleUpload() {
-  uploading.value = true;
+  uploadModalApi.setState({ confirmLoading: true });
   try {
     const tags = stringifyTagList(uploadTags.value);
     let skill: AigcSkill;
@@ -166,12 +162,16 @@ async function handleUpload() {
       skill = await skillApi.uploadFolder(formData);
     }
     message.success(`技能包已安装：${skill.title || skill.name}`);
-    showUpload.value = false;
+    uploadModalApi.close();
     await loadList();
   } finally {
-    uploading.value = false;
+    uploadModalApi.setState({ confirmLoading: false });
   }
 }
+
+watch(uploadReady, (ready) => {
+  uploadModalApi.setState({ confirmDisabled: !ready });
+});
 
 function handleEdit(item: AigcSkill) {
   currentSkill.value = item;
@@ -274,13 +274,7 @@ onMounted(loadList);
       />
     </div>
 
-    <NModal
-      v-model:show="showUpload"
-      :auto-focus="false"
-      preset="card"
-      class="w-[640px]"
-      title="上传技能包"
-    >
+    <UploadModal>
       <div class="flex flex-col gap-3">
         <NAlert type="info" :show-icon="true" title="标准技能包格式">
           <div class="flex flex-col gap-1 text-xs leading-5">
@@ -343,20 +337,12 @@ onMounted(loadList);
           </NUploadDragger>
         </NUpload>
 
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
           <span class="text-xs text-muted-foreground">
             已选择 {{ uploadMode === 'zip' ? zipFileList.length : folderFileList.length }} 个文件
           </span>
-          <NButton
-            :disabled="!uploadReady"
-            :loading="uploading"
-            type="primary"
-            @click="handleUpload"
-          >
-            开始上传
-          </NButton>
         </div>
       </div>
-    </NModal>
+    </UploadModal>
   </Page>
 </template>

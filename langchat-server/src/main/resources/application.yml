@@ -35,8 +35,8 @@ langchat:
     type: local
     local-base-dir: /tmp/langchat-oss
   skill:
-    # 技能工作区根目录（相对运行目录），存放解压后的技能包，运行时直接读取本地副本
-    workspace-dir: ./workspace/skills
+    # 技能工作区根目录；相对路径以 JAR 进程的运行目录为基准
+    workspace-dir: ${LANGCHAT_SKILL_WORKSPACE_DIR:./langchat-workspace}
   mcp:
     # MCP 客户端会话缓存时长：窗口内多次 Agent 调用复用同一个 MCP 服务连接，不重复启动；
     # 过期自动回收，配置变更/删除时立即停用（主动暂停）

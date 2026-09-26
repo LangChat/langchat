@@ -109,11 +109,11 @@ RUN chmod +x /usr/local/bin/langchat-entrypoint
 
 # 后端工作目录与持久化目录：
 #   logs      —— logback 的 log.path 为相对路径 logs/<appName>，随工作目录落在此处
-#   workspace —— 技能解压工作区（langchat.skill.workspace-dir 指向该目录）
+#   langchat-workspace —— 技能解压工作区（langchat.skill.workspace-dir 指向该目录）
 # 后端工作目录固定为 $LANGCHAT_HOME，确保上述相对路径稳定
-RUN mkdir -p "$LANGCHAT_HOME/logs" "$LANGCHAT_HOME/config" "$LANGCHAT_HOME/workspace/skills"
+RUN mkdir -p "$LANGCHAT_HOME/logs" "$LANGCHAT_HOME/config" "$LANGCHAT_HOME/langchat-workspace"
 
-VOLUME ["$LANGCHAT_HOME/logs", "$LANGCHAT_HOME/workspace"]
+VOLUME ["$LANGCHAT_HOME/logs", "$LANGCHAT_HOME/langchat-workspace"]
 
 EXPOSE 80
 

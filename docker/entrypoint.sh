@@ -44,7 +44,7 @@ fi
 # ------------------------------------------------------------------------------
 mkdir -p \
     "$LANGCHAT_HOME/logs" \
-    "$LANGCHAT_HOME/workspace/skills" \
+    "$LANGCHAT_HOME/langchat-workspace" \
     /var/log/nginx \
     /var/log/supervisor
 

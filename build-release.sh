@@ -68,7 +68,7 @@ mkdir -p \
   "${STAGING_DIR}/logs" \
   "${STAGING_DIR}/nginx" \
   "${STAGING_DIR}/sql" \
-  "${STAGING_DIR}/workspace/skills"
+  "${STAGING_DIR}/langchat-workspace"
 
 cp "${BACKEND_JAR}" "${STAGING_DIR}/app/langchat.jar"
 cp -R "${FRONTEND_DIST}/." "${STAGING_DIR}/html/"

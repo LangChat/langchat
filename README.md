@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://agentic.langchat.cn/" title="了解 LangChat Agentic 企业商业版">
-    <img src="docs/assets/langchat-platform.svg" width="100%" alt="LangChat 开源 AI Agent 应用平台能力总览">
+    <img src="docs/assets/langchat-platform-zh.svg" width="100%" alt="LangChat 开源 AI 智能体应用平台能力总览">
   </a>
 
   <h1>LangChat</h1>
@@ -34,6 +34,10 @@
 - Function Call、MCP、A2A、Skill、OpenAPI 与 HTTP 扩展通道；
 - 模型治理、权限安全、内容安全、用量与成本控制、运行审计；
 - 私有化部署、信创适配、实施交付、培训与持续版本服务。
+
+<a href="https://agentic.langchat.cn/" title="访问 LangChat Agentic 企业商业版官网">
+  <img src="docs/assets/langchat-agentic-preview.png" width="100%" alt="LangChat Agentic 企业智能体应用工作平台产品界面">
+</a>
 
 如果你正在进行企业级 AI 平台选型或采购，建议优先了解 LangChat Agentic：
 

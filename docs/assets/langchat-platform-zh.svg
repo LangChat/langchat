@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">LangChat 开源 AI 智能体应用平台</title>
+  <desc id="desc">LangChat 集成智能体构建、知识库检索、技能与工具、智能问数能力，并通过 LangChat Agentic 为企业提供更丰富的商业产品能力。</desc>
+
+  <rect width="1200" height="520" fill="#F5F6F4"/>
+  <path d="M0 128H1200M0 392H1200M760 0V520" stroke="#D7DAD5"/>
+  <path d="M40 0V520M1160 0V520" stroke="#E7E9E5"/>
+
+  <g transform="translate(64 44) scale(.5)">
+    <rect width="160" height="160" rx="36" fill="#18181B"/>
+    <path d="M41 35h38a4 4 0 0 1 4 4v34c0 18-14 32-32 32H41a8 8 0 0 1-8-8V84h18c6 0 11-5 11-11V56H33V43a8 8 0 0 1 8-8Z" fill="#FFFFFF"/>
+    <path d="M119 125H81a4 4 0 0 1-4-4V87c0-18 14-32 32-32h10a8 8 0 0 1 8 8v13h-18c-6 0-11 5-11 11v17h29v13a8 8 0 0 1-8 8Z" fill="#FFFFFF"/>
+    <path d="m80 71 9 9-9 9-9-9 9-9Z" fill="#18181B"/>
+  </g>
+
+  <g font-family="'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', ui-sans-serif, sans-serif">
+    <text x="168" y="82" fill="#17191D" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="42" font-weight="720">LangChat</text>
+    <text x="168" y="110" fill="#676D76" font-size="16">开源 AI 智能体应用平台</text>
+
+    <text x="800" y="64" fill="#2F65FF" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="700">LangChat Agentic</text>
+    <text x="800" y="94" fill="#17191D" font-size="24" font-weight="680">企业智能体应用平台</text>
+    <text x="800" y="119" fill="#676D76" font-size="14">企业采购、交付落地、安全治理与长期运营</text>
+
+    <path d="M104 190H672" stroke="#BFC4BE" stroke-width="2"/>
+    <circle cx="104" cy="190" r="7" fill="#2F65FF"/>
+    <circle cx="294" cy="190" r="7" fill="#35AEB2"/>
+    <circle cx="484" cy="190" r="7" fill="#ED654F"/>
+    <circle cx="672" cy="190" r="7" fill="#4E9A62"/>
+
+    <g transform="translate(64 220)">
+      <rect width="160" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="160" height="7" rx="3" fill="#2F65FF"/>
+      <text x="18" y="43" fill="#17191D" font-size="17" font-weight="700">智能体构建</text>
+      <text x="18" y="70" fill="#676D76" font-size="13">模型与提示词</text>
+      <text x="18" y="91" fill="#676D76" font-size="13">流式对话运行时</text>
+    </g>
+    <g transform="translate(254 220)">
+      <rect width="160" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="160" height="7" rx="3" fill="#35AEB2"/>
+      <text x="18" y="43" fill="#17191D" font-size="17" font-weight="700">知识库检索</text>
+      <text x="18" y="70" fill="#676D76" font-size="13">文档解析与分段</text>
+      <text x="18" y="91" fill="#676D76" font-size="13">向量检索与问答</text>
+    </g>
+    <g transform="translate(444 220)">
+      <rect width="160" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="160" height="7" rx="3" fill="#ED654F"/>
+      <text x="18" y="43" fill="#17191D" font-size="17" font-weight="700">技能与工具</text>
+      <text x="18" y="70" fill="#676D76" font-size="13">Skills 技能包</text>
+      <text x="18" y="91" fill="#676D76" font-size="13">MCP 外部服务</text>
+    </g>
+    <g transform="translate(634 220)">
+      <rect width="92" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="92" height="7" rx="3" fill="#4E9A62"/>
+      <text x="14" y="43" fill="#17191D" font-size="15" font-weight="700">智能问数</text>
+      <text x="14" y="70" fill="#676D76" font-size="12">数据分析</text>
+      <text x="14" y="91" fill="#676D76" font-size="12">可视化图表</text>
+    </g>
+
+    <text x="64" y="372" fill="#676D76" font-size="14">一套模块化的 Java + Vue 技术体系，覆盖 AI 应用的构建、扩展与运行。</text>
+
+    <g transform="translate(800 158)">
+      <path d="M0 0H328" stroke="#D7DAD5"/>
+      <circle cx="8" cy="34" r="4" fill="#2F65FF"/>
+      <text x="24" y="40" fill="#17191D" font-size="15" font-weight="650">三种智能体应用构建范式</text>
+      <circle cx="8" cy="76" r="4" fill="#35AEB2"/>
+      <text x="24" y="82" fill="#17191D" font-size="15" font-weight="650">长期记忆与独立会话工作空间</text>
+      <circle cx="8" cy="118" r="4" fill="#ED654F"/>
+      <text x="24" y="124" fill="#17191D" font-size="15" font-weight="650">多智能体协同与沙箱执行</text>
+      <circle cx="8" cy="160" r="4" fill="#4E9A62"/>
+      <text x="24" y="166" fill="#17191D" font-size="15" font-weight="650">安全治理、私有化部署与交付</text>
+      <path d="M0 198H328" stroke="#D7DAD5"/>
+    </g>
+
+    <rect x="800" y="382" width="328" height="58" rx="6" fill="#17191D"/>
+    <text x="824" y="417" fill="#FFFFFF" font-size="15" font-weight="700">了解 LangChat Agentic 商业版</text>
+    <path d="M1084 404l12 7-12 7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <text x="64" y="466" fill="#17191D" font-size="14" font-weight="700">LangChat Team</text>
+    <text x="184" y="466" fill="#676D76" font-size="14">langchat.cn</text>
+    <text x="1128" y="466" fill="#676D76" font-size="12" text-anchor="end">v2026.1</text>
+  </g>
+</svg>

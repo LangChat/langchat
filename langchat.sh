@@ -16,7 +16,7 @@ set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RUN_DIR="$ROOT/.run"
-LOG_DIR="$RUN_DIR/logs"
+LOG_DIR="$ROOT/logs"
 BACKEND_PID_FILE="$RUN_DIR/backend.pid"
 FRONTEND_PID_FILE="$RUN_DIR/frontend.pid"
 BACKEND_LOG="$LOG_DIR/backend.log"
@@ -25,7 +25,7 @@ FRONTEND_LOG="$LOG_DIR/frontend.log"
 BACKEND_PORT="${LANGCHAT_BACKEND_PORT:-8080}"
 FRONTEND_PORT="${LANGCHAT_FRONTEND_PORT:-5888}"
 
-BACKEND_MATCH="cn.langchat.claw.server.LangchatServerApplication|langchat-server spring-boot:run"
+BACKEND_MATCH="cn.langchat.server.LangchatServerApplication|langchat-server spring-boot:run"
 
 C_G="\033[32m"; C_Y="\033[33m"; C_R="\033[31m"; C_C="\033[36m"; C_0="\033[0m"
 info() { printf "${C_C}[langchat]${C_0} %s\n" "$*"; }
@@ -33,7 +33,7 @@ ok()   { printf "${C_G}[langchat]${C_0} %s\n" "$*"; }
 warn() { printf "${C_Y}[langchat]${C_0} %s\n" "$*"; }
 err()  { printf "${C_R}[langchat]${C_0} %s\n" "$*" >&2; }
 
-mkdir -p "$LOG_DIR"
+mkdir -p "$LOG_DIR" "$RUN_DIR"
 
 port_pids() { lsof -t -i "tcp:$1" -sTCP:LISTEN 2>/dev/null | sort -u; }
 alive() { [ -n "${1:-}" ] && kill -0 "$1" 2>/dev/null; }
@@ -257,7 +257,7 @@ usage() {
 说明:
   默认（不带参数）启动后，终端会持续打印前后端日志；
   按 Ctrl+C 或 Ctrl+D（或直接关闭窗口）会自动停止前后端服务。
-  日志与 pid 文件保存在 .run/ 目录下。
+  日志保存在 logs/ 目录下，pid 文件保存在 .run/ 目录下。
 EOF
 }
 

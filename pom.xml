@@ -9,11 +9,12 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>langchat-parent</name>
-    <description>Parent aggregator for langchat-claw backend</description>
+    <description>Parent aggregator for langchat backend</description>
 
     <modules>
         <module>langchat-common</module>
         <module>langchat-auth</module>
+        <module>langchat-monitor</module>
         <module>langchat-core</module>
         <module>langchat-aigc</module>
         <module>langchat-datasource</module>

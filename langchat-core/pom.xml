@@ -21,6 +21,11 @@
         </dependency>
         <dependency>
             <groupId>cn.langchat</groupId>
+            <artifactId>langchat-monitor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.langchat</groupId>
             <artifactId>langchat-common-auth</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -198,6 +198,31 @@ CREATE TABLE `aigc_model` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='LLM模型配置表';
 
+DROP TABLE IF EXISTS `aigc_model_call_log`;
+CREATE TABLE `aigc_model_call_log` (
+  `id` varchar(50) NOT NULL COMMENT '主键',
+  `model_id` varchar(50) DEFAULT NULL COMMENT '模型配置ID',
+  `model_name` varchar(100) DEFAULT NULL COMMENT '模型名称',
+  `provider` varchar(50) DEFAULT NULL COMMENT '供应商',
+  `call_type` varchar(20) DEFAULT NULL COMMENT '调用类型：CHAT/EMBEDDING/IMAGE/OCR',
+  `scene` varchar(50) DEFAULT NULL COMMENT '调用场景',
+  `status` varchar(20) DEFAULT NULL COMMENT '调用状态：SUCCESS/ERROR',
+  `input_token` int DEFAULT NULL COMMENT '输入Token',
+  `output_token` int DEFAULT NULL COMMENT '输出Token',
+  `total_token` int DEFAULT NULL COMMENT '总Token',
+  `duration` bigint DEFAULT NULL COMMENT '耗时(毫秒)',
+  `item_count` int DEFAULT NULL COMMENT '处理条目数',
+  `error_message` varchar(500) DEFAULT NULL COMMENT '错误信息',
+  `creator` varchar(100) DEFAULT NULL COMMENT '创建人',
+  `updater` varchar(100) DEFAULT NULL COMMENT '更新人',
+  `create_time` bigint DEFAULT NULL COMMENT '创建时间',
+  `update_time` bigint DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_aigc_model_call_log_create_time` (`create_time`),
+  KEY `idx_aigc_model_call_log_model_id` (`model_id`),
+  KEY `idx_aigc_model_call_log_call_type` (`call_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模型调用日志表';
+
 DROP TABLE IF EXISTS `aigc_agent`;
 CREATE TABLE `aigc_agent` (
   `id` varchar(50) NOT NULL COMMENT '主键',
@@ -398,6 +423,7 @@ INSERT INTO `aigc_role_menu` (`role_id`, `menu_id`, `creator`, `updater`, `creat
 ('role_ops', 'menu_mcp', 'system', 'system', 1774310400000, 1774310400000),
 ('role_ops', 'menu_datasources', 'system', 'system', 1774310400000, 1774310400000),
 ('role_ops', 'menu_datasource_detail', 'system', 'system', 1774310400000, 1774310400000),
+('role_ops', 'menu_model_monitor', 'system', 'system', 1774310400000, 1774310400000),
 -- 数据分析师：智能问数 + 数据源
 ('role_analyst', 'menu_ai', 'system', 'system', 1774310400000, 1774310400000),
 ('role_analyst', 'menu_data_analysis', 'system', 'system', 1774310400000, 1774310400000),
@@ -458,6 +484,9 @@ INSERT INTO `aigc_menu` (`id`, `name`, `parent_id`, `path`, `perms`, `type`, `or
 
 INSERT INTO `aigc_menu` (`id`, `name`, `parent_id`, `path`, `perms`, `type`, `order_no`, `icon`, `component`, `is_disabled`, `is_ext`, `is_keepalive`, `is_show`, `creator`, `updater`, `create_time`, `update_time`) VALUES
 ('menu_datasource_detail', '数据源详情', 'menu_datasources', '/datasources/:id/detail', 'aigc:datasource:list', 'MENU', 27, 'lucide:database', '/views/datasource/detail.vue', 0, 0, 0, 0, 'system', 'system', 1774310400000, 1774310400000);
+
+INSERT INTO `aigc_menu` (`id`, `name`, `parent_id`, `path`, `perms`, `type`, `order_no`, `icon`, `component`, `is_disabled`, `is_ext`, `is_keepalive`, `is_show`, `creator`, `updater`, `create_time`, `update_time`) VALUES
+('menu_model_monitor', '模型监控', 'menu_model', '/model-monitor', 'aigc:monitor:model-call', 'MENU', 28, 'lucide:activity', '/views/monitor/model-call/index.vue', 0, 0, 1, 1, 'system', 'system', 1774310400000, 1774310400000);
 
 -- 分组4: 系统管理 (Catalog)
 INSERT INTO `aigc_menu` (`id`, `name`, `parent_id`, `path`, `perms`, `type`, `order_no`, `icon`, `component`, `is_disabled`, `is_ext`, `is_keepalive`, `is_show`, `creator`, `updater`, `create_time`, `update_time`) VALUES

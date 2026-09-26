@@ -7,7 +7,6 @@ export interface ImageGenerationPayload {
   modelId: string;
   prompt: string;
   quality?: string;
-  responseFormat?: string;
   n?: number;
   size?: string;
 }

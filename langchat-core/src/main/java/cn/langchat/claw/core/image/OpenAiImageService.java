@@ -47,7 +47,6 @@ public class OpenAiImageService implements ImageAiService {
     private static final String DEFAULT_IMAGE_SIZE = "1024x1024";
     private static final String DEFAULT_IMAGE_QUALITY = "standard";
     private static final int DEFAULT_IMAGE_COUNT = 1;
-    private static final String DEFAULT_RESPONSE_FORMAT = "url";
     private static final String DEFAULT_OCR_PROMPT = "请识别图片中的文字内容并原样输出。";
 
     private final AigcModelService aigcModelService;
@@ -71,7 +70,6 @@ public class OpenAiImageService implements ImageAiService {
                 .apiKey(defaultApiKey(model))
                 .size(StrUtil.blankToDefault(request.size(), DEFAULT_IMAGE_SIZE))
                 .quality(StrUtil.blankToDefault(request.quality(), DEFAULT_IMAGE_QUALITY))
-                .responseFormat(formatResponseFormat(request.responseFormat()))
                 .timeout(timeout(model));
         applyBaseUrl(model, builder::baseUrl);
         OpenAiImageModel imageModel = builder.build();
@@ -179,14 +177,6 @@ public class OpenAiImageService implements ImageAiService {
             throw new BizException(CoreErrorCode.MODEL_NOT_FOUND);
         }
         return model;
-    }
-
-    /**
-     * 归一化 responseFormat，OpenAI 仅接受 {@code url} 或 {@code b64_json}。
-     */
-    private String formatResponseFormat(String responseFormat) {
-        String format = StrUtil.blankToDefault(responseFormat, DEFAULT_RESPONSE_FORMAT).toLowerCase();
-        return "b64_json".equals(format) ? "b64_json" : "url";
     }
 
     private String defaultApiKey(AigcModel model) {

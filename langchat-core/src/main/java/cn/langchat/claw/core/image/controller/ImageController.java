@@ -40,8 +40,7 @@ public class ImageController {
                 request.getPrompt(),
                 request.getSize(),
                 request.getQuality(),
-                request.getN(),
-                request.getResponseFormat()
+                request.getN()
         );
         return ApiResponse.success(imageAiService.generateImage(request.getModelId(), payload));
     }

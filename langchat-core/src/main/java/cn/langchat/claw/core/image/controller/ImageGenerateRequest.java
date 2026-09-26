@@ -25,7 +25,4 @@ public class ImageGenerateRequest {
 
     /** 生成数量。 */
     private Integer n;
-
-    /** 返回格式，例如 {@code url}、{@code b64_json}。 */
-    private String responseFormat;
 }

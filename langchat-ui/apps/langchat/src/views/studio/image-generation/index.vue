@@ -25,7 +25,6 @@ const form = ref({
   prompt: '',
   quality: 'standard',
   ratio: '1:1',
-  responseFormat: 'url',
   size: '1024x1024',
 });
 
@@ -40,11 +39,6 @@ const ratioOptions = [
 const qualityOptions = [
   { label: '标准', value: 'standard' },
   { label: '高清', value: 'high' },
-];
-
-const formatOptions = [
-  { label: '图片链接 (url)', value: 'url' },
-  { label: 'Base64 (b64_json)', value: 'b64_json' },
 ];
 
 const sizeOptions = [
@@ -70,11 +64,23 @@ async function loadModels() {
   models.value = await modelApi.list();
 }
 
+/**
+ * 统一返回内容：模型可能回传图片链接，也可能回传 base64 数据，
+ * 这里按内容自动补全 data URL，无需用户选择返回格式。
+ */
 function buildImageUrl() {
-  if (form.value.responseFormat === 'b64_json') {
-    return `data:image/png;base64,${generatedUrl.value}`;
+  const value = generatedUrl.value;
+  if (!value) {
+    return '';
   }
-  return generatedUrl.value;
+  if (
+    value.startsWith('data:') ||
+    value.startsWith('http://') ||
+    value.startsWith('https://')
+  ) {
+    return value;
+  }
+  return `data:image/png;base64,${value}`;
 }
 
 function downloadImage() {
@@ -106,7 +112,6 @@ async function handleGenerate() {
       n: form.value.n,
       prompt: form.value.prompt,
       quality: form.value.quality,
-      responseFormat: form.value.responseFormat,
       size: form.value.size,
     });
     const data = result?.url || result?.base64Data || '';
@@ -183,13 +188,6 @@ onMounted(loadModels);
 
             <NFormItem label="图片质量">
               <NSelect v-model:value="form.quality" :options="qualityOptions" />
-            </NFormItem>
-
-            <NFormItem label="返回格式">
-              <NSelect
-                v-model:value="form.responseFormat"
-                :options="formatOptions"
-              />
             </NFormItem>
 
             <NFormItem label="生成数量">

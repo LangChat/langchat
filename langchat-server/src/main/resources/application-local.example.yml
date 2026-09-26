@@ -1,0 +1,31 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    mysql:
+      url: ${LANGCHAT_MYSQL_URL:jdbc:mysql://localhost:3306/langchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai}
+      username: ${LANGCHAT_MYSQL_USERNAME:root}
+      password: ${LANGCHAT_MYSQL_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+langchat:
+  auth:
+    super-admin-username: ${LANGCHAT_ADMIN_USERNAME:admin}
+    local-users:
+      - user-id: ${LANGCHAT_ADMIN_USER_ID:admin}
+        username: ${LANGCHAT_ADMIN_USERNAME:admin}
+        password: ${LANGCHAT_ADMIN_PASSWORD}
+        display-name: ${LANGCHAT_ADMIN_DISPLAY_NAME:System Admin}
+        tenant-id: ${LANGCHAT_ADMIN_TENANT_ID:default}
+        roles:
+          - SUPER_ADMIN
+        permissions:
+          - auth:login
+          - auth:logout
+          - auth:me

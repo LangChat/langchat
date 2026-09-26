@@ -1,0 +1,30 @@
+name: 功能建议
+description: 提议新的能力或体验改进
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 使用场景
+      description: 说明谁在什么情况下遇到了什么问题。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 描述期望行为、范围和必要的兼容考虑。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案
+      description: 说明已经尝试或考虑过的其他方式。
+  - type: textarea
+    id: context
+    attributes:
+      label: 补充信息
+      description: 可以提供流程、界面草图或相关链接，请勿包含敏感信息。

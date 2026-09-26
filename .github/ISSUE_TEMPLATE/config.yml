@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全问题
+    url: https://github.com/LangChat/langchat/blob/next/SECURITY.md
+    about: 请按照安全政策私下报告漏洞，不要创建公开 Issue。
+  - name: LangChat Agentic 企业商业版
+    url: https://agentic.langchat.cn/
+    about: 了解企业采购、私有化部署与交付方案。

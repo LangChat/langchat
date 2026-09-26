@@ -1,0 +1,42 @@
+{
+  "name": "@vben/node-utils",
+  "version": "5.7.0",
+  "private": true,
+  "homepage": "https://github.com/vbenjs/vue-vben-admin",
+  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
+    "directory": "internal/node-utils"
+  },
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "stub": "node ./scripts/build.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "dependencies": {
+    "@changesets/git": "catalog:",
+    "@manypkg/get-packages": "catalog:",
+    "chalk": "catalog:",
+    "consola": "catalog:",
+    "dayjs": "catalog:",
+    "execa": "catalog:",
+    "find-up": "catalog:",
+    "ora": "catalog:",
+    "pkg-types": "catalog:",
+    "rimraf": "catalog:"
+  }
+}

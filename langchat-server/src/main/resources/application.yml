@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: langchat-server
+  profiles:
+    default: dev
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 520MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+sa-token:
+  token-name: Authorization
+  is-read-header: true
+  is-read-cookie: false
+  is-log: false
+  is-print: false
+
+langchat:
+  storage:
+    local-base-dir: /tmp/langchat-oss
+  skill:
+    # 技能工作区根目录（相对运行目录），存放解压后的技能包，运行时直接读取本地副本
+    workspace-dir: ./workspace/skills
+  mcp:
+    # MCP 客户端会话缓存时长：窗口内多次 Agent 调用复用同一个 MCP 服务连接，不重复启动；
+    # 过期自动回收，配置变更/删除时立即停用（主动暂停）
+    session-ttl: 1h
+    sweep-interval: 5m
+    tool-execution-timeout: 30s

@@ -1,0 +1,13 @@
+        __                         ________          __
+       / /   ____ _____  ____ _   / ____/ /_  ____ _/ /_
+      / /   / __ `/ __ \/ __ `/  / /   / __ \/ __ `/ __/
+     / /___/ /_/ / / / / /_/ /  / /___/ / / / /_/ / /_
+    /_____/\__,_/_/ /_/\__, /   \____/_/ /_/\__,_/\__/
+                      /____/
+    Copyright (c) 2025 LangChat. TyCoding All Rights Reserved.
+
+    产品名称: LangChat
+    产品作者: LangChat Team
+    产品官网: https://langchat.cn
+    联系微信: LangchainChat
+    联系邮箱: langchat@outlook.com

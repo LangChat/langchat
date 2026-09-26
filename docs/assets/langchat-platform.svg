@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">LangChat open-source AI agent application platform</title>
+  <desc id="desc">LangChat connects agent building, knowledge RAG, Skills and MCP, and conversational analytics. LangChat Agentic extends the platform for enterprise procurement and production operations.</desc>
+
+  <rect width="1200" height="520" fill="#F5F6F4"/>
+  <path d="M0 128H1200M0 392H1200M760 0V520" stroke="#D7DAD5"/>
+  <path d="M40 0V520M1160 0V520" stroke="#E7E9E5"/>
+
+  <g transform="translate(64 44) scale(.5)">
+    <rect width="160" height="160" rx="36" fill="#18181B"/>
+    <path d="M41 35h38a4 4 0 0 1 4 4v34c0 18-14 32-32 32H41a8 8 0 0 1-8-8V84h18c6 0 11-5 11-11V56H33V43a8 8 0 0 1 8-8Z" fill="#FFFFFF"/>
+    <path d="M119 125H81a4 4 0 0 1-4-4V87c0-18 14-32 32-32h10a8 8 0 0 1 8 8v13h-18c-6 0-11 5-11 11v17h29v13a8 8 0 0 1-8 8Z" fill="#FFFFFF"/>
+    <path d="m80 71 9 9-9 9-9-9 9-9Z" fill="#18181B"/>
+  </g>
+
+  <text x="168" y="82" fill="#17191D" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="42" font-weight="720">LangChat</text>
+  <text x="168" y="110" fill="#676D76" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="16">Open-source AI agent application platform</text>
+
+  <text x="800" y="64" fill="#2F65FF" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="700">LangChat Agentic</text>
+  <text x="800" y="94" fill="#17191D" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="24" font-weight="680">Enterprise AI applications</text>
+  <text x="800" y="119" fill="#676D76" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14">Procurement, delivery, governance, and operations</text>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <path d="M104 190H672" stroke="#BFC4BE" stroke-width="2"/>
+    <circle cx="104" cy="190" r="7" fill="#2F65FF"/>
+    <circle cx="294" cy="190" r="7" fill="#35AEB2"/>
+    <circle cx="484" cy="190" r="7" fill="#ED654F"/>
+    <circle cx="672" cy="190" r="7" fill="#4E9A62"/>
+
+    <g transform="translate(64 220)">
+      <rect width="160" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="160" height="7" rx="3" fill="#2F65FF"/>
+      <text x="18" y="43" fill="#17191D" font-size="17" font-weight="700">Agent builder</text>
+      <text x="18" y="70" fill="#676D76" font-size="13">Models and prompts</text>
+      <text x="18" y="91" fill="#676D76" font-size="13">Streaming runtime</text>
+    </g>
+    <g transform="translate(254 220)">
+      <rect width="160" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="160" height="7" rx="3" fill="#35AEB2"/>
+      <text x="18" y="43" fill="#17191D" font-size="17" font-weight="700">Knowledge RAG</text>
+      <text x="18" y="70" fill="#676D76" font-size="13">Documents and chunks</text>
+      <text x="18" y="91" fill="#676D76" font-size="13">Vector retrieval</text>
+    </g>
+    <g transform="translate(444 220)">
+      <rect width="160" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="160" height="7" rx="3" fill="#ED654F"/>
+      <text x="18" y="43" fill="#17191D" font-size="17" font-weight="700">Skills + MCP</text>
+      <text x="18" y="70" fill="#676D76" font-size="13">Tool packages</text>
+      <text x="18" y="91" fill="#676D76" font-size="13">External services</text>
+    </g>
+    <g transform="translate(634 220)">
+      <rect width="92" height="112" rx="6" fill="#FFFFFF" stroke="#CDD1CC"/>
+      <rect width="92" height="7" rx="3" fill="#4E9A62"/>
+      <text x="14" y="43" fill="#17191D" font-size="15" font-weight="700">Data</text>
+      <text x="14" y="65" fill="#17191D" font-size="15" font-weight="700">analysis</text>
+      <text x="14" y="91" fill="#676D76" font-size="12">Charts</text>
+    </g>
+
+    <text x="64" y="372" fill="#676D76" font-size="14">One modular Java + Vue stack for building, extending, and operating AI applications.</text>
+
+    <g transform="translate(800 158)">
+      <path d="M0 0H328" stroke="#D7DAD5"/>
+      <circle cx="8" cy="34" r="4" fill="#2F65FF"/>
+      <text x="24" y="40" fill="#17191D" font-size="15" font-weight="650">Standard, workflow, and agentic paradigms</text>
+      <circle cx="8" cy="76" r="4" fill="#35AEB2"/>
+      <text x="24" y="82" fill="#17191D" font-size="15" font-weight="650">Long-term memory and session workspaces</text>
+      <circle cx="8" cy="118" r="4" fill="#ED654F"/>
+      <text x="24" y="124" fill="#17191D" font-size="15" font-weight="650">Multi-agent orchestration and sandboxing</text>
+      <circle cx="8" cy="160" r="4" fill="#4E9A62"/>
+      <text x="24" y="166" fill="#17191D" font-size="15" font-weight="650">Security governance and private delivery</text>
+      <path d="M0 198H328" stroke="#D7DAD5"/>
+    </g>
+
+    <rect x="800" y="382" width="328" height="58" rx="6" fill="#17191D"/>
+    <text x="824" y="417" fill="#FFFFFF" font-size="15" font-weight="700">agentic.langchat.cn</text>
+    <path d="M1084 404l12 7-12 7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <text x="64" y="466" fill="#17191D" font-size="14" font-weight="700">LangChat Team</text>
+    <text x="184" y="466" fill="#676D76" font-size="14">langchat.cn</text>
+    <text x="1128" y="466" fill="#676D76" font-size="12" text-anchor="end">v2026.1</text>
+  </g>
+</svg>

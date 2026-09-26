@@ -1,0 +1,85 @@
+### gradle ###
+.gradle
+/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### STS ###
+.settings/
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+rebel.xml
+
+### NetBeans ###
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+### maven ###
+target/
+*.war
+*.ear
+*.zip
+*.tar
+*.tar.gz
+
+### logs ####
+/logs/
+*/logs/
+*/cache/
+*/.cache/
+*.oprLog
+*/.claude/
+.claude/
+.skills/
+*/.qoder/
+CLAUDE.md
+CLAUDE_*.md
+
+### temp ignore ###
+*.cache
+*.diff
+*.patch
+*.tmp
+*.java~
+*.properties~
+*.xml~
+
+### system ignore ###
+.DS_Store
+Thumbs.db
+Servers
+.metadata
+gen_code
+dump.rdb
+
+application-local.yml
+.run/
+/pgvector_data
+/redis_data
+/searxng_data
+/milvus_data
+docs/pgvector/pgdata
+docs/elasticsearch/elasticsearch
+docs/langchat.http
+
+### local development ###
+.zcode/
+.codex/
+.agent/
+.agents/
+.env.local
+.env.*.local
+application-*.local.yml
+/workspace/
+/lefthook.yml

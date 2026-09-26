@@ -1,0 +1,217 @@
+/* Chat 领域的动效工具类(参考 shadcn-vue shimmer / marker):
+   文字流光、状态圆环、流式光标。 */
+
+/* 文字流光:高光扫过文字(基于 currentColor 自适应主题) */
+.chat-shimmer {
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted-foreground)) 35%,
+    hsl(var(--foreground)) 50%,
+    hsl(var(--muted-foreground)) 65%
+  );
+  background-clip: text;
+  background-size: 200% 100%;
+  animation: chat-shimmer 2s linear infinite;
+}
+
+@keyframes chat-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* 进行中状态的小圆环 */
+.chat-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid hsl(var(--border));
+  border-top-color: hsl(var(--primary));
+  border-radius: 9999px;
+  animation: chat-spin 0.8s linear infinite;
+}
+
+@keyframes chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 流式输出时的光标 */
+.chat-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: hsl(var(--primary));
+  animation: chat-cursor-blink 1s step-end infinite;
+}
+
+@keyframes chat-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Markdown 渲染排版:与聊天气泡风格对齐(紧凑行距、主题色标题与引用) */
+.chat-markdown {
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* 覆盖 markstream-vue 的内置间距变量。
+   注意:这些变量定义在 .markstream-vue 根元素自身(组件渲染的节点),
+   必须用后代选择器命中同一元素才能覆盖(0,2,0 > 0,1,0),仅写在
+   .chat-markdown 外层无效——变量按最近的祖先取值。 */
+.chat-markdown .markstream-vue {
+  --ms-flow-paragraph-y: 0.5em;
+  --ms-flow-list-y: 0.4em;
+  --ms-flow-list-item-y: 0.15em;
+  --ms-flow-codeblock-y: 0.6em;
+  --ms-flow-blockquote-y: 0.5em;
+  --ms-flow-table-y: 0.6em;
+  --ms-flow-hr-y: 0.8em;
+  --ms-flow-heading-1-mt: 0;
+  --ms-flow-heading-1-mb: 0.4em;
+  --ms-flow-heading-2-mt: 0.8em;
+  --ms-flow-heading-2-mb: 0.35em;
+  --ms-flow-heading-3-mt: 0.7em;
+  --ms-flow-heading-3-mb: 0.3em;
+  --ms-flow-heading-4-mt: 0.6em;
+  --ms-flow-heading-4-mb: 0.25em;
+  --ms-flow-heading-5-mt: 0.5em;
+  --ms-flow-heading-5-mb: 0.2em;
+  --ms-flow-heading-6-mt: 0.5em;
+  --ms-flow-heading-6-mb: 0.2em;
+  --ms-flow-diagram-y: 0.6em;
+  --ms-flow-admonition-y: 0.5em;
+  --ms-flow-footnote-y: 0.5em;
+
+  /* 组件根节点自带 font-size: var(--ms-text-body)=1rem,与气泡 14px 字号统一 */
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+.chat-markdown > :first-child {
+  margin-top: 0;
+}
+
+.chat-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown h1,
+.chat-markdown h2,
+.chat-markdown h3,
+.chat-markdown h4,
+.chat-markdown h5,
+.chat-markdown h6 {
+  /* 纵向间距统一交给 --ms-flow-heading-* 变量控制 */
+  font-weight: 600;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+}
+
+.chat-markdown h1 {
+  font-size: 1.25em;
+}
+
+.chat-markdown h2 {
+  font-size: 1.15em;
+}
+
+.chat-markdown h3,
+.chat-markdown h4,
+.chat-markdown h5,
+.chat-markdown h6 {
+  font-size: 1.05em;
+}
+
+.chat-markdown ul {
+  list-style: disc;
+}
+
+.chat-markdown ol {
+  list-style: decimal;
+}
+
+.chat-markdown a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.chat-markdown blockquote {
+  padding: 0.2em 0.9em;
+  color: hsl(var(--muted-foreground));
+  border-left: 3px solid hsl(var(--primary) / 45%);
+}
+
+.chat-markdown code:not(pre code) {
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+  background: hsl(var(--muted) / 70%);
+  border-radius: calc(var(--radius) * 0.5);
+}
+
+.chat-markdown pre {
+  margin: 0.5em 0;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border) / 70%);
+  border-radius: calc(var(--radius) * 0.75);
+}
+
+.chat-markdown pre code {
+  display: block;
+  padding: 0.7em 0.9em;
+  background: transparent;
+}
+
+.chat-markdown table {
+  display: block;
+  max-width: 100%;
+  margin: 0.5em 0;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  border-collapse: collapse;
+}
+
+.chat-markdown th,
+.chat-markdown td {
+  padding: 0.3em 0.7em;
+  text-align: left;
+  border: 1px solid hsl(var(--border) / 70%);
+}
+
+.chat-markdown th {
+  font-weight: 600;
+  background: hsl(var(--muted) / 50%);
+}
+
+.chat-markdown hr {
+  margin: 0.8em 0;
+  border: none;
+  border-top: 1px solid hsl(var(--border) / 70%);
+}
+
+.chat-markdown img {
+  max-width: 100%;
+  border-radius: calc(var(--radius) * 0.75);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-shimmer {
+    color: hsl(var(--muted-foreground));
+    background: none;
+    animation: none;
+  }
+
+  .chat-cursor {
+    animation: none;
+  }
+}

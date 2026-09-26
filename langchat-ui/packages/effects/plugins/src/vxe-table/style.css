@@ -1,0 +1,788 @@
+/* stylelint-disable selector-class-pattern */
+
+@reference "@vben/tailwind-config/theme";
+
+:root {
+  --vxe-ui-border-radius: var(--radius);
+  --vxe-ui-base-border-radius: var(--radius);
+  --vxe-ui-font-color: hsl(var(--foreground));
+  --vxe-ui-font-secondary-color: hsl(var(--muted-foreground));
+  --vxe-ui-font-placeholder-color: hsl(var(--muted-foreground));
+  --vxe-ui-font-lighten-color: hsl(var(--muted-foreground));
+  --vxe-ui-font-darken-color: hsl(var(--foreground));
+  --vxe-ui-font-disabled-color: hsl(var(--foreground) / 45%);
+  --vxe-ui-font-primary-color: hsl(var(--primary));
+  --vxe-ui-font-primary-hover-color: hsl(var(--primary-50));
+  --vxe-ui-font-primary-tinge-color: hsl(var(--primary-50));
+  --vxe-ui-font-primary-lighten-color: hsl(var(--primary-400));
+  --vxe-ui-font-primary-darken-color: hsl(var(--primary-600));
+  --vxe-ui-font-primary-disabled-color: hsl(var(--primary-300));
+  --vxe-ui-status-success-color: hsl(var(--success));
+  --vxe-ui-status-success-tinge-color: hsl(var(--success-50));
+  --vxe-ui-status-success-lighten-color: hsl(var(--success-400));
+  --vxe-ui-status-success-darken-color: hsl(var(--success-600));
+  --vxe-ui-status-success-disabled-color: hsl(var(--success-300));
+  --vxe-ui-status-info-color: hsl(var(--muted-foreground));
+  --vxe-ui-status-info-tinge-color: hsl(var(--secondary));
+  --vxe-ui-status-info-lighten-color: hsl(var(--foreground) / 70%);
+  --vxe-ui-status-info-darken-color: hsl(var(--foreground));
+  --vxe-ui-status-info-disabled-color: hsl(var(--foreground) / 35%);
+  --vxe-ui-status-warning-color: hsl(var(--warning));
+  --vxe-ui-status-warning-tinge-color: hsl(var(--warning-50));
+  --vxe-ui-status-warning-lighten-color: hsl(var(--warning-400));
+  --vxe-ui-status-warning-darken-color: hsl(var(--warning-600));
+  --vxe-ui-status-warning-disabled-color: hsl(var(--warning-300));
+  --vxe-ui-status-danger-color: hsl(var(--destructive));
+  --vxe-ui-status-danger-tinge-color: hsl(var(--destructive-50));
+  --vxe-ui-status-danger-lighten-color: hsl(var(--destructive-400));
+  --vxe-ui-status-danger-darken-color: hsl(var(--destructive-600));
+  --vxe-ui-status-danger-disabled-color: hsl(var(--destructive-300));
+  --vxe-ui-status-error-color: hsl(var(--destructive));
+  --vxe-ui-status-error-tinge-color: hsl(var(--destructive-50));
+  --vxe-ui-status-error-lighten-color: hsl(var(--destructive-400));
+  --vxe-ui-status-error-darken-color: hsl(var(--destructive-600));
+  --vxe-ui-status-error-disabled-color: hsl(var(--destructive-300));
+  --vxe-ui-base-popup-border-color: hsl(var(--border));
+  --vxe-ui-base-popup-box-shadow: 0 10px 30px hsl(var(--foreground) / 8%);
+  --vxe-ui-base-drag-background-color: hsl(var(--primary-50));
+  --vxe-ui-base-active-background-color: hsl(var(--primary-50));
+  --vxe-ui-base-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-layout-background-color: hsl(var(--background));
+  --vxe-ui-modal-header-background-color: hsl(var(--card));
+  --vxe-ui-input-border-color: hsl(var(--border));
+  --vxe-ui-input-placeholder-color: hsl(var(--muted-foreground));
+  --vxe-ui-input-disabled-color: hsl(var(--foreground) / 35%);
+  --vxe-ui-input-number-disabled-color: hsl(var(--foreground) / 35%);
+  --vxe-ui-input-disabled-background-color: hsl(var(--secondary));
+  --vxe-ui-input-count-color: hsl(var(--muted-foreground));
+  --vxe-ui-input-count-error-color: hsl(var(--destructive));
+  --vxe-ui-input-date-festival-color: hsl(var(--muted-foreground));
+  --vxe-ui-input-date-festival-important-color: hsl(var(--primary));
+  --vxe-ui-input-date-notice-background-color: hsl(var(--destructive));
+  --vxe-ui-input-date-picker-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-input-date-picker-selected-color: hsl(var(--primary-foreground));
+  --vxe-ui-input-date-time-confirm-button-color: hsl(var(--primary-foreground));
+  --vxe-ui-input-date-picker-festival-selected-color: hsl(
+    var(--primary-foreground)
+  );
+  --vxe-ui-input-date-picker-notice-selected-background-color: hsl(
+    var(--primary-foreground)
+  );
+  --vxe-ui-input-date-extra-color: hsl(var(--success));
+  --vxe-ui-input-date-extra-important-color: hsl(var(--destructive));
+  --vxe-ui-loading-color: hsl(var(--primary));
+  --vxe-ui-loading-background-color: hsl(var(--overlay-content));
+  --vxe-ui-number-input-control-button-color: hsl(var(--secondary));
+  --vxe-ui-form-title-background-color: hsl(var(--accent));
+  --vxe-ui-form-border-color: hsl(var(--border));
+  --vxe-ui-form-validate-error-color: hsl(var(--destructive));
+  --vxe-ui-form-validate-error-theme-normal-background-color: hsl(
+    var(--background)
+  );
+  --vxe-ui-form-validate-error-item-background-color: hsl(
+    var(--destructive-50)
+  );
+  --vxe-ui-form-design-widget-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-form-design-sub-widget-hover-background-color: hsl(var(--accent));
+  --vxe-ui-table-header-font-color: hsl(var(--foreground));
+  --vxe-ui-table-footer-font-color: hsl(var(--foreground));
+  --vxe-ui-table-header-background-color: hsl(var(--accent));
+  --vxe-ui-table-footer-background-color: hsl(var(--background));
+  --vxe-ui-table-column-to-row-background-color: hsl(var(--accent));
+  --vxe-ui-table-column-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-table-column-current-background-color: hsl(var(--primary-50));
+  --vxe-ui-table-column-hover-current-background-color: hsl(var(--primary-100));
+  --vxe-ui-table-border-color: hsl(var(--border));
+  --vxe-ui-table-row-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-table-row-striped-background-color: hsl(var(--accent) / 70%);
+  --vxe-ui-table-row-hover-striped-background-color: hsl(var(--accent-hover));
+  --vxe-ui-table-row-radio-checked-background-color: hsl(var(--warning-50));
+  --vxe-ui-table-row-hover-radio-checked-background-color: hsl(
+    var(--warning-100)
+  );
+  --vxe-ui-table-row-checkbox-checked-background-color: hsl(var(--warning-50));
+  --vxe-ui-table-row-hover-checkbox-checked-background-color: hsl(
+    var(--warning-100)
+  );
+  --vxe-ui-table-row-current-background-color: hsl(var(--primary-50));
+  --vxe-ui-table-row-hover-current-background-color: hsl(var(--primary-100));
+  --vxe-ui-table-fixed-scrolling-box-shadow-color: hsl(var(--foreground) / 12%);
+  --vxe-ui-table-drag-over-background-color: hsl(var(--warning-100) / 80%);
+  --vxe-ui-table-column-icon-border-color: hsl(var(--muted-foreground));
+  --vxe-ui-table-column-icon-border-hover-color: hsl(var(--foreground));
+  --vxe-ui-table-cell-placeholder-color: hsl(var(--muted-foreground));
+  --vxe-ui-table-cell-negative-color: hsl(var(--destructive));
+  --vxe-ui-table-cell-dirty-update-color: hsl(var(--destructive));
+  --vxe-ui-table-cell-dirty-insert-color: hsl(var(--success));
+  --vxe-ui-table-cell-area-border-color: hsl(var(--primary));
+  --vxe-ui-table-cell-main-area-extension-border-color: hsl(var(--background));
+  --vxe-ui-table-cell-main-area-extension-background-color: hsl(var(--primary));
+  --vxe-ui-table-cell-area-background-color: hsl(var(--primary-100) / 65%);
+  --vxe-ui-table-cell-area-status-background-color: hsl(
+    var(--primary-50) / 80%
+  );
+  --vxe-ui-table-checkbox-range-border-color: hsl(var(--primary));
+  --vxe-ui-table-checkbox-range-background-color: hsl(var(--primary-100) / 65%);
+  --vxe-ui-table-validate-error-color: hsl(var(--destructive));
+  --vxe-ui-table-validate-error-cell-background-color: hsl(
+    var(--destructive-50)
+  );
+  --vxe-ui-table-validate-error-theme-normal-background-color: hsl(
+    var(--background)
+  );
+  --vxe-ui-table-resizable-line-color: hsl(var(--heavy));
+  --vxe-ui-table-resizable-drag-line-color: hsl(var(--primary));
+  --vxe-ui-table-tree-node-line-color: hsl(var(--border));
+  --vxe-ui-table-tree-node-line-style: var(--border-style, solid);
+  --vxe-ui-tabs-card-header-background-color: hsl(var(--secondary));
+  --vxe-ui-tabs-close-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-tabs-bar-scrolling-box-shadow-color: hsl(var(--foreground) / 12%);
+  --vxe-ui-list-design-table-border-color: hsl(var(--border));
+  --vxe-ui-list-design-table-header-background-color: hsl(var(--accent));
+  --vxe-ui-menu-item-hover-color: hsl(var(--primary));
+  --vxe-ui-menu-collapse-wrapper-box-shadow: 0 10px 30px
+    hsl(var(--foreground) / 8%);
+  --vxe-ui-switch-font-color: hsl(var(--primary-foreground));
+  --vxe-ui-switch-icon-background-color: hsl(var(--background));
+  --vxe-ui-switch-open-background-color: hsl(var(--primary));
+  --vxe-ui-switch-close-background-color: hsl(var(--muted-foreground));
+  --vxe-ui-switch-disabled-background-color: hsl(var(--muted-foreground) / 35%);
+  --vxe-ui-tree-node-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-tree-node-radio-checked-background-color: hsl(var(--warning-50));
+  --vxe-ui-tree-node-hover-radio-checked-background-color: hsl(
+    var(--warning-100)
+  );
+  --vxe-ui-tree-node-checkbox-checked-background-color: hsl(var(--warning-50));
+  --vxe-ui-tree-node-hover-checkbox-checked-background-color: hsl(
+    var(--warning-100)
+  );
+  --vxe-ui-tree-node-current-background-color: hsl(var(--primary-50));
+  --vxe-ui-tree-node-hover-current-background-color: hsl(var(--primary-100));
+  --vxe-ui-tree-drag-over-background-color: hsl(var(--warning-100) / 80%);
+  --vxe-ui-tree-node-line-color: hsl(var(--border));
+  --vxe-ui-tree-node-line-style: var(--border-style, solid);
+  --vxe-ui-rate-item-color: hsl(var(--warning));
+  --vxe-ui-upload-file-button-border-style: var(--border-style, solid);
+  --vxe-ui-upload-image-button-border-style: var(--border-style, solid);
+  --vxe-ui-upload-drag-over-background-color: hsl(var(--warning-100) / 80%);
+  --vxe-ui-tooltip-dark-color: hsl(var(--popover-foreground));
+  --vxe-ui-tooltip-dark-background-color: hsl(var(--popover));
+  --vxe-ui-calendar-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-calendar-selected-color: hsl(var(--primary-foreground));
+  --vxe-ui-calendar-festival-selected-color: hsl(var(--primary-foreground));
+  --vxe-ui-calendar-notice-selected-background-color: hsl(
+    var(--primary-foreground)
+  );
+  --vxe-ui-segmented-item-background-color: hsl(var(--accent));
+  --vxe-ui-segmented-item-hover-background-color: hsl(var(--accent-hover));
+  --vxe-ui-splitter-handle-button-background-color: hsl(
+    var(--muted-foreground)
+  );
+  --vxe-ui-splitter-handle-bar-background-color: hsl(var(--heavy));
+  --vxe-ui-splitter-handle-bar-hover-background-color: hsl(var(--border));
+  --vxe-ui-splitter-resizable-line-color: hsl(var(--heavy));
+  --vxe-ui-splitter-resizable-drag-line-color: hsl(var(--primary));
+  --vxe-ui-toolbar-custom-active-background-color: hsl(var(--accent-hover));
+}
+
+:root[data-border-style='dashed'] {
+  --vxe-ui-upload-file-button-border-style: dotted;
+  --vxe-ui-upload-image-button-border-style: dotted;
+}
+
+.vxe-button.type--button,
+.vxe-input,
+.vxe-number-input,
+.vxe-textarea > .vxe-textarea--inner,
+.vxe-password-input,
+.vxe-select > .vxe-input,
+.vxe-tree-select > .vxe-input,
+.vxe-table-select > .vxe-input,
+.vxe-cascader > .vxe-input,
+.vxe-color-picker,
+.vxe-ico-picker,
+.vxe-pager.is--perfect,
+.vxe-pager.is--border .vxe-pager--home-btn,
+.vxe-pager.is--border .vxe-pager--end-btn,
+.vxe-pager.is--border .vxe-pager--prev-btn,
+.vxe-pager.is--border .vxe-pager--next-btn,
+.vxe-pager.is--border .vxe-pager--jump-prev,
+.vxe-pager.is--border .vxe-pager--jump-next,
+.vxe-pager.is--border .vxe-pager--num-btn,
+.vxe-pager.is--perfect .vxe-pager--home-btn,
+.vxe-pager.is--perfect .vxe-pager--end-btn,
+.vxe-pager.is--perfect .vxe-pager--prev-btn,
+.vxe-pager.is--perfect .vxe-pager--next-btn,
+.vxe-pager.is--perfect .vxe-pager--jump-prev,
+.vxe-pager.is--perfect .vxe-pager--jump-next,
+.vxe-pager.is--perfect .vxe-pager--num-btn,
+.vxe-input--panel-wrapper,
+.vxe-input--panel-layout-wrapper,
+.vxe-select--panel-wrapper,
+.vxe-tree-select--panel-wrapper,
+.vxe-cascader--panel-wrapper,
+.vxe-pulldown--panel-wrapper,
+.vxe-color-picker--panel-wrapper,
+.vxe-ico-picker--panel-wrapper,
+.vxe-password-input--panel-wrapper,
+.vxe-calendar,
+.vxe-calendar--wrapper,
+.vxe-modal--box,
+.vxe-table--filter-wrapper,
+.vxe-table--context-menu-wrapper,
+.vxe-table--context-menu-clild-wrapper,
+.vxe-table-export--panel,
+.vxe-table-import--panel,
+.vxe-upload--image-action-box,
+.vxe-upload--image-item-img-wrapper,
+.vxe-upload--file-message-over-error .vxe-upload--file-message-over-extra,
+.vxe-form,
+.vxe-card,
+.vxe-splitter,
+.vxe-splitter-pane,
+.vxe-segmented {
+  border-style: var(--border-style, solid) !important;
+}
+
+:root[data-border-style='dashed'] .vxe-button.type--button,
+:root[data-border-style='dashed'] .vxe-input,
+:root[data-border-style='dashed'] .vxe-number-input,
+:root[data-border-style='dashed'] .vxe-textarea > .vxe-textarea--inner,
+:root[data-border-style='dashed'] .vxe-password-input,
+:root[data-border-style='dashed'] .vxe-select > .vxe-input,
+:root[data-border-style='dashed'] .vxe-tree-select > .vxe-input,
+:root[data-border-style='dashed'] .vxe-table-select > .vxe-input,
+:root[data-border-style='dashed'] .vxe-cascader > .vxe-input,
+:root[data-border-style='dashed'] .vxe-color-picker,
+:root[data-border-style='dashed'] .vxe-ico-picker,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect,
+:root[data-border-style='dashed'] .vxe-pager.is--border .vxe-pager--home-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--border .vxe-pager--end-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--border .vxe-pager--prev-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--border .vxe-pager--next-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--border .vxe-pager--jump-prev,
+:root[data-border-style='dashed'] .vxe-pager.is--border .vxe-pager--jump-next,
+:root[data-border-style='dashed'] .vxe-pager.is--border .vxe-pager--num-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect .vxe-pager--home-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect .vxe-pager--end-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect .vxe-pager--prev-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect .vxe-pager--next-btn,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect .vxe-pager--jump-prev,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect .vxe-pager--jump-next,
+:root[data-border-style='dashed'] .vxe-pager.is--perfect .vxe-pager--num-btn,
+:root[data-border-style='dashed'] .vxe-input--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-input--panel-layout-wrapper,
+:root[data-border-style='dashed'] .vxe-select--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-tree-select--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-cascader--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-pulldown--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-color-picker--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-ico-picker--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-password-input--panel-wrapper,
+:root[data-border-style='dashed'] .vxe-calendar,
+:root[data-border-style='dashed'] .vxe-calendar--wrapper,
+:root[data-border-style='dashed'] .vxe-modal--box,
+:root[data-border-style='dashed'] .vxe-table--filter-wrapper,
+:root[data-border-style='dashed'] .vxe-table--context-menu-wrapper,
+:root[data-border-style='dashed'] .vxe-table--context-menu-clild-wrapper,
+:root[data-border-style='dashed'] .vxe-table-export--panel,
+:root[data-border-style='dashed'] .vxe-table-import--panel,
+:root[data-border-style='dashed'] .vxe-upload--image-action-box,
+:root[data-border-style='dashed'] .vxe-upload--image-item-img-wrapper,
+:root[data-border-style='dashed']
+  .vxe-upload--file-message-over-error
+  .vxe-upload--file-message-over-extra,
+:root[data-border-style='dashed'] .vxe-form,
+:root[data-border-style='dashed'] .vxe-card,
+:root[data-border-style='dashed'] .vxe-splitter,
+:root[data-border-style='dashed'] .vxe-splitter-pane,
+:root[data-border-style='dashed'] .vxe-segmented {
+  border-style: dotted !important;
+}
+
+.vxe-button.type--button,
+.vxe-input,
+.vxe-number-input,
+.vxe-password-input,
+.vxe-color-picker,
+.vxe-ico-picker,
+.vxe-textarea > .vxe-textarea--inner,
+.vxe-input--panel-wrapper,
+.vxe-input--panel-layout-wrapper,
+.vxe-select--panel-wrapper,
+.vxe-tree-select--panel-wrapper,
+.vxe-cascader--panel-wrapper,
+.vxe-pulldown--panel-wrapper,
+.vxe-color-picker--panel-wrapper,
+.vxe-ico-picker--panel-wrapper,
+.vxe-password-input--panel-wrapper,
+.vxe-calendar,
+.vxe-calendar--wrapper,
+.vxe-modal--box,
+.vxe-table--filter-wrapper,
+.vxe-table--context-menu-wrapper,
+.vxe-table--context-menu-clild-wrapper,
+.vxe-table-export--panel,
+.vxe-table-import--panel,
+.vxe-form,
+.vxe-card {
+  border-radius: var(--radius) !important;
+}
+
+.vxe-button.type--button:not(.is--round),
+.vxe-input,
+.vxe-number-input,
+.vxe-password-input,
+.vxe-color-picker,
+.vxe-ico-picker {
+  background-color: hsl(var(--background)) !important;
+}
+
+.vxe-button.type--button:not(.is--disabled):focus,
+.vxe-button.type--button:not(.is--disabled):hover,
+.vxe-button.type--button:not(.is--disabled):active,
+.vxe-input.is--active,
+.vxe-number-input.is--active,
+.vxe-password-input.is--active,
+.vxe-select.is--active:not(.is--filter) > .vxe-input,
+.vxe-tree-select.is--active:not(.is--filter) > .vxe-input,
+.vxe-table-select.is--active:not(.is--filter) > .vxe-input,
+.vxe-cascader.is--active:not(.is--filter) > .vxe-input,
+.vxe-color-picker.is--active,
+.vxe-ico-picker.is--active {
+  border-color: hsl(var(--primary)) !important;
+}
+
+.vxe-button.type--button:not(.is--disabled):focus,
+.vxe-input.is--active,
+.vxe-number-input.is--active,
+.vxe-password-input.is--active,
+.vxe-select.is--active:not(.is--filter) > .vxe-input,
+.vxe-tree-select.is--active:not(.is--filter) > .vxe-input,
+.vxe-table-select.is--active:not(.is--filter) > .vxe-input,
+.vxe-cascader.is--active:not(.is--filter) > .vxe-input,
+.vxe-color-picker.is--active,
+.vxe-ico-picker.is--active,
+.vxe-pager .vxe-pager--prev-btn:not(.is--disabled):focus,
+.vxe-pager .vxe-pager--next-btn:not(.is--disabled):focus,
+.vxe-pager .vxe-pager--num-btn:not(.is--disabled):focus,
+.vxe-pager .vxe-pager--jump-prev:not(.is--disabled):focus,
+.vxe-pager .vxe-pager--jump-next:not(.is--disabled):focus {
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 18%) !important;
+}
+
+.vxe-pager .vxe-pager--prev-btn:not(.is--disabled):hover,
+.vxe-pager .vxe-pager--next-btn:not(.is--disabled):hover,
+.vxe-pager .vxe-pager--num-btn:not(.is--disabled):hover,
+.vxe-pager .vxe-pager--jump-prev:not(.is--disabled):hover,
+.vxe-pager .vxe-pager--jump-next:not(.is--disabled):hover {
+  color: hsl(var(--primary-600));
+}
+
+.vxe-pager .vxe-pager--prev-btn:not(.is--disabled):active,
+.vxe-pager .vxe-pager--next-btn:not(.is--disabled):active,
+.vxe-pager .vxe-pager--num-btn:not(.is--disabled):active,
+.vxe-pager .vxe-pager--jump-prev:not(.is--disabled):active,
+.vxe-pager .vxe-pager--jump-next:not(.is--disabled):active {
+  color: hsl(var(--primary-600));
+  background-color: hsl(var(--accent));
+  border-color: hsl(var(--primary-600));
+}
+
+.vxe-pager.is--background .vxe-pager--jump-prev:not(.is--disabled).is--active,
+.vxe-pager.is--background .vxe-pager--num-btn:not(.is--disabled).is--active,
+.vxe-pager.is--background .vxe-pager--jump-next:not(.is--disabled).is--active,
+.vxe-pager.is--perfect .vxe-pager--jump-prev:not(.is--disabled).is--active,
+.vxe-pager.is--perfect .vxe-pager--num-btn:not(.is--disabled).is--active,
+.vxe-pager.is--perfect .vxe-pager--jump-next:not(.is--disabled).is--active {
+  color: hsl(var(--primary-foreground));
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.vxe-pager.is--background
+  .vxe-pager--jump-prev:not(.is--disabled).is--active:hover,
+.vxe-pager.is--background
+  .vxe-pager--num-btn:not(.is--disabled).is--active:hover,
+.vxe-pager.is--background
+  .vxe-pager--jump-next:not(.is--disabled).is--active:hover,
+.vxe-pager.is--perfect
+  .vxe-pager--jump-prev:not(.is--disabled).is--active:hover,
+.vxe-pager.is--perfect .vxe-pager--num-btn:not(.is--disabled).is--active:hover,
+.vxe-pager.is--perfect
+  .vxe-pager--jump-next:not(.is--disabled).is--active:hover {
+  background-color: hsl(var(--primary-600));
+  border-color: hsl(var(--primary-600));
+}
+
+.vxe-modal--wrapper.type--alert .vxe-modal--header,
+.vxe-modal--wrapper.type--confirm .vxe-modal--header,
+.vxe-modal--wrapper.type--modal .vxe-modal--header {
+  background-color: hsl(var(--card));
+  border-bottom-color: hsl(var(--border));
+}
+
+.vxe-table--filter-wrapper .vxe-table--filter-footer,
+.vxe-table--context-menu--option-wrapper,
+.vxe-table--context-menu-clild-wrapper,
+.vxe-context-menu--option-wrapper {
+  border-color: hsl(var(--border));
+}
+
+.vxe-table--context-menu-wrapper,
+.vxe-table--context-menu-clild-wrapper {
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 8%);
+}
+
+.vxe-context-menu--option-wrapper li.link--active,
+.vxe-table--context-menu-clild-wrapper li.link--active {
+  background-color: hsl(var(--accent-hover));
+  border-color: hsl(var(--accent-hover));
+}
+
+.vxe-upload--drag-placeholder {
+  border-color: hsl(var(--border)) !important;
+}
+
+.vxe-table--render-default,
+.vxe-table--main-wrapper,
+.vxe-table--fixed-left-wrapper,
+.vxe-table--fixed-right-wrapper,
+.vxe-table--header-wrapper,
+.vxe-table--body-wrapper,
+.vxe-table--footer-wrapper,
+.vxe-table--border-line,
+.vxe-table--resizable-bar,
+.vxe-header--column,
+.vxe-body--column,
+.vxe-footer--column,
+.vxe-table--render-default.is--border,
+.vxe-table--render-default.is--border .vxe-table--header-wrapper,
+.vxe-table--render-default.is--border .vxe-table--body-wrapper,
+.vxe-table--render-default.is--border .vxe-table--footer-wrapper,
+.vxe-table--render-default.is--border .vxe-header--column,
+.vxe-table--render-default.is--border .vxe-body--column,
+.vxe-table--render-default.is--border .vxe-footer--column {
+  border-color: hsl(var(--border)) !important;
+}
+
+.vxe-table--render-default.is--border,
+.vxe-table--render-default.is--border .vxe-table--header-wrapper,
+.vxe-table--render-default.is--border .vxe-table--body-wrapper,
+.vxe-table--render-default.is--border .vxe-table--footer-wrapper,
+.vxe-table--render-default.is--border .vxe-header--column,
+.vxe-table--render-default.is--border .vxe-body--column,
+.vxe-table--render-default.is--border .vxe-footer--column,
+.vxe-table--render-default.is--border .vxe-table--border-line,
+.vxe-table--render-default.border--default .vxe-table--header-wrapper,
+.vxe-table--render-default.border--default .vxe-table--footer-wrapper,
+.vxe-table--render-default.border--full .vxe-table--header-wrapper,
+.vxe-table--render-default.border--full .vxe-table--footer-wrapper,
+.vxe-table--render-default.border--outer .vxe-table--header-wrapper,
+.vxe-table--render-default.border--inner .vxe-table--footer-wrapper,
+.vxe-table--render-default.border--default .vxe-table--border-line,
+.vxe-table--render-default.border--full .vxe-table--border-line,
+.vxe-table--render-default.border--outer .vxe-table--border-line,
+.vxe-table--render-default.border--inner .vxe-table--border-line,
+.vxe-table--render-default .vxe-table--scroll-x-handle-appearance,
+.vxe-table--render-default .vxe-table--scroll-y-handle-appearance,
+.vxe-table--render-default .vxe-body--expanded-column,
+.vxe-table--render-default .vxe-body--row-expanded-place-column {
+  border-style: var(--border-style, solid) !important;
+}
+
+:root[data-border-style='dashed'] .vxe-table--render-default.is--border,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.is--border
+  .vxe-table--header-wrapper,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.is--border
+  .vxe-table--body-wrapper,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.is--border
+  .vxe-table--footer-wrapper,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.is--border
+  .vxe-header--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.is--border
+  .vxe-body--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.is--border
+  .vxe-footer--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.is--border
+  .vxe-table--border-line {
+  border-style: dotted !important;
+}
+
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default
+  .vxe-table--border-line,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full
+  .vxe-table--border-line,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--outer
+  .vxe-table--border-line,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner
+  .vxe-table--border-line,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default
+  .vxe-table--scroll-x-handle-appearance,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full
+  .vxe-table--scroll-x-handle-appearance,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--outer
+  .vxe-table--scroll-x-handle-appearance,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner
+  .vxe-table--scroll-x-handle-appearance,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default
+  .vxe-table--scroll-y-handle-appearance,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full
+  .vxe-table--scroll-y-handle-appearance,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--outer
+  .vxe-table--scroll-y-handle-appearance,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner
+  .vxe-table--scroll-y-handle-appearance {
+  border-style: dotted !important;
+}
+
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default
+  .vxe-header--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default
+  .vxe-body--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default
+  .vxe-footer--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner
+  .vxe-header--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner
+  .vxe-body--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner
+  .vxe-footer--column {
+  background-image: repeating-linear-gradient(
+    to right,
+    hsl(var(--border)) 0 2px,
+    transparent 2px 5px
+  ) !important;
+  background-repeat: repeat-x !important;
+  background-position: right bottom !important;
+  background-size: 100% var(--vxe-ui-table-border-width) !important;
+}
+
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full
+  .vxe-header--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full
+  .vxe-body--column,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full
+  .vxe-footer--column {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ),
+    repeating-linear-gradient(
+      to right,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ) !important;
+  background-repeat: repeat-y, repeat-x !important;
+  background-position:
+    right top,
+    right bottom !important;
+  background-size:
+    var(--vxe-ui-table-border-width) 100%,
+    100% var(--vxe-ui-table-border-width) !important;
+}
+
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default.sy-pos--right
+  .vxe-table--scroll-y-top-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full.sy-pos--right
+  .vxe-table--scroll-y-top-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--outer.sy-pos--right
+  .vxe-table--scroll-y-top-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner.sy-pos--right
+  .vxe-table--scroll-y-top-corner {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ),
+    repeating-linear-gradient(
+      to right,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ) !important;
+  background-repeat: repeat-y, repeat-x !important;
+  background-position:
+    left top,
+    left bottom !important;
+  background-size:
+    var(--vxe-ui-table-border-width) 100%,
+    100% var(--vxe-ui-table-border-width) !important;
+}
+
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default.sy-pos--right
+  .vxe-table--scroll-y-bottom-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full.sy-pos--right
+  .vxe-table--scroll-y-bottom-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--outer.sy-pos--right
+  .vxe-table--scroll-y-bottom-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner.sy-pos--right
+  .vxe-table--scroll-y-bottom-corner {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ),
+    repeating-linear-gradient(
+      to right,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ) !important;
+  background-repeat: repeat-y, repeat-x !important;
+  background-position:
+    left top,
+    left top !important;
+  background-size:
+    var(--vxe-ui-table-border-width) 100%,
+    100% var(--vxe-ui-table-border-width) !important;
+}
+
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default.sy-pos--left
+  .vxe-table--scroll-y-top-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full.sy-pos--left
+  .vxe-table--scroll-y-top-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--outer.sy-pos--left
+  .vxe-table--scroll-y-top-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner.sy-pos--left
+  .vxe-table--scroll-y-top-corner {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ),
+    repeating-linear-gradient(
+      to right,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ) !important;
+  background-repeat: repeat-y, repeat-x !important;
+  background-position:
+    right top,
+    left bottom !important;
+  background-size:
+    var(--vxe-ui-table-border-width) 100%,
+    100% var(--vxe-ui-table-border-width) !important;
+}
+
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--default.sy-pos--left
+  .vxe-table--scroll-y-bottom-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--full.sy-pos--left
+  .vxe-table--scroll-y-bottom-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--outer.sy-pos--left
+  .vxe-table--scroll-y-bottom-corner,
+:root[data-border-style='dashed']
+  .vxe-table--render-default.border--inner.sy-pos--left
+  .vxe-table--scroll-y-bottom-corner {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ),
+    repeating-linear-gradient(
+      to right,
+      hsl(var(--border)) 0 2px,
+      transparent 2px 5px
+    ) !important;
+  background-repeat: repeat-y, repeat-x !important;
+  background-position:
+    right top,
+    left top !important;
+  background-size:
+    var(--vxe-ui-table-border-width) 100%,
+    100% var(--vxe-ui-table-border-width) !important;
+}
+
+.vxe-pager {
+  .vxe-pager--wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .vxe-pager--sizes {
+    margin-right: auto;
+  }
+}
+
+.vxe-pager--wrapper {
+  @apply justify-center md:justify-end;
+}
+
+.vxe-tools--operate {
+  margin-right: 0.25rem;
+  margin-left: 0.75rem;
+}
+
+.vxe-table-custom--checkbox-option:hover {
+  background: none !important;
+}
+
+.vxe-toolbar {
+  padding: 0;
+}
+
+.vxe-buttons--wrapper:not(:empty),
+.vxe-tools--operate:not(:empty),
+.vxe-tools--wrapper:not(:empty) {
+  padding: 0.6em 0;
+}
+
+.vxe-tools--operate:not(:has(button)) {
+  margin-left: 0;
+}
+
+.vxe-grid--layout-header-wrapper {
+  overflow: visible;
+}
+
+.vxe-grid--layout-body-content-wrapper {
+  overflow: hidden;
+}

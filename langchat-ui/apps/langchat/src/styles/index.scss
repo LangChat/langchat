@@ -1,0 +1,59 @@
+.ant-sender {
+  box-shadow: none !important;
+
+  .ant-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* 边框线型跟随全局主题配置:设置面板切换虚线/实线时,
+   应用内"未显式声明线型"的边框(如 border border-border 工具类)自动跟随。
+   用 html :where(#app ...) 把优先级压到所有类选择器之下:
+   - 高于 Tailwind 预检的 * { border: 0 solid },工具类元素的线型能跟随主题;
+   - 低于 border: none、显式 border-solid 等类级声明,
+     不会把"本无边框"的元素(输入框、按钮)强制渲染出粗虚线;
+   Loading 页注入在 #app 挂载点之外,不受影响。 */
+html :where(#app) *,
+html :where(#app) ::before,
+html :where(#app) ::after {
+  border-style: var(--border-style, solid);
+}
+
+/* 菜单项的边框在公共库内是类级声明,需要显式覆盖才能跟随主题 */
+#app .vben-menu-item,
+#app .vben-sub-menu-content {
+  border-style: var(--border-style, solid);
+}
+
+/* 菜单激活项使用主色边框(线型跟随上面的主题变量) */
+#app .vben-menu-item.is-active {
+  border-color: hsl(var(--primary));
+}
+
+/* 修复:底层公共样式会给非圆形 vxe 按钮强制白底,
+   这里恢复带状态色按钮(theme--*)自身的主题配色 */
+#app .vxe-button.type--button.theme--primary:not(.is--disabled) {
+  color: hsl(var(--primary-foreground)) !important;
+  background-color: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary)) !important;
+}
+
+#app .vxe-button.type--button.theme--success:not(.is--disabled) {
+  color: #fff !important;
+  background-color: var(--vxe-ui-status-success-color) !important;
+  border-color: var(--vxe-ui-status-success-color) !important;
+}
+
+#app .vxe-button.type--button.theme--warning:not(.is--disabled) {
+  color: #fff !important;
+  background-color: var(--vxe-ui-status-warning-color) !important;
+  border-color: var(--vxe-ui-status-warning-color) !important;
+}
+
+#app .vxe-button.type--button.theme--error:not(.is--disabled) {
+  color: #fff !important;
+  background-color: var(--vxe-ui-status-error-color) !important;
+  border-color: var(--vxe-ui-status-error-color) !important;
+}

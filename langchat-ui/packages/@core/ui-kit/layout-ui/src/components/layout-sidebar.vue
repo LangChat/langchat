@@ -1,0 +1,421 @@
+<script setup lang="ts">
+import type { CSSProperties } from 'vue';
+
+import { computed, onUnmounted, shallowRef, useSlots, watchEffect } from 'vue';
+
+import { VbenScrollbar } from '@vben-core/shadcn-ui';
+
+import { useScrollLock } from '@vueuse/core';
+
+import { useSidebarDrag } from '../hooks/use-sidebar-drag';
+import { SidebarCollapseButton, SidebarFixedButton } from './widgets';
+
+interface Props {
+  /**
+   * 折叠区域高度
+   * @default 42
+   */
+  collapseHeight?: number;
+  /**
+   * 折叠宽度
+   * @default 48
+   */
+  collapseWidth?: number;
+  /**
+   * 隐藏的dom是否可见
+   * @default true
+   */
+  domVisible?: boolean;
+  /**
+   * 扩展区域宽度
+   */
+  extraWidth: number;
+  /**
+   * 固定扩展区域
+   * @default false
+   */
+  fixedExtra?: boolean;
+  /**
+   * 悬浮模式
+   * @default false
+   */
+  floatingMode?: boolean;
+  /**
+   * 头部高度
+   */
+  headerHeight: number;
+  /**
+   * 是否侧边混合模式
+   * @default false
+   */
+  isSidebarMixed?: boolean;
+  /**
+   * 顶部margin
+   * @default 60
+   */
+  marginTop?: number;
+  /**
+   * 混合菜单宽度
+   * @default 80
+   */
+  mixedWidth?: number;
+  /**
+   * 顶部padding
+   * @default 60
+   */
+  paddingTop?: number;
+  /**
+   * 是否显示
+   * @default true
+   */
+  show?: boolean;
+  /**
+   * 显示折叠按钮
+   * @default true
+   */
+  showCollapseButton?: boolean;
+  /**
+   * 显示固定按钮
+   * @default true
+   */
+  showFixedButton?: boolean;
+  /**
+   * 主题
+   */
+  theme: string;
+  /**
+   * 子主题
+   */
+  themeSub: string;
+  /**
+   * 宽度
+   */
+  width: number;
+  /**
+   * zIndex
+   * @default 0
+   */
+  zIndex?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  collapseHeight: 42,
+  collapseWidth: 48,
+  domVisible: true,
+  fixedExtra: false,
+  floatingMode: false,
+  isSidebarMixed: false,
+  marginTop: 0,
+  mixedWidth: 70,
+  paddingTop: 0,
+  show: true,
+  showCollapseButton: true,
+  showFixedButton: true,
+  zIndex: 0,
+});
+
+const emit = defineEmits<{ leave: []; 'update:width': [value: number] }>();
+const draggable = defineModel<boolean>('draggable');
+const collapse = defineModel<boolean>('collapse');
+const extraCollapse = defineModel<boolean>('extraCollapse');
+const expandOnHovering = defineModel<boolean>('expandOnHovering');
+const expandOnHover = defineModel<boolean>('expandOnHover');
+const extraVisible = defineModel<boolean>('extraVisible');
+
+const isLocked = useScrollLock(document.body);
+const slots = useSlots();
+
+const asideRef = shallowRef<HTMLElement | null>(null);
+const dragBarRef = shallowRef<HTMLElement | null>(null);
+
+const hiddenSideStyle = computed((): CSSProperties => calcMenuWidthStyle(true));
+
+const style = computed((): CSSProperties => {
+  const { floatingMode, isSidebarMixed, marginTop, paddingTop, zIndex } = props;
+
+  const baseStyle: CSSProperties = {
+    '--scroll-shadow': 'var(--sidebar)',
+    ...calcMenuWidthStyle(false),
+    zIndex,
+    ...(isSidebarMixed && extraVisible.value ? { transition: 'none' } : {}),
+  };
+
+  if (floatingMode) {
+    const floatingMargin = 12;
+    return {
+      ...baseStyle,
+      height: `calc(100% - ${floatingMargin * 2}px)`,
+      left: `${floatingMargin}px`,
+      top: `${floatingMargin}px`,
+    };
+  }
+
+  return {
+    ...baseStyle,
+    height: `calc(100% - ${marginTop}px)`,
+    marginTop: `${marginTop}px`,
+    paddingTop: `${paddingTop}px`,
+  };
+});
+
+const extraStyle = computed((): CSSProperties => {
+  const { extraWidth, floatingMode, show, width, zIndex } = props;
+  const floatingMargin = floatingMode ? 12 : 0;
+
+  return {
+    height: floatingMode ? `calc(100% - ${floatingMargin * 2}px)` : '100%',
+    left: `${width + floatingMargin * 2}px`,
+    top: floatingMode ? `${floatingMargin}px` : 0,
+    width: extraVisible.value && show ? `${extraWidth}px` : 0,
+    zIndex,
+  };
+});
+
+const extraTitleStyle = computed((): CSSProperties => {
+  const { headerHeight } = props;
+
+  return {
+    height: `${headerHeight - 1}px`,
+  };
+});
+
+const contentWidthStyle = computed((): CSSProperties => {
+  const { fixedExtra, isSidebarMixed, mixedWidth } = props;
+  if (isSidebarMixed && fixedExtra) {
+    return { width: `${mixedWidth}px` };
+  }
+  return {};
+});
+
+const contentStyle = computed((): CSSProperties => {
+  const { collapseHeight, floatingMode, headerHeight } = props;
+
+  return {
+    ...(floatingMode
+      ? { minHeight: 0 }
+      : { height: `calc(100% - ${headerHeight + collapseHeight}px)` }),
+    paddingTop: '8px',
+    ...contentWidthStyle.value,
+  };
+});
+
+const headerStyle = computed((): CSSProperties => {
+  const { headerHeight, isSidebarMixed } = props;
+
+  return {
+    ...(isSidebarMixed ? { display: 'flex', justifyContent: 'center' } : {}),
+    height: `${headerHeight - 1}px`,
+    ...contentWidthStyle.value,
+  };
+});
+
+const extraContentStyle = computed((): CSSProperties => {
+  const { collapseHeight, headerHeight } = props;
+  return {
+    height: `calc(100% - ${headerHeight + collapseHeight}px)`,
+  };
+});
+
+const collapseStyle = computed((): CSSProperties => {
+  return {
+    height: `${props.collapseHeight}px`,
+  };
+});
+
+watchEffect(() => {
+  extraVisible.value = props.fixedExtra ? true : extraVisible.value;
+});
+
+function calcMenuWidthStyle(isHiddenDom: boolean): CSSProperties {
+  const {
+    collapseWidth,
+    extraWidth,
+    mixedWidth,
+    fixedExtra,
+    isSidebarMixed,
+    show,
+    width,
+  } = props;
+
+  let widthValue =
+    width === 0
+      ? '0px'
+      : `${width + (isSidebarMixed && fixedExtra && extraVisible.value ? extraWidth : 0)}px`;
+
+  if (isHiddenDom && expandOnHovering.value && !expandOnHover.value) {
+    widthValue = isSidebarMixed ? `${mixedWidth}px` : `${collapseWidth}px`;
+  }
+  return {
+    ...(widthValue === '0px' ? { overflow: 'hidden' } : {}),
+    flex: `0 0 ${widthValue}`,
+    marginLeft: show ? 0 : `-${widthValue}`,
+    maxWidth: widthValue,
+    minWidth: widthValue,
+    width: widthValue,
+  };
+}
+
+function handleMouseenter(e: MouseEvent) {
+  if (e?.offsetX < 10) {
+    return;
+  }
+
+  // 未开启和未折叠状态不生效
+  if (expandOnHover.value) {
+    return;
+  }
+  if (!expandOnHovering.value) {
+    collapse.value = false;
+  }
+  if (props.isSidebarMixed) {
+    isLocked.value = true;
+  }
+  expandOnHovering.value = true;
+}
+
+function handleMouseleave() {
+  emit('leave');
+  if (props.isSidebarMixed) {
+    isLocked.value = false;
+  }
+  if (expandOnHover.value) {
+    return;
+  }
+
+  expandOnHovering.value = false;
+  collapse.value = true;
+  extraVisible.value = false;
+}
+
+const { startDrag, endDrag } = useSidebarDrag();
+
+const handleDragSidebar = (e: MouseEvent) => {
+  const { isSidebarMixed, collapseWidth, width } = props;
+  const minLimit = isSidebarMixed ? width + collapseWidth : collapseWidth;
+  const maxLimit = isSidebarMixed ? width + 320 : 320;
+
+  startDrag(
+    e,
+    {
+      min: minLimit,
+      max: maxLimit,
+    },
+    {
+      target: asideRef.value,
+      dragBar: dragBarRef.value,
+    },
+    (newWidth) => {
+      if (isSidebarMixed) {
+        emit('update:width', newWidth - width);
+        extraCollapse.value = collapse.value =
+          newWidth - width <= collapseWidth;
+      } else {
+        emit('update:width', newWidth);
+        collapse.value = extraCollapse.value = newWidth <= collapseWidth;
+      }
+    },
+  );
+};
+
+onUnmounted(() => {
+  endDrag();
+});
+</script>
+
+<template>
+  <div
+    v-if="domVisible"
+    :class="theme"
+    :style="hiddenSideStyle"
+    class="h-full transition-all duration-150"
+  ></div>
+  <aside
+    ref="asideRef"
+    :style="style"
+    class="fixed left-0 top-0 h-full transition-all duration-150"
+    :class="theme"
+    @mouseenter="handleMouseenter"
+    @mouseleave="handleMouseleave"
+  >
+    <div
+      class="h-full overflow-hidden"
+      :class="[
+        {
+          'flex flex-col rounded-lg border border-border bg-sidebar':
+            floatingMode,
+          'bg-sidebar-deep': isSidebarMixed && !floatingMode,
+          'border-r border-border bg-sidebar': !isSidebarMixed && !floatingMode,
+        },
+      ]"
+      :style="{ width: `${width}px` }"
+    >
+      <SidebarFixedButton
+        v-if="!floatingMode && !collapse && !isSidebarMixed && showFixedButton"
+        v-model:expand-on-hover="expandOnHover"
+      />
+      <div v-if="slots.logo" :style="headerStyle" class="shrink-0">
+        <slot name="logo"></slot>
+      </div>
+      <VbenScrollbar
+        :class="{ 'min-h-0 flex-1': floatingMode }"
+        :style="contentStyle"
+        shadow
+        shadow-border
+      >
+        <slot></slot>
+      </VbenScrollbar>
+
+      <div
+        v-if="floatingMode && slots['sidebar-footer']"
+        class="sidebar-footer shrink-0 border-t border-border px-3 py-3"
+      >
+        <slot name="sidebar-footer"></slot>
+      </div>
+
+      <div v-if="!floatingMode" :style="collapseStyle" class="shrink-0"></div>
+      <SidebarCollapseButton
+        v-if="!floatingMode && showCollapseButton && !isSidebarMixed"
+        v-model:collapsed="collapse"
+      />
+    </div>
+    <div
+      v-if="isSidebarMixed"
+      :class="[
+        themeSub,
+        {
+          'border-l': extraVisible,
+          'rounded-lg border border-border': floatingMode,
+        },
+      ]"
+      :style="extraStyle"
+      class="fixed top-0 h-full overflow-hidden border-r border-border bg-sidebar transition-all duration-200"
+    >
+      <SidebarCollapseButton
+        v-if="isSidebarMixed && expandOnHover"
+        v-model:collapsed="extraCollapse"
+      />
+
+      <SidebarFixedButton
+        v-if="!extraCollapse"
+        v-model:expand-on-hover="expandOnHover"
+      />
+      <div v-if="!extraCollapse" :style="extraTitleStyle" class="pl-2">
+        <slot name="extra-title"></slot>
+      </div>
+      <VbenScrollbar
+        :style="extraContentStyle"
+        class="border-border py-2"
+        shadow
+        shadow-border
+      >
+        <slot name="extra"></slot>
+      </VbenScrollbar>
+    </div>
+    <div
+      v-if="draggable"
+      ref="dragBarRef"
+      class="absolute inset-y-0 -right-px z-1000 w-0.5 cursor-col-resize hover:bg-primary"
+      @mousedown="handleDragSidebar"
+    ></div>
+  </aside>
+</template>

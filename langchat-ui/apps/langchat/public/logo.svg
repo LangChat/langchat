@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <title>LangChat Agentic logo</title>
+  <desc>Two solid forms handing context from one side to the other.</desc>
+  <rect width="160" height="160" rx="36" fill="#18181B" />
+  <path
+    d="M41 35h38a4 4 0 0 1 4 4v34c0 18-14 32-32 32H41a8 8 0 0 1-8-8V84h18c6 0 11-5 11-11V56H33V43a8 8 0 0 1 8-8Z"
+    fill="#FFFFFF"
+  />
+  <path
+    d="M119 125H81a4 4 0 0 1-4-4V87c0-18 14-32 32-32h10a8 8 0 0 1 8 8v13h-18c-6 0-11 5-11 11v17h29v13a8 8 0 0 1-8 8Z"
+    fill="#FFFFFF"
+  />
+  <path d="m80 71 9 9-9 9-9-9 9-9Z" fill="#18181B" />
+</svg>

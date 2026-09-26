@@ -1,4 +1,4 @@
-/* 滚动边缘渐隐(参考 shadcn-vue scroll-fade 的静态回退实现):
+/* LcChat 滚动边缘渐隐(参考 shadcn-vue scroll-fade 的静态回退实现):
    通过 mask-image 溶解上下边缘内容,提示还有更多消息。 */
 .chat-scroll-fade {
   --chat-scroll-fade-size: 16px;

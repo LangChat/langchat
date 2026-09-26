@@ -6,7 +6,7 @@ import { nextTick, onScopeDispose, ref, watch } from 'vue';
 const BOTTOM_THRESHOLD = 80;
 
 /**
- * 聊天滚动控制:内容变化时柔和滚动到底部(平滑动画,非瞬移),
+ * LcChat 滚动控制:内容变化时柔和滚动到底部(平滑动画,非瞬移),
  * 用户向上翻阅时暂停自动跟随,重新贴底后恢复。
  */
 export function useChatScroll(

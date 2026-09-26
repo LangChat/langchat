@@ -13,6 +13,7 @@ import type {
   LcChatContextSection,
   LcChatEventItem,
   LcChatMessageItem,
+  LcChatSendPayload,
   LcChatSidebarItem,
 } from '#/components/LcChat/types';
 
@@ -287,12 +288,22 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
     }
   }
 
-  async function sendMessage() {
+  async function sendMessage(payload?: LcChatSendPayload) {
     const agentId = selectedAgentId.value;
-    const content = draftMessage.value.trim();
+    const content = String(payload?.text ?? draftMessage.value).trim();
     if (!agentId || !content || sending.value) {
       return;
     }
+
+    const attachments = (payload?.attachments || [])
+      .filter((item) => item.status === 'uploaded' && item.ossId)
+      .map((item) => ({
+        contentType: item.file.type,
+        id: item.ossId,
+        name: item.name,
+        size: item.size,
+        url: item.remoteUrl,
+      }));
 
     draftMessage.value = '';
     sending.value = true;
@@ -316,6 +327,7 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
       await createChatCompletionStreamApi(
         {
           agentId,
+          attachments,
           conversationId: selectedConversationId.value || undefined,
           messages: [
             {

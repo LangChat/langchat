@@ -6,7 +6,7 @@ import { computed, ref, watch } from 'vue';
 
 import { modelApi } from '#/api/aigc/model';
 
-/** 对话输入框可选择的模型类型(与系统 ModelSelector 的默认范围保持一致)。 */
+/** LcChat 输入框可选择的模型类型(与系统 ModelSelector 的默认范围保持一致)。 */
 const CHAT_MODEL_TYPES = new Set(['CHAT', 'REASONING']);
 
 /**

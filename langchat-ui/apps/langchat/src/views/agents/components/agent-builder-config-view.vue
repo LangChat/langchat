@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+import type {
+  LcChatMessage,
+  LcChatSendPayload,
+} from '#/components/LcChat/types';
+
 import { ref } from 'vue';
 
 import {
@@ -13,7 +18,8 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@vben-core
 
 import { NDynamicInput, NInput, NSwitch } from 'naive-ui';
 
-import ChatLayout from '#/components/chat/chat-layout.vue';
+import LcChat from '#/components/LcChat/index.vue';
+import LcIconDisplay from '#/components/LcIcon/display.vue';
 import AgentConfigPanel from '#/views/agents/components/agent-config-panel.vue';
 
 interface RelationOption {
@@ -45,7 +51,7 @@ withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  submit: [content: string];
+  submit: [payload: LcChatSendPayload];
 }>();
 
 const formModel = defineModel<any>({ required: true });
@@ -63,7 +69,9 @@ function toggleMaximize(panel: BuilderPanelKey) {
 }
 
 /** 聊天布局实例,由父级(builder)通过它驱动消息流 */
-const layoutRef = ref<InstanceType<typeof ChatLayout> | null>(null);
+const layoutRef = ref<InstanceType<typeof LcChat> | null>(null);
+/** 独立于 LcChat 实例保存消息，避免面板全屏切换重建组件后丢失历史。 */
+const chatMessages = ref<LcChatMessage[]>([]);
 
 defineExpose({ layoutRef });
 
@@ -78,8 +86,8 @@ defineExpose({ layoutRef });
     <!-- 配置列:应用配置 + 折叠分组(系统提示词 / 欢迎语与建议) -->
     <ResizablePanel
       v-if="!maximizedPanel || maximizedPanel === 'config'"
-      :default-size="maximizedPanel ? 100 : 30"
-      :min-size="maximizedPanel ? undefined : 20"
+      :default-size="maximizedPanel ? 100 : 34"
+      :min-size="maximizedPanel ? undefined : 24"
     >
       <div
         class="flex h-full min-h-0 flex-col rounded-lg border border-border/70 bg-card p-3"
@@ -112,9 +120,9 @@ defineExpose({ layoutRef });
                 @click="promptExpanded = !promptExpanded"
               >
                 <span
-                  class="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground"
+                  class="inline-flex items-center gap-2 text-sm font-semibold text-foreground"
                 >
-                  <FileText class="size-3.5 text-primary" />
+                  <FileText class="size-4 text-primary" />
                   提示词与欢迎语配置
                 </span>
                 <ChevronUp
@@ -128,7 +136,7 @@ defineExpose({ layoutRef });
                 class="space-y-3 border-t border-border/60 p-2.5"
               >
                 <div>
-                  <div class="mb-1 text-xs text-muted-foreground">
+                  <div class="mb-1.5 text-xs font-medium text-foreground/80">
                     系统提示词
                   </div>
                   <NInput
@@ -139,7 +147,9 @@ defineExpose({ layoutRef });
                   />
                 </div>
                 <div>
-                  <div class="mb-1 text-xs text-muted-foreground">欢迎语</div>
+                  <div class="mb-1.5 text-xs font-medium text-foreground/80">
+                    欢迎语
+                  </div>
                   <NInput
                     v-model:value="formModel.welcomeMessage"
                     placeholder="当聊天为空时展示的欢迎语"
@@ -150,10 +160,10 @@ defineExpose({ layoutRef });
                 >
                   <div class="flex items-center justify-between gap-3">
                     <div>
-                      <div class="text-xs font-medium text-foreground">
+                      <div class="text-xs font-semibold text-foreground">
                         自动建议
                       </div>
-                      <div class="text-[11px] text-muted-foreground">
+                      <div class="text-xs leading-5 text-muted-foreground">
                         开启后，每次 AI 回复后会显示推荐追问卡片
                       </div>
                     </div>
@@ -161,7 +171,7 @@ defineExpose({ layoutRef });
                   </div>
                 </div>
                 <div>
-                  <div class="mb-1 text-xs text-muted-foreground">
+                  <div class="mb-1.5 text-xs font-medium text-foreground/80">
                     默认建议问题
                   </div>
                   <NDynamicInput
@@ -195,7 +205,7 @@ defineExpose({ layoutRef });
     <!-- 聊天调试列:尽量占据剩余宽度 -->
     <ResizablePanel
       v-if="!maximizedPanel || maximizedPanel === 'chat'"
-      :default-size="maximizedPanel ? 100 : 70"
+      :default-size="maximizedPanel ? 100 : 66"
       :min-size="maximizedPanel ? undefined : 40"
     >
       <div class="flex h-full min-h-0 flex-col rounded-lg border border-border/70 bg-card p-3">
@@ -212,33 +222,35 @@ defineExpose({ layoutRef });
           </button>
         </div>
         <div class="min-h-0 flex-1">
-          <ChatLayout
+          <LcChat
             ref="layoutRef"
             :assistant-icon="appIcon || ''"
             :disabled="chatLoading"
             :empty-title="welcomeMessage"
+            :initial-messages="chatMessages"
             :loading="historyLoading"
             placeholder="输入调试消息并回车发送"
-            :show-attachment="false"
+            :show-attachment="true"
             :show-model="false"
             :suggestions="defaultSuggestions.map((label) => ({ label }))"
             :user-avatar="userIcon || ''"
-            @send="emit('submit', $event.text)"
+            @messages-change="chatMessages = $event"
+            @send="emit('submit', $event)"
           >
             <template #empty-head>
               <div class="flex flex-col items-center gap-3 text-center">
-                <img
-                  v-if="appIcon"
-                  alt=""
-                  class="size-12 rounded-xl border border-border object-cover"
-                  :src="appIcon"
+                <LcIconDisplay
+                  :icon="appIcon"
+                  fallback-icon="lucide:bot"
+                  :size="64"
+                  class="!rounded-full border-border/80 bg-background"
                 />
                 <div class="text-base font-semibold text-foreground">
                   {{ welcomeMessage }}
                 </div>
               </div>
             </template>
-          </ChatLayout>
+          </LcChat>
         </div>
       </div>
     </ResizablePanel>

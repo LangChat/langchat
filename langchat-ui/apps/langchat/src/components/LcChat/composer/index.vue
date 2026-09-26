@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ChatComposerSendPayload } from './types';
 
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import {
   ArrowUp,
@@ -89,10 +89,19 @@ const {
 });
 
 const hasText = computed(() => text.value.length > 0);
+const hasAttachments = computed(() => attachments.value.length > 0);
+const hasUploadingAttachments = computed(() =>
+  attachments.value.some((item) => item.status === 'uploading'),
+);
+const hasFailedAttachments = computed(() =>
+  attachments.value.some((item) => item.status === 'error'),
+);
 /** 文本域实际换行(高度超过单行)后才切换为双行布局:输入区独占一行,操作按钮换到右下角 */
 const isTall = ref(false);
 /** 右下角按钮模式:无文字时是语音输入,有文字时变成发送 */
-const actionMode = computed(() => (hasText.value ? 'send' : 'voice'));
+const actionMode = computed(() =>
+  hasText.value || hasAttachments.value ? 'send' : 'voice',
+);
 
 function resizeTextarea() {
   const el = textareaRef.value;
@@ -118,6 +127,8 @@ onMounted(() => {
   resizeTextarea();
 });
 
+onBeforeUnmount(clearAttachments);
+
 function triggerFilePicker(kind: 'camera' | 'files' | 'photos') {
   const input = fileInputRef.value;
   if (!input) {
@@ -141,6 +152,20 @@ function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement;
   addFiles(input.files);
   input.value = '';
+}
+
+function handlePaste(event: ClipboardEvent) {
+  if (props.disabled) {
+    return;
+  }
+  const files = [...(event.clipboardData?.files || [])].filter((file) =>
+    file.type.startsWith('image/'),
+  );
+  if (files.length === 0) {
+    return;
+  }
+  event.preventDefault();
+  addFiles(files);
 }
 
 function selectModel(id: string) {
@@ -198,17 +223,22 @@ function handleActionClick() {
 }
 
 function submit() {
-  if (props.disabled || recording.value) {
+  if (
+    props.disabled ||
+    recording.value ||
+    hasUploadingAttachments.value ||
+    hasFailedAttachments.value
+  ) {
     return;
   }
   const trimmed = text.value.trim();
-  if (!trimmed) {
+  if (!trimmed && !hasAttachments.value) {
     return;
   }
   emit('send', {
-    attachments: attachments.value,
+    attachments: attachments.value.map((item) => ({ ...item })),
     modelId: modelId.value,
-    text: trimmed,
+    text: trimmed || '请查看我上传的附件。',
   });
   text.value = '';
   clearAttachments();
@@ -252,14 +282,33 @@ function handleKeydown(event: KeyboardEvent) {
     <!-- 附件列表 -->
     <div v-show="attachments.length > 0" class="chips-row">
       <TransitionGroup name="chip">
-        <div v-for="item in attachments" :key="item.id" class="chip">
+        <div
+          v-for="item in attachments"
+          :key="item.id"
+          class="chip"
+          :class="{ 'is-image': item.isImage }"
+        >
           <span class="chip-thumb">
             <img v-if="item.url" :alt="item.name" :src="item.url" />
             <Paperclip v-else class="size-4" />
+            <span v-if="item.status === 'uploading'" class="upload-mask">
+              {{ item.progress }}%
+            </span>
           </span>
           <span class="chip-meta">
             <span class="chip-name">{{ item.name }}</span>
-            <span class="chip-size">{{ formatFileSize(item.size) }}</span>
+            <span
+              class="chip-size"
+              :class="{ 'text-destructive': item.status === 'error' }"
+            >
+              {{
+                item.status === 'uploading'
+                  ? `上传中 ${item.progress}%`
+                  : item.status === 'error'
+                    ? item.error || '上传失败'
+                    : formatFileSize(item.size)
+              }}
+            </span>
           </span>
           <button
             aria-label="移除附件"
@@ -269,6 +318,11 @@ function handleKeydown(event: KeyboardEvent) {
           >
             <X class="size-3" />
           </button>
+          <span
+            v-if="item.status === 'uploading'"
+            class="upload-progress"
+            :style="{ width: `${item.progress}%` }"
+          ></span>
         </div>
       </TransitionGroup>
     </div>
@@ -288,7 +342,7 @@ function handleKeydown(event: KeyboardEvent) {
         <VbenPopover
           v-else-if="showAttachment"
           :content-props="{ align: 'start', side: 'top', sideOffset: 8 }"
-          content-class="w-[216px] rounded-2xl border border-border bg-popover p-1.5 shadow-lg"
+          content-class="w-[216px] rounded-lg border border-border bg-popover p-1.5"
           :open="attachMenuOpen"
           @update:open="attachMenuOpen = $event"
         >
@@ -351,6 +405,7 @@ function handleKeydown(event: KeyboardEvent) {
         :placeholder="placeholder"
         :readonly="recording"
         rows="1"
+        @paste="handlePaste"
         @keydown="handleKeydown"
       ></textarea>
 
@@ -364,7 +419,7 @@ function handleKeydown(event: KeyboardEvent) {
           >
             <VbenPopover
               :content-props="{ align: 'end', side: 'top', sideOffset: 8 }"
-              content-class="w-56 rounded-2xl border border-border bg-popover p-1.5 shadow-lg"
+              content-class="w-56 rounded-2xl border border-border bg-popover p-1.5"
               :open="modelMenuOpen"
               @update:open="modelMenuOpen = $event"
             >
@@ -456,7 +511,10 @@ function handleKeydown(event: KeyboardEvent) {
               class="action-btn"
               :data-mode="actionMode"
               :disabled="
-                disabled || (!voiceSupported && actionMode === 'voice')
+                disabled ||
+                hasUploadingAttachments ||
+                hasFailedAttachments ||
+                (!voiceSupported && actionMode === 'voice')
               "
               :type="actionMode === 'send' ? 'submit' : 'button'"
               @click="handleActionClick"
@@ -490,29 +548,19 @@ function handleKeydown(event: KeyboardEvent) {
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 24px;
-  box-shadow:
-    0 1px 3px hsl(var(--foreground) / 4%),
-    0 4px 12px hsl(var(--foreground) / 5%);
   transition:
     background-color 0.2s ease-out,
-    border-color 0.2s ease-out,
-    box-shadow 0.2s ease-out;
+    border-color 0.2s ease-out;
 }
 
-/* 悬停:边框切换为 Primary 主题色,阴影略微加深 */
+/* 悬停:只使用边框反馈，保持无阴影。 */
 .composer:hover {
   border-color: hsl(var(--primary));
-  box-shadow:
-    0 1px 4px hsl(var(--foreground) / 5%),
-    0 6px 18px hsl(var(--foreground) / 8%);
 }
 
-/* 聚焦:保持 Primary 边框 + 淡主色光环 */
+/* 聚焦:保持 Primary 边框，不增加阴影。 */
 .composer:focus-within {
   border-color: hsl(var(--primary));
-  box-shadow:
-    0 0 0 3px hsl(var(--primary) / 20%),
-    0 4px 12px hsl(var(--foreground) / 6%);
 }
 
 .composer.is-recording {
@@ -600,7 +648,7 @@ function handleKeydown(event: KeyboardEvent) {
   opacity: 0.4;
 }
 
-/* 录音中:麦克风变主色 + 呼吸圆环 */
+/* 录音中:麦克风使用稳定主色反馈，不增加阴影。 */
 .mic-btn.recording {
   color: hsl(var(--primary-foreground));
   background: var(--composer-voice);
@@ -609,25 +657,6 @@ function handleKeydown(event: KeyboardEvent) {
 .mic-btn.recording:hover {
   color: hsl(var(--primary-foreground));
   background: var(--composer-voice);
-}
-
-.mic-btn.recording::after {
-  position: absolute;
-  inset: 0;
-  content: '';
-  border-radius: 9999px;
-  animation: rec-ring 1.6s ease-out infinite;
-}
-
-@keyframes rec-ring {
-  from {
-    box-shadow: 0 0 0 0
-      color-mix(in oklab, var(--composer-voice) 45%, transparent);
-  }
-
-  to {
-    box-shadow: 0 0 0 14px transparent;
-  }
 }
 
 /* ---------------- 文本域 ---------------- */
@@ -790,6 +819,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 .chip {
+  position: relative;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -800,7 +830,47 @@ function handleKeydown(event: KeyboardEvent) {
   border-radius: 10px;
 }
 
+.chip.is-image {
+  width: 116px;
+  height: 116px;
+  padding: 5px;
+  overflow: hidden;
+}
+
+.chip.is-image .chip-thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.chip.is-image .chip-meta {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  padding: 18px 6px 5px;
+  color: white;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(0 0 0 / 72%), transparent);
+  border-radius: 0 0 8px 8px;
+}
+
+.chip.is-image .chip-name,
+.chip.is-image .chip-size {
+  color: inherit;
+}
+
+.chip.is-image .chip-x {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  color: white;
+  background: rgb(0 0 0 / 52%);
+}
+
 .chip-thumb {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -816,6 +886,27 @@ function handleKeydown(event: KeyboardEvent) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.upload-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  background: rgb(0 0 0 / 45%);
+}
+
+.upload-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: hsl(var(--primary));
+  transition: width 0.15s ease-out;
 }
 
 .chip-meta {

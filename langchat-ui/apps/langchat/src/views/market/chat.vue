@@ -1,33 +1,39 @@
 <script lang="ts" setup>
-import type {AigcAgent} from '#/api/aigc/agent';
+import type { AigcAgent } from '#/api/aigc/agent';
+import type {
+  LcChatMessage,
+  LcChatSendPayload,
+} from '#/components/LcChat/types';
 
-import {computed, onMounted, ref, watch} from 'vue';
-import {useRoute} from 'vue-router';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
-import {Page} from "@vben/common-ui";
-import {Check, Plus, SquarePen, Trash2, X} from '@vben/icons';
+import { Page } from '@vben/common-ui';
+import { Check, Plus, SquarePen, Trash2, X } from '@vben/icons';
 
-import {NButton, NInput} from 'naive-ui';
+import { NButton, NInput } from 'naive-ui';
 
-import {dialog, message} from '#/adapter/naive';
+import { dialog, message } from '#/adapter/naive';
 import {
   createConversationApi,
   removeConversationApi,
   updateConversationApi,
 } from '#/api/aigc/chat';
-import AgentChatCard from '#/components/AgentChatCard/index.vue';
-import {useChatRuntime} from '#/views/shared/chat/use-chat-runtime';
+import LcChat from '#/components/LcChat/index.vue';
+import { useChatRuntime } from '#/views/shared/chat/use-chat-runtime';
 
 const route = useRoute();
 const historyKeyword = ref('');
 const historyEditingId = ref('');
 const historyEditingTitle = ref('');
+const chatRef = ref<InstanceType<typeof LcChat> | null>(null);
 
 const {
   conversationSidebarItems,
   draftMessage,
   initializeRuntime,
   loadConversations,
+  messageLoading,
   messageItems,
   selectedAgent,
   selectedAgentId,
@@ -66,7 +72,7 @@ function parseMessageContent(raw: string) {
   return parsed.join('\n\n');
 }
 
-const marketChatMessages = computed(() =>
+const marketChatMessages = computed<LcChatMessage[]>(() =>
   messageItems.value
     .filter(
       (
@@ -81,7 +87,14 @@ const marketChatMessages = computed(() =>
       content: parseMessageContent(item.content),
       id: item.id,
       role: item.role,
+      status: 'completed' as const,
     })),
+);
+
+const marketSuggestions = computed(() =>
+  resolveDefaultSuggestions(selectedAgent.value as AigcAgent).map((label) => ({
+    label,
+  })),
 );
 
 const filteredConversationItems = computed(() => {
@@ -124,9 +137,24 @@ function resolveDefaultSuggestions(item: AigcAgent | null) {
   return [];
 }
 
-async function handleSubmitMessage(content: string) {
-  draftMessage.value = String(content || '').trim();
-  await sendMessage();
+async function handleSubmitMessage(payload: LcChatSendPayload) {
+  draftMessage.value = String(payload.text || '').trim();
+  await sendMessage(payload);
+}
+
+async function syncChatMessages() {
+  await nextTick();
+  chatRef.value?.setMessages(
+    marketChatMessages.value.map((item, index, list) => ({
+      ...item,
+      status:
+        sending.value &&
+        item.role === 'assistant' &&
+        index === list.length - 1
+          ? 'running'
+          : 'completed',
+    })),
+  );
 }
 
 async function createNewConversation() {
@@ -137,7 +165,7 @@ async function createNewConversation() {
   }
   const created = await createConversationApi({
     agentId,
-    title: `新会话 ${new Date().toLocaleTimeString('zh-CN', {hour12: false})}`,
+    title: `新会话 ${new Date().toLocaleTimeString('zh-CN', { hour12: false })}`,
   });
   await loadConversations(agentId);
   const createdConversationId = String(created?.id || '');
@@ -220,6 +248,12 @@ watch(
   },
   { immediate: true },
 );
+
+watch([marketChatMessages, sending], syncChatMessages, {
+  deep: true,
+  flush: 'post',
+  immediate: true,
+});
 
 onMounted(prepareRuntime);
 </script>
@@ -309,19 +343,52 @@ onMounted(prepareRuntime);
           </div>
         </aside>
 
-        <AgentChatCard
-          :app-icon="resolveAgentPreviewIcon(selectedAgent as AigcAgent)"
-          :default-suggestions="resolveDefaultSuggestions(selectedAgent as AigcAgent)"
-          :loading="sending"
-          :messages="marketChatMessages"
-          :welcome-message="
-          selectedAgent?.welcomeMessage || '欢迎使用当前应用，先从一个问题开始。'
-        "
-          class="h-full min-h-0 !p-5"
-          placeholder="请输入消息内容"
-          title="会话"
-          @submit="handleSubmitMessage"
-        />
+        <section
+          class="flex h-full min-h-0 min-w-0 flex-col rounded-xl border border-border bg-card p-3"
+        >
+          <div class="mb-2 shrink-0 border-b border-border pb-2">
+            <div class="text-sm font-semibold text-foreground">会话</div>
+            <div class="mt-0.5 truncate text-xs text-muted-foreground">
+              {{ selectedAgent?.agentName || '当前应用' }}
+            </div>
+          </div>
+          <div class="min-h-0 flex-1">
+            <LcChat
+              ref="chatRef"
+              :assistant-icon="
+                resolveAgentPreviewIcon(selectedAgent as AigcAgent)
+              "
+              :disabled="sending"
+              :empty-title="
+                selectedAgent?.welcomeMessage ||
+                '欢迎使用当前应用，先从一个问题开始。'
+              "
+              :loading="messageLoading"
+              placeholder="请输入消息内容"
+              :show-attachment="true"
+              :show-model="false"
+              :suggestions="marketSuggestions"
+              @send="handleSubmitMessage"
+            >
+              <template #empty-head>
+                <div class="flex flex-col items-center gap-3 text-center">
+                  <img
+                    v-if="resolveAgentPreviewIcon(selectedAgent as AigcAgent)"
+                    alt=""
+                    class="size-12 rounded-xl border border-border object-cover"
+                    :src="resolveAgentPreviewIcon(selectedAgent as AigcAgent)"
+                  />
+                  <div class="text-base font-semibold text-foreground">
+                    {{
+                      selectedAgent?.welcomeMessage ||
+                      '欢迎使用当前应用，先从一个问题开始。'
+                    }}
+                  </div>
+                </div>
+              </template>
+            </LcChat>
+          </div>
+        </section>
       </div>
     </div>
   </Page>

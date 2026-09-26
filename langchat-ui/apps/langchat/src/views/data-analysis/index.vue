@@ -7,7 +7,10 @@ import type {
 } from './analysis-event-parser';
 
 import type { DataAnalysisCatalogItem } from '#/api/aigc/data-analysis';
-import type { ChatSendPayload, ChatSuggestion } from '#/components/chat';
+import type {
+  LcChatSendPayload,
+  LcChatSuggestion,
+} from '#/components/LcChat/types';
 
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
@@ -35,7 +38,7 @@ import {
   listDataAnalysisCatalog,
   streamDataAnalysis,
 } from '#/api/aigc/data-analysis';
-import { ChatLayout } from '#/components/chat';
+import LcChat from '#/components/LcChat/index.vue';
 
 import { parseDataAnalysisEvent } from './analysis-event-parser';
 import DataAnalysisResult from './data-analysis-result.vue';
@@ -47,7 +50,7 @@ const datasourceId = ref('');
 const selectedTables = ref<string[]>([]);
 let abortController: AbortController | null = null;
 
-const chatRef = ref<InstanceType<typeof ChatLayout> | null>(null);
+const chatRef = ref<InstanceType<typeof LcChat> | null>(null);
 
 const datasourceOptions = computed(() =>
   catalog.value.map((item) => ({
@@ -68,7 +71,7 @@ const partiallySelected = computed(
   () => selectedTables.value.length > 0 && !allSelected.value,
 );
 
-const suggestionItems: ChatSuggestion[] = [
+const suggestionItems: LcChatSuggestion[] = [
   { icon: BarChart3 as Component, label: '统计各状态的数据量并展示占比' },
   { icon: TrendingUp as Component, label: '按时间分析最近的数据变化趋势' },
   { icon: ListOrdered as Component, label: '找出数量最多的前十项并生成图表' },
@@ -104,7 +107,7 @@ function toggleAll(checked: boolean) {
     : [];
 }
 
-async function handleSend(payload: ChatSendPayload) {
+async function handleSend(payload: LcChatSendPayload) {
   if (asking.value) return;
   if (!datasourceId.value || selectedTables.value.length === 0) {
     message.warning('请先选择数据源和要检索的表');
@@ -204,7 +207,7 @@ onBeforeUnmount(() => abortController?.abort());
           </aside>
 
           <main class="flex min-h-0 min-w-0 flex-col">
-            <ChatLayout
+            <LcChat
               ref="chatRef"
               :disabled="asking"
               empty-title="从已授权的数据中提问"
@@ -227,7 +230,7 @@ onBeforeUnmount(() => abortController?.abort());
                   :table="asTable(item.extra?.table)"
                 />
               </template>
-            </ChatLayout>
+            </LcChat>
           </main>
         </div>
       </NSpin>

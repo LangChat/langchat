@@ -83,11 +83,20 @@ export interface ChatCompletionMessage {
     | typeof CHAT_ROLE.USER;
 }
 
+export interface ChatAttachment {
+  contentType?: string;
+  id?: string;
+  name?: string;
+  size?: number;
+  url?: string;
+}
+
 /**
  * 对话完成请求。
  */
 export interface ChatCompletionRequest {
   agentId?: string;
+  attachments?: ChatAttachment[];
   conversationId?: string;
   messages: ChatCompletionMessage[];
   model?: string;
@@ -169,7 +178,7 @@ export interface OpenAiChatCompletionDelta {
  */
 export interface OpenAiChatCompletionChoice {
   delta?: OpenAiChatCompletionDelta;
-  finish_reason?: string | null;
+  finish_reason?: null | string;
   finishReason?: string;
   index?: number;
 }
@@ -202,8 +211,8 @@ export interface OpenAiChatCompletionResult {
     completionTokens?: number;
     prompt_tokens?: number;
     promptTokens?: number;
-    totalTokens?: number;
     total_tokens?: number;
+    totalTokens?: number;
   };
 }
 

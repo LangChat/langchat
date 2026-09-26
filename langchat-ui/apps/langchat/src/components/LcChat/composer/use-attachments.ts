@@ -2,6 +2,8 @@ import type { AttachmentItem } from './types';
 
 import { ref } from 'vue';
 
+import { uploadChatAttachmentApi } from '#/api/aigc/oss';
+
 let seed = 0;
 
 /** 格式化文件大小展示。 */
@@ -22,19 +24,38 @@ export function formatFileSize(size: number): string {
 export function useAttachments() {
   const items = ref<AttachmentItem[]>([]);
 
+  async function upload(item: AttachmentItem) {
+    try {
+      const result = await uploadChatAttachmentApi(item.file, (progress) => {
+        item.progress = progress;
+      });
+      item.ossId = String(result.id || '');
+      item.remoteUrl = String(result.url || '');
+      item.progress = 100;
+      item.status = 'uploaded';
+    } catch (error) {
+      item.error = error instanceof Error ? error.message : '上传失败';
+      item.status = 'error';
+    }
+  }
+
   function addFiles(files: File[] | FileList | null) {
     const list = files ? [...files] : [];
     list.forEach((file) => {
       seed += 1;
       const isImage = Boolean(file.type && file.type.startsWith('image/'));
-      items.value.push({
+      const item: AttachmentItem = {
         file,
         id: `att-${Date.now()}-${seed}`,
         isImage,
         name: file.name || '未命名文件',
+        progress: 0,
         size: file.size || 0,
+        status: 'uploading',
         url: isImage ? URL.createObjectURL(file) : undefined,
-      });
+      };
+      items.value.push(item);
+      void upload(item);
     });
   }
 

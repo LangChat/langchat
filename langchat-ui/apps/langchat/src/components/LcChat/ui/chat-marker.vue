@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /**
- * 会话流中的内联状态行(参考 shadcn-vue Marker):
+ * LcChat 会话流中的内联状态行(参考 shadcn-vue Marker):
  * default 内联备注 / border 带下边框 / separator 两侧分割线的居中标签。
  */
 interface Props {

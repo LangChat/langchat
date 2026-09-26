@@ -5,7 +5,11 @@ import type {
   OpenAiChatCompletionChunk,
   OpenAiDeltaEventPayload,
 } from '#/api/aigc/chat';
-import type {ChatMessage, ChatRole} from '#/components/chat';
+import type {
+  LcChatMessage,
+  LcChatRole,
+  LcChatSendPayload,
+} from '#/components/LcChat/types';
 
 import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
@@ -22,7 +26,7 @@ import {CHAT_STREAM_EVENT, listConversationMessagesApi} from '#/api/aigc/chat';
 import {knowledgeApi} from '#/api/aigc/knowledge';
 import {mcpApi} from '#/api/aigc/mcp';
 import {skillApi} from '#/api/aigc/skill';
-import {startAgentChatStream} from '#/components/AgentChatCard/stream-client';
+import { startAgentChatStream } from '#/components/LcChat/stream-client';
 import {
   buildModelConfigJson,
   type ModelConfig,
@@ -247,7 +251,7 @@ async function loadBuilderChatHistory() {
   historyLoading.value = true;
   try {
     const messages = await listConversationMessagesApi(conversationId);
-    const history: ChatMessage[] = messages
+    const history: LcChatMessage[] = messages
       .filter((item) => {
         const role = String(item.role || '').toLowerCase();
         return role === 'user' || role === 'assistant';
@@ -255,7 +259,7 @@ async function loadBuilderChatHistory() {
       .map((item) => ({
         content: String(item.message || ''),
         id: String(item.id || item.chatId || `${conversationId}-${Date.now()}`),
-        role: String(item.role || '').toLowerCase() as ChatRole,
+        role: String(item.role || '').toLowerCase() as LcChatRole,
         status: 'completed' as const,
       }));
     chatApi()?.setMessages(history);
@@ -342,7 +346,8 @@ async function handleSave(nextStatus?: 'DISABLED' | 'PUBLISHED') {
   }
 }
 
-async function handleChatSubmit(content: string) {
+async function handleChatSubmit(payload: LcChatSendPayload) {
+  const content = payload.text;
   if (isCreateMode.value || !agentId.value) {
     message.warning('请先保存当前 Agent，再进行聊天调试');
     return;
@@ -364,6 +369,13 @@ async function handleChatSubmit(content: string) {
     await startAgentChatStream(
       {
         agentId: agentId.value,
+        attachments: payload.attachments.map((item) => ({
+          contentType: item.file.type,
+          id: item.ossId,
+          name: item.name,
+          size: item.size,
+          url: item.remoteUrl,
+        })),
         conversationId: chatConversationId.value || undefined,
         messages: [
           {
@@ -423,7 +435,7 @@ function applyChatStreamEvent(
       break;
     }
     case CHAT_STREAM_EVENT.RAG_RETRIEVED: {
-      chat.setTurnMeta(assistantId, '知识库检索完成');
+      // 检索完成属于内部流转事件，不作为消息的永久附注展示。
       break;
     }
     case CHAT_STREAM_EVENT.TIMEOUT: {
@@ -441,7 +453,7 @@ function applyChatStreamEvent(
     case CHAT_STREAM_EVENT.TOOL_EXECUTED: {
       const nested = extractNestedEvent(event);
       const failed = Boolean(nested?.failed || nested?.status === 'failed');
-      chat.setTurnMeta(assistantId, failed ? '技能执行失败' : '技能执行完成');
+      chat.setTurnMeta(assistantId, failed ? '技能执行失败' : '');
       break;
     }
     default: {

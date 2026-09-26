@@ -1,4 +1,4 @@
-/* Chat 领域的动效工具类(参考 shadcn-vue shimmer / marker):
+/* LcChat 领域的动效工具类(参考 shadcn-vue shimmer / marker):
    文字流光、状态圆环、流式光标。 */
 
 /* 文字流光:高光扫过文字(基于 currentColor 自适应主题) */
@@ -66,6 +66,13 @@
    必须用后代选择器命中同一元素才能覆盖(0,2,0 > 0,1,0),仅写在
    .chat-markdown 外层无效——变量按最近的祖先取值。 */
 .chat-markdown .markstream-vue {
+  --ms-text-body: 0.875rem;
+  --ms-text-h1: 1.05rem;
+  --ms-text-h2: 1rem;
+  --ms-text-h3: 0.9375rem;
+  --ms-text-h4: 0.875rem;
+  --ms-text-h5: 0.875rem;
+  --ms-text-h6: 0.875rem;
   --ms-flow-paragraph-y: 0.5em;
   --ms-flow-list-y: 0.4em;
   --ms-flow-list-item-y: 0.15em;
@@ -89,9 +96,9 @@
   --ms-flow-admonition-y: 0.5em;
   --ms-flow-footnote-y: 0.5em;
 
-  /* 组件根节点自带 font-size: var(--ms-text-body)=1rem,与气泡 14px 字号统一 */
-  font-size: 0.875rem;
-  line-height: 1.75;
+  /* markstream-vue 有独立字号变量，显式覆盖后与消息卡片 text-sm 保持一致 */
+  font-size: var(--ms-text-body);
+  line-height: 1.65;
 }
 
 .chat-markdown > :first-child {
@@ -115,18 +122,18 @@
 }
 
 .chat-markdown h1 {
-  font-size: 1.25em;
+  font-size: 1.15em;
 }
 
 .chat-markdown h2 {
-  font-size: 1.15em;
+  font-size: 1.1em;
 }
 
 .chat-markdown h3,
 .chat-markdown h4,
 .chat-markdown h5,
 .chat-markdown h6 {
-  font-size: 1.05em;
+  font-size: 1em;
 }
 
 .chat-markdown ul {

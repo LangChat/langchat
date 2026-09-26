@@ -53,7 +53,6 @@
     "@vben/types": "workspace:*",
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
-    "ant-design-x-vue": "^1.6.0",
     "codemirror": "^6.0.2",
     "markstream-vue": "^2.0.13",
     "naive-ui": "catalog:",

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ChatMessage } from './types';
+import type { LcChatMessage } from './types';
 
 import { computed, ref } from 'vue';
 
@@ -14,8 +14,8 @@ import {
 } from '@vben/icons';
 
 import MarkdownRender from 'markstream-vue';
-import 'markstream-vue/index.css';
 
+import 'markstream-vue/index.css';
 // 直接按文件路径引用本组件的页面不会经过 ../index.ts，样式需在此就地引入
 import './ui/chat-effects.css';
 
@@ -24,7 +24,7 @@ interface Props {
   assistantIcon?: string;
   /** 是否为最后一条助手消息(决定是否展示重新生成) */
   isLast?: boolean;
-  message: ChatMessage;
+  message: LcChatMessage;
   /** 用户头像图片地址 */
   userAvatar?: string;
 }

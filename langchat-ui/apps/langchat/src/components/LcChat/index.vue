@@ -1,12 +1,16 @@
 <script lang="ts" setup>
-import type { ChatMessage, ChatSendPayload, ChatSuggestion } from './types';
+import type {
+  LcChatMessage,
+  LcChatSendPayload,
+  LcChatSuggestion,
+} from './types';
 
 import { computed, ref } from 'vue';
 
 import { ArrowDown } from '@vben/icons';
 
-import ChatMessageItem from './chat-message-item.vue';
-import ChatComposer from './composer/index.vue';
+import LcChatMessageItem from './chat-message-item.vue';
+import LcChatComposer from './composer/index.vue';
 import { useChatScroll } from './use-chat-scroll';
 
 // 直接按文件路径引用本组件的页面不会经过 ../index.ts，滚动渐隐样式需在此就地引入
@@ -23,21 +27,24 @@ interface Props {
   loading?: boolean;
   /** 加载中提示文字 */
   loadingText?: string;
+  /** 组件重建时用于恢复消息的初始快照 */
+  initialMessages?: LcChatMessage[];
   placeholder?: string;
   /** 是否显示添加附件入口 */
   showAttachment?: boolean;
   /** 是否显示模型选择 */
   showModel?: boolean;
   /** 空状态建议问题 */
-  suggestions?: ChatSuggestion[];
+  suggestions?: LcChatSuggestion[];
   /** 用户头像图片地址 */
   userAvatar?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   assistantIcon: '',
   disabled: false,
   emptyTitle: '随时可以开始',
+  initialMessages: () => [],
   loading: false,
   loadingText: '正在加载消息...',
   placeholder: '输入你的问题',
@@ -48,11 +55,12 @@ withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
+  messagesChange: [messages: LcChatMessage[]];
   regenerate: [];
-  send: [payload: ChatSendPayload];
+  send: [payload: LcChatSendPayload];
 }>();
 
-const messages = ref<ChatMessage[]>([]);
+const messages = ref<LcChatMessage[]>(cloneMessages(props.initialMessages));
 const composerText = ref('');
 const scrollRef = ref<HTMLElement | null>(null);
 
@@ -67,12 +75,12 @@ const { nearBottom, scrollToBottom, updateNearBottom } = useChatScroll(
   scrollSource,
 );
 
-function handleSend(payload: ChatSendPayload) {
+function handleSend(payload: LcChatSendPayload) {
   emit('send', payload);
 }
 
 /** 建议问题点击后回填输入框(不直接发送) */
-function handleSuggestion(item: ChatSuggestion) {
+function handleSuggestion(item: LcChatSuggestion) {
   composerText.value = item.value ?? item.label;
 }
 
@@ -83,10 +91,22 @@ function nextId(prefix: string) {
   return `${prefix}-${Date.now()}-${seed}`;
 }
 
-function patch(id: string, updater: (message: ChatMessage) => void) {
+function cloneMessages(list: LcChatMessage[]) {
+  return list.map((item) => ({
+    ...item,
+    extra: item.extra ? { ...item.extra } : undefined,
+  }));
+}
+
+function emitMessagesChange() {
+  emit('messagesChange', cloneMessages(messages.value));
+}
+
+function patch(id: string, updater: (message: LcChatMessage) => void) {
   const item = messages.value.find((current) => current.id === id);
   if (item) {
     updater(item);
+    emitMessagesChange();
   }
 }
 
@@ -108,6 +128,7 @@ function beginTurn(userText: string): string {
     role: 'assistant',
     status: 'running',
   });
+  emitMessagesChange();
   return assistantId;
 }
 
@@ -147,10 +168,16 @@ function failTurn(id: string, errorMessage: string) {
 
 function reset() {
   messages.value = [];
+  emitMessagesChange();
 }
 
-function setMessages(list: ChatMessage[]) {
-  messages.value = [...list];
+function getMessages() {
+  return cloneMessages(messages.value);
+}
+
+function setMessages(list: LcChatMessage[]) {
+  messages.value = cloneMessages(list);
+  emitMessagesChange();
 }
 
 defineExpose({
@@ -158,6 +185,7 @@ defineExpose({
   beginTurn,
   completeTurn,
   failTurn,
+  getMessages,
   messages,
   reset,
   scrollToBottom,
@@ -168,7 +196,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
+  <div class="chat-layout flex h-full min-h-0 flex-col">
     <!-- 消息区(会话列表 + 空状态):历史消息加载期间用 v-loading 覆盖 -->
     <div
       v-loading="{ spinning: loading, text: loadingText }"
@@ -181,65 +209,65 @@ defineExpose({
         class="chat-scroll-fade min-h-0 flex-1 overflow-y-auto"
         @scroll="updateNearBottom"
       >
-      <div
-        class="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 pb-4 pt-4"
-      >
-        <ChatMessageItem
-          v-for="(item, index) in messages"
-          :key="item.id"
-          :assistant-icon="assistantIcon"
-          :is-last="
-            item.role === 'assistant' && index === messages.length - 1
-          "
-          :message="item"
-          :user-avatar="userAvatar"
-          @regenerate="emit('regenerate')"
-        >
-          <template #append>
-            <div
-              v-if="item.meta"
-              class="mt-1 text-[11px] text-muted-foreground"
-            >
-              {{ item.meta }}
-            </div>
-            <slot :message="item" name="message-append"></slot>
-          </template>
-        </ChatMessageItem>
-      </div>
-
-      <!-- 不贴底时显示"回到底部"悬浮按钮 -->
-      <div
-        v-if="!nearBottom"
-        class="pointer-events-none sticky bottom-2 flex justify-center"
-      >
-        <button
-          aria-label="回到底部"
-          class="pointer-events-auto flex size-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-md transition-colors hover:text-foreground"
-          type="button"
-          @click="scrollToBottom()"
-        >
-          <ArrowDown class="size-4" />
-        </button>
-      </div>
-    </div>
-
-    <!-- 空状态:标题区(输入框上方) -->
-    <div
-      v-if="messages.length === 0"
-      class="flex min-h-0 flex-1 flex-col items-center justify-end px-4 pb-6 text-center"
-    >
-      <slot name="empty-head">
-        <div class="text-xl font-semibold text-foreground">
-          {{ emptyTitle }}
+        <div class="chat-layout-content flex flex-col gap-4 pb-4 pt-4">
+          <LcChatMessageItem
+            v-for="(item, index) in messages"
+            :key="item.id"
+            :assistant-icon="assistantIcon"
+            :is-last="
+              item.role === 'assistant' && index === messages.length - 1
+            "
+            :message="item"
+            :user-avatar="userAvatar"
+            @regenerate="emit('regenerate')"
+          >
+            <template #append>
+              <div
+                v-if="item.meta"
+                class="mt-1 text-[11px] text-muted-foreground"
+              >
+                {{ item.meta }}
+              </div>
+              <slot :item="item" :message="item" name="message-append"></slot>
+            </template>
+          </LcChatMessageItem>
         </div>
-      </slot>
-    </div>
+
+        <!-- 不贴底时显示"回到底部"悬浮按钮 -->
+        <div
+          v-if="!nearBottom"
+          class="pointer-events-none sticky bottom-2 flex justify-center"
+        >
+          <button
+            aria-label="回到底部"
+            class="pointer-events-auto flex size-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:text-foreground"
+            type="button"
+            @click="scrollToBottom()"
+          >
+            <ArrowDown class="size-4" />
+          </button>
+        </div>
+      </div>
+
+      <!-- 空状态:标题区(输入框上方) -->
+      <div
+        v-if="messages.length === 0"
+        class="flex min-h-0 flex-1 flex-col items-center justify-end pb-6 text-center"
+      >
+        <div class="chat-layout-content">
+          <slot name="empty-head">
+            <div class="text-xl font-semibold text-foreground">
+              {{ emptyTitle }}
+            </div>
+          </slot>
+        </div>
+      </div>
     </div>
 
     <!-- 输入区:空状态时位于两组占位之间实现垂直居中,会话态时贴底 -->
-    <div class="w-full px-4 pb-3">
-      <div class="mx-auto w-full max-w-3xl">
-        <ChatComposer
+    <div class="w-full pb-3">
+      <div class="chat-layout-content">
+        <LcChatComposer
           v-model="composerText"
           :disabled="disabled"
           :placeholder="placeholder"
@@ -253,24 +281,51 @@ defineExpose({
     <!-- 空状态:建议列表(输入框下方) -->
     <div
       v-if="messages.length === 0 && suggestions.length > 0"
-      class="flex min-h-0 flex-1 flex-col items-stretch justify-start px-4 pt-5"
+      class="flex min-h-0 flex-1 flex-col items-stretch justify-start pt-5"
     >
-      <div class="mx-auto flex w-full max-w-3xl flex-col gap-1">
+      <div class="chat-layout-content flex flex-col gap-2">
         <button
-          v-for="item in suggestions"
+          v-for="(item, index) in suggestions"
           :key="item.label"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+          class="group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground active:bg-muted"
           type="button"
           @click="handleSuggestion(item)"
         >
-          <component
-            :is="item.icon"
-            v-if="item.icon"
-            class="size-4 shrink-0"
-          />
-          <span>{{ item.label }}</span>
+          <span class="flex size-5 shrink-0 items-center justify-center text-base">
+            <component
+              :is="item.icon"
+              v-if="item.icon"
+              class="size-4 text-muted-foreground transition-colors group-hover:text-primary"
+            />
+            <span v-else aria-hidden="true">
+              {{ ['✨', '💡', '🚀'][index % 3] }}
+            </span>
+          </span>
+          <span class="min-w-0 flex-1 leading-5">{{ item.label }}</span>
         </button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.chat-layout {
+  --chat-layout-gutter: clamp(1rem, 3vw, 2.5rem);
+  --chat-layout-content-width: 60rem;
+
+  container-type: inline-size;
+}
+
+@supports (width: 1cqi) {
+  .chat-layout {
+    --chat-layout-gutter: clamp(1rem, 3.5cqi, 2.5rem);
+  }
+}
+
+.chat-layout-content {
+  box-sizing: border-box;
+  width: min(100%, var(--chat-layout-content-width));
+  padding-inline: var(--chat-layout-gutter);
+  margin-inline: auto;
+}
+</style>

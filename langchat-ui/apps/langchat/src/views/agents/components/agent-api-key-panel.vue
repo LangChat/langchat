@@ -5,7 +5,18 @@ import type { AigcMessage } from '#/api/aigc/chat';
 import { computed, ref, watch } from 'vue';
 
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
-import { Copy, KeyRound, Plus, Trash2 } from '@vben/icons';
+import {
+  Activity,
+  Clock3,
+  Copy,
+  FileText,
+  KeyRound,
+  Plus,
+  ShieldCheck,
+  Tag,
+  Trash2,
+} from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import {
   NButton,
@@ -48,23 +59,47 @@ const hasAgent = computed(() => Boolean(props.agentId));
 
 const endpointExample = computed(() => {
   const origin = window.location.origin;
-  return `curl -X POST "${origin}${OPENAI_COMPATIBLE_PATH}" \\\n  -H "Authorization: Bearer sk-xxxx" \\\n  -H "Content-Type: application/json" \\\n  -d '{"model":"agent","messages":[{"role":"user","content":"你好"}]}'`;
+  return `curl -X POST "${origin}${OPENAI_COMPATIBLE_PATH}" \\\n  -H "Authorization: Bearer sk-xxxx" \\\n  -H "Content-Type: application/json" \\\n  -d '{"model":"agent","messages":[{"role":"user","content":"${$t('agents.apiKey.exampleContent')}"}]}'`;
 });
 
 const [CreateModal, createModalApi] = useVbenModal({
-  class: 'w-[480px]',
-  confirmText: '创建',
-  title: '新建 API Key',
+  class: 'w-[min(560px,calc(100vw-32px))]',
+  confirmText: $t('common.actions.create'),
+  title: $t('agents.apiKey.createTitle'),
   onConfirm: async () => {
     await handleCreate();
   },
 });
 
+watch(
+  () => $t('agents.apiKey.createTitle'),
+  (value) => {
+    createModalApi.setState({ title: value });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('common.actions.create'),
+  (value) => {
+    createModalApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
+
 const [LogDrawer, logDrawerApi] = useVbenDrawer({
   class: 'w-[640px]',
   footer: false,
-  title: '调用日志',
+  title: $t('agents.apiKey.logs'),
 });
+
+watch(
+  () => $t('agents.apiKey.logs'),
+  (value) => {
+    logDrawerApi.setState({ title: value });
+  },
+  { immediate: true },
+);
 
 watch(
   () => props.agentId,
@@ -94,13 +129,13 @@ function openCreate() {
 
 async function handleCreate() {
   if (!createForm.value.name.trim()) {
-    message.warning('请填写密钥名称');
+    message.warning($t('agents.apiKey.messages.nameRequired'));
     return;
   }
   submitting.value = true;
   try {
     await createAgentApiKeyApi(props.agentId, { ...createForm.value });
-    message.success('API Key 已创建');
+    message.success($t('agents.apiKey.messages.created'));
     createModalApi.close();
     await loadKeys();
   } finally {
@@ -112,34 +147,40 @@ async function handleStatusChange(row: AigcAgentApiKey, checked: boolean) {
   try {
     await updateAgentApiKeyApi(row.id!, { status: checked ? 'ENABLED' : 'DISABLED' });
     row.status = checked ? 'ENABLED' : 'DISABLED';
-    message.success(checked ? '已启用' : '已停用');
+    message.success(
+      checked
+        ? $t('common.status.enabledMessage')
+        : $t('common.status.disabledMessage'),
+    );
   } catch {
     row.status = checked ? 'DISABLED' : 'ENABLED';
   }
 }
 
-async function handleCopy(text?: string, tip = '已复制到剪贴板') {
+async function handleCopy(text?: string, tip?: string) {
   if (!text) {
     return;
   }
   try {
     await navigator.clipboard.writeText(text);
-    message.success(tip);
+    message.success(tip ?? $t('common.messages.copySuccess'));
   } catch {
-    message.error('复制失败，请手动复制');
+    message.error($t('agents.apiKey.messages.copyFailed'));
   }
 }
 
 function handleRemove(row: AigcAgentApiKey) {
   dialog.warning({
     closable: false,
-    content: `删除后使用该密钥的外部调用将立即失效，确认删除「${row.name || '未命名密钥'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除 API Key',
+    content: $t('agents.apiKey.messages.deleteConfirmContent', {
+      name: row.name || $t('agents.apiKey.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('agents.apiKey.deleteTitle'),
     onPositiveClick: async () => {
       await removeAgentApiKeyApi(row.id!);
-      message.success('API Key 已删除');
+      message.success($t('agents.apiKey.messages.deleted'));
       await loadKeys();
     },
   });
@@ -149,7 +190,9 @@ async function openLogs(row: AigcAgentApiKey) {
   activeLogKey.value = row;
   logMessages.value = [];
   logDrawerApi.setState({
-    title: `调用日志 · ${row.name || 'API Key'}`,
+    title: $t('agents.apiKey.logTitle', {
+      name: row.name || $t('agents.apiKey.logTitleFallback'),
+    }),
   });
   logDrawerApi.open();
   logLoading.value = true;
@@ -182,192 +225,351 @@ function resolveRoleTone(role?: string) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-card p-4">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <div>
-        <div class="text-sm font-semibold text-foreground">API 接入</div>
-        <div class="mt-1 text-xs text-muted-foreground">
-          通过 OpenAI 兼容接口将当前 Agent 应用对外提供服务，按密钥管理启停与统计。
+  <div class="flex h-full min-h-0 flex-col gap-4 overflow-y-auto rounded-xl border border-border bg-card p-4 lg:p-5">
+    <header class="flex flex-wrap items-start justify-between gap-4">
+      <div class="flex min-w-0 items-start gap-3">
+        <div class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/8 text-primary">
+          <KeyRound class="size-5" />
+        </div>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-foreground">
+              {{ $t('agents.apiKey.title') }}
+            </h2>
+            <span class="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              OpenAI compatible
+            </span>
+          </div>
+          <p class="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+            {{ $t('agents.apiKey.description') }}
+          </p>
         </div>
       </div>
       <NButton :disabled="!hasAgent" type="primary" @click="openCreate">
         <template #icon>
           <Plus class="size-4" />
         </template>
-        新建 API Key
+        {{ $t('agents.apiKey.createButton') }}
       </NButton>
-    </div>
+    </header>
 
     <div
       v-if="!hasAgent"
-      class="rounded-lg border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground"
+      class="flex min-h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border px-6 text-center"
     >
-      请先保存当前 Agent 应用，再创建 API Key。
+      <div class="flex size-10 items-center justify-center rounded-full bg-muted/50 text-muted-foreground">
+        <KeyRound class="size-5" />
+      </div>
+      <div class="mt-3 text-sm font-medium text-foreground">
+        {{ $t('agents.apiKey.saveFirstTitle') }}
+      </div>
+      <div class="mt-1 text-xs text-muted-foreground">
+        {{ $t('agents.apiKey.saveFirstDescription') }}
+      </div>
     </div>
 
     <template v-else>
-      <div class="rounded-lg border border-border/70 bg-muted/20 p-3">
-        <div class="mb-2 flex items-center gap-2">
-          <KeyRound class="size-3.5 text-primary" />
-          <span class="text-xs font-semibold text-foreground">
-            OpenAI 兼容接口
-          </span>
-          <NTag :bordered="false" size="small" type="info">POST</NTag>
-          <code class="rounded bg-background px-2 py-0.5 text-[11px] text-foreground">
-            {{ OPENAI_COMPATIBLE_PATH }}
-          </code>
-        </div>
-        <pre
-          class="overflow-x-auto rounded-md border border-border/70 bg-background p-2.5 text-[11px] leading-5 text-muted-foreground"
-          >{{ endpointExample }}</pre
-        >
-        <div class="mt-2 flex items-center justify-end">
+      <div class="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.85fr)]">
+        <aside class="order-1 min-w-0 self-start lg:sticky lg:top-0 lg:col-start-2 lg:row-start-1">
+          <div class="overflow-hidden rounded-lg border border-border/70 bg-muted/15">
+            <div class="flex items-start gap-2.5 border-b border-border/60 px-4 py-3">
+              <div class="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <ShieldCheck class="size-3.5" />
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-foreground">
+                  {{ $t('agents.apiKey.guideTitle') }}
+                </div>
+                <div class="mt-0.5 text-[11px] text-muted-foreground">
+                  {{ $t('agents.apiKey.guideDescription') }}
+                </div>
+              </div>
+            </div>
+            <section class="overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
+          <div class="flex min-w-0 items-center gap-2.5">
+            <div class="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <KeyRound class="size-3.5" />
+            </div>
+            <div class="min-w-0">
+              <div class="text-xs font-semibold text-foreground">
+                {{ $t('agents.apiKey.endpointTitle') }}
+              </div>
+              <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                <NTag :bordered="false" size="small" type="info">POST</NTag>
+                <code class="truncate">{{ OPENAI_COMPATIBLE_PATH }}</code>
+              </div>
+            </div>
+          </div>
           <NButton
             quaternary
             size="small"
             type="primary"
-            @click="handleCopy(endpointExample, '调用示例已复制')"
+            @click="handleCopy(endpointExample, $t('agents.apiKey.exampleCopied'))"
           >
             <template #icon>
               <Copy class="size-3.5" />
             </template>
-            复制示例
+            {{ $t('agents.apiKey.copyExample') }}
           </NButton>
         </div>
-      </div>
-
-      <div v-if="loading" class="py-10 text-center text-sm text-muted-foreground">
-        正在加载密钥列表...
-      </div>
-
-      <div v-else-if="items.length === 0" class="py-6">
-        <NEmpty description="还没有创建 API Key，点击右上角新建。">
-          <template #extra>
-            <NButton size="small" type="primary" @click="openCreate">
-              新建 API Key
-            </NButton>
-          </template>
-        </NEmpty>
-      </div>
-
-      <div v-else class="space-y-2.5">
-        <div
-          v-for="row in items"
-          :key="row.id"
-          class="rounded-lg border border-border/70 bg-background/60 p-3"
-        >
-          <div class="flex flex-wrap items-start justify-between gap-3">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-foreground">
-                  {{ row.name || '未命名密钥' }}
-                </span>
-                <NTag
-                  :bordered="false"
-                  round
-                  size="small"
-                  :type="row.status === 'ENABLED' ? 'success' : 'default'"
-                >
-                  {{ row.status === 'ENABLED' ? '已启用' : '已停用' }}
-                </NTag>
+        <pre class="max-h-36 overflow-auto bg-background/65 px-4 py-3 text-[11px] leading-5 text-muted-foreground">{{ endpointExample }}</pre>
+            </section>
+            <div class="border-t border-border/60 px-4 py-3">
+              <div class="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                {{ $t('agents.apiKey.quickStart') }}
               </div>
-              <div class="mt-1 flex items-center gap-2">
-                <code
-                  class="max-w-[280px] truncate rounded bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground"
-                >
-                  {{ maskKey(row.apiKey) }}
-                </code>
-                <NButton
-                  v-tippy="'复制完整密钥'"
-                  quaternary
-                  size="tiny"
-                  @click="handleCopy(row.apiKey, 'API Key 已复制')"
-                >
-                  <template #icon>
-                    <Copy class="size-3.5" />
-                  </template>
-                </NButton>
-              </div>
-              <div
-                v-if="row.remark"
-                class="mt-1 text-[11px] text-muted-foreground"
-              >
-                {{ row.remark }}
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <div
-                class="mr-2 flex items-center gap-3 text-[11px] text-muted-foreground"
-              >
-                <span>调用 {{ row.callCount ?? 0 }}</span>
-                <span>输入 {{ row.inputTokens ?? 0 }} tokens</span>
-                <span>输出 {{ row.outputTokens ?? 0 }} tokens</span>
-                <span>最后调用 {{ formatDocsTimestamp(row.lastCallTime) }}</span>
-              </div>
-              <NButton quaternary size="small" @click="openLogs(row)">
-                调用日志
-              </NButton>
-              <div class="flex items-center gap-1.5">
-                <span class="text-[11px] text-muted-foreground">启用</span>
-                <NSwitch
-                  :value="row.status === 'ENABLED'"
-                  size="small"
-                  @update:value="(checked: boolean) => handleStatusChange(row, checked)"
-                />
-              </div>
-              <NButton
-                v-tippy="'删除密钥'"
-                quaternary
-                size="small"
-                type="error"
-                @click="handleRemove(row)"
-              >
-                <template #icon>
-                  <Trash2 class="size-3.5" />
-                </template>
-              </NButton>
+              <ol class="space-y-2.5 text-xs leading-5 text-muted-foreground">
+                <li class="flex gap-2">
+                  <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">1</span>
+                  <span>{{ $t('agents.apiKey.steps.first') }}</span>
+                </li>
+                <li class="flex gap-2">
+                  <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">2</span>
+                  <span>{{ $t('agents.apiKey.steps.second') }}</span>
+                </li>
+                <li class="flex gap-2">
+                  <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">3</span>
+                  <span>
+                    {{ $t('agents.apiKey.steps.thirdBefore') }}
+                    <code class="rounded bg-muted/50 px-1 py-0.5 text-[11px] text-foreground">Bearer</code>
+                    {{ $t('agents.apiKey.steps.thirdAfter') }}
+                  </span>
+                </li>
+              </ol>
             </div>
           </div>
+        </aside>
+
+      <section class="order-2 min-h-0 lg:col-start-1 lg:row-start-1">
+        <div class="mb-2 flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-semibold text-foreground">
+              {{ $t('agents.apiKey.keysTitle') }}
+            </h3>
+            <p class="mt-0.5 text-[11px] text-muted-foreground">
+              {{ $t('agents.apiKey.keysDescription') }}
+            </p>
+          </div>
+          <span
+            v-if="items.length > 0"
+            class="text-[11px] tabular-nums text-muted-foreground"
+          >
+            {{ $t('agents.apiKey.count', { count: items.length }) }}
+          </span>
         </div>
+
+        <div
+          v-if="loading"
+          class="rounded-lg border border-border/60 px-4 py-10 text-center text-sm text-muted-foreground"
+        >
+          {{ $t('agents.apiKey.loading') }}
+        </div>
+
+        <div
+          v-else-if="items.length === 0"
+          class="rounded-lg border border-dashed border-border px-6 py-10 text-center"
+        >
+          <NEmpty :description="$t('agents.apiKey.empty')">
+            <template #extra>
+              <NButton size="small" type="primary" @click="openCreate">
+                <template #icon><Plus class="size-3.5" /></template>
+                {{ $t('agents.apiKey.createFirst') }}
+              </NButton>
+            </template>
+          </NEmpty>
+        </div>
+
+        <div v-else class="divide-y divide-border/70 overflow-hidden rounded-lg border border-border/70 bg-background/35">
+          <article
+            v-for="row in items"
+            :key="row.id"
+            class="p-4 transition-colors hover:bg-muted/20"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="flex min-w-0 items-start gap-3">
+                <div class="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/25 text-muted-foreground">
+                  <KeyRound class="size-4" />
+                </div>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="truncate text-sm font-medium text-foreground">
+                      {{ row.name || $t('agents.apiKey.unnamed') }}
+                    </span>
+                    <NTag
+                      :bordered="false"
+                      size="small"
+                      :type="row.status === 'ENABLED' ? 'success' : 'default'"
+                    >
+                      {{
+                        row.status === 'ENABLED'
+                          ? $t('common.status.enabledMessage')
+                          : $t('common.status.disabledMessage')
+                      }}
+                    </NTag>
+                  </div>
+                  <div class="mt-1.5 flex min-w-0 items-center gap-1.5">
+                    <code class="max-w-[min(420px,65vw)] truncate rounded bg-muted/45 px-2 py-1 text-[11px] text-muted-foreground">
+                      {{ maskKey(row.apiKey) }}
+                    </code>
+                    <NButton
+                      v-tippy="$t('agents.apiKey.copyKey')"
+                      :aria-label="$t('agents.apiKey.copyKey')"
+                      circle
+                      quaternary
+                      size="tiny"
+                      @click="handleCopy(row.apiKey, $t('agents.apiKey.keyCopied'))"
+                    >
+                      <template #icon><Copy class="size-3.5" /></template>
+                    </NButton>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1">
+                <NButton quaternary size="small" @click="openLogs(row)">
+                  <template #icon><Activity class="size-3.5" /></template>
+                  {{ $t('agents.apiKey.logs') }}
+                </NButton>
+                <div class="ml-1 flex items-center gap-1.5 border-l border-border/70 pl-3">
+                  <span class="text-[11px] text-muted-foreground">
+                    {{ $t('agents.apiKey.enabledLabel') }}
+                  </span>
+                  <NSwitch
+                    :value="row.status === 'ENABLED'"
+                    size="small"
+                    @update:value="(checked: boolean) => handleStatusChange(row, checked)"
+                  />
+                </div>
+                <NButton
+                  v-tippy="$t('agents.apiKey.deleteKey')"
+                  :aria-label="$t('agents.apiKey.deleteKey')"
+                  circle
+                  quaternary
+                  size="small"
+                  type="error"
+                  @click="handleRemove(row)"
+                >
+                  <template #icon><Trash2 class="size-3.5" /></template>
+                </NButton>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div class="rounded-md bg-muted/25 px-3 py-2">
+                <div class="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                  {{ $t('agents.apiKey.stats.calls') }}
+                </div>
+                <div class="mt-1 text-sm font-semibold tabular-nums text-foreground">{{ row.callCount ?? 0 }}</div>
+              </div>
+              <div class="rounded-md bg-muted/25 px-3 py-2">
+                <div class="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                  {{ $t('agents.apiKey.stats.inputTokens') }}
+                </div>
+                <div class="mt-1 text-sm font-semibold tabular-nums text-foreground">{{ row.inputTokens ?? 0 }}</div>
+              </div>
+              <div class="rounded-md bg-muted/25 px-3 py-2">
+                <div class="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                  {{ $t('agents.apiKey.stats.outputTokens') }}
+                </div>
+                <div class="mt-1 text-sm font-semibold tabular-nums text-foreground">{{ row.outputTokens ?? 0 }}</div>
+              </div>
+              <div class="rounded-md bg-muted/25 px-3 py-2">
+                <div class="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                  {{ $t('agents.apiKey.stats.lastCall') }}
+                </div>
+                <div class="mt-1 truncate text-sm font-semibold text-foreground">{{ formatDocsTimestamp(row.lastCallTime) }}</div>
+              </div>
+            </div>
+
+            <div v-if="row.remark" class="mt-3 flex items-start gap-1.5 text-[11px] leading-5 text-muted-foreground">
+              <FileText class="mt-0.5 size-3.5 shrink-0" />
+              <span class="line-clamp-2">{{ row.remark }}</span>
+            </div>
+          </article>
+        </div>
+      </section>
       </div>
     </template>
 
     <CreateModal>
-      <NForm label-placement="top">
-        <NFormItem label="密钥名称" required>
-          <NInput
-            v-model:value="createForm.name"
-            :maxlength="50"
-            placeholder="例如：客服系统对接"
-            show-count
-          />
-        </NFormItem>
-        <NFormItem label="备注">
-          <NInput
-            v-model:value="createForm.remark"
-            :maxlength="200"
-            placeholder="记录该密钥的用途，可选"
-            type="textarea"
-          />
-        </NFormItem>
-        <div class="rounded-md bg-muted/30 px-3 py-2 text-[11px] leading-5 text-muted-foreground">
-          创建后请立即保存生成的密钥，外部系统将通过
-          Authorization: Bearer &lt;密钥&gt; 调用 OpenAI 兼容接口。
+      <div class="space-y-5">
+        <div class="flex items-start gap-3 rounded-lg border border-primary/15 bg-primary/5 px-4 py-3">
+          <div class="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <KeyRound class="size-4" />
+          </div>
+          <div>
+            <div class="text-sm font-medium text-foreground">
+              {{ $t('agents.apiKey.modal.title') }}
+            </div>
+            <div class="mt-1 text-xs leading-5 text-muted-foreground">
+              {{ $t('agents.apiKey.modal.description') }}
+            </div>
+          </div>
         </div>
-      </NForm>
+
+        <NForm label-placement="top" class="space-y-1">
+          <NFormItem required>
+            <template #label>
+              <span class="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
+                <Tag class="size-3.5 text-muted-foreground" />
+                {{ $t('agents.apiKey.modal.name') }}
+              </span>
+            </template>
+            <NInput
+              v-model:value="createForm.name"
+              :maxlength="50"
+              :placeholder="$t('agents.apiKey.modal.namePlaceholder')"
+              show-count
+            />
+          </NFormItem>
+          <NFormItem>
+            <template #label>
+              <span class="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
+                <FileText class="size-3.5 text-muted-foreground" />
+                {{ $t('agents.apiKey.modal.remark') }}
+                <span class="font-normal text-muted-foreground">
+                  {{ $t('common.labels.optional') }}
+                </span>
+              </span>
+            </template>
+            <NInput
+              v-model:value="createForm.remark"
+              :autosize="{ minRows: 3, maxRows: 5 }"
+              :maxlength="200"
+              :placeholder="$t('agents.apiKey.modal.remarkPlaceholder')"
+              show-count
+              type="textarea"
+            />
+          </NFormItem>
+        </NForm>
+
+        <div class="flex items-start gap-2.5 border-t border-border/70 pt-4 text-xs leading-5 text-muted-foreground">
+          <ShieldCheck class="mt-0.5 size-4 shrink-0 text-emerald-500" />
+          <p>
+            {{ $t('agents.apiKey.modal.warningBefore') }}
+            <code class="rounded bg-muted/50 px-1 py-0.5 text-[11px] text-foreground">
+              {{ $t('agents.apiKey.authHeader') }}
+            </code>
+            {{ $t('agents.apiKey.modal.warningAfter') }}
+          </p>
+        </div>
+      </div>
     </CreateModal>
 
     <LogDrawer>
       <div class="space-y-2">
-        <div v-if="logLoading" class="py-10 text-center text-sm text-muted-foreground">
-          正在加载调用日志...
+        <div
+          v-if="logLoading"
+          class="py-10 text-center text-sm text-muted-foreground"
+        >
+          {{ $t('agents.apiKey.logsLoading') }}
         </div>
         <div
           v-else-if="logMessages.length === 0"
           class="py-10 text-center text-sm text-muted-foreground"
         >
-          当前密钥还没有调用记录。
+          {{ $t('agents.apiKey.logsEmpty') }}
         </div>
         <template v-else>
           <div
@@ -378,20 +580,18 @@ function resolveRoleTone(role?: string) {
             <div class="flex items-center justify-between gap-2">
               <NTag
                 :bordered="false"
-                round
                 size="small"
                 :type="resolveRoleTone(item.role)"
               >
                 {{ item.role || '--' }}
               </NTag>
-              <span class="text-[11px] text-muted-foreground">
+              <span class="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Clock3 class="size-3" />
                 {{ formatDocsTimestamp(item.createTime) }}
                 <template v-if="item.duration"> · {{ item.duration }}ms</template>
               </span>
             </div>
-            <div
-              class="mt-1.5 whitespace-pre-wrap break-all text-xs leading-5 text-foreground"
-            >
+            <div class="mt-1.5 whitespace-pre-wrap break-all text-xs leading-5 text-foreground">
               {{ item.message || '--' }}
             </div>
           </div>

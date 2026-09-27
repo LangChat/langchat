@@ -39,8 +39,7 @@
     "deleteRole": "删除角色",
     "builtinRoleEditTip": "系统内置角色，不可编辑",
     "builtinRoleDeleteTip": "系统内置角色，不可删除",
-    "unauthorizedMenus": "未授权菜单",
-    "moreMenus": "另有 {count} 项"
+    "unauthorizedMenus": "未授权菜单"
   },
   "messages": {
     "created": "角色已创建",

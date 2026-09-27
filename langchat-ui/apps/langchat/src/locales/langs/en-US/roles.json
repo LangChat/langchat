@@ -39,8 +39,7 @@
     "deleteRole": "Delete role",
     "builtinRoleEditTip": "Built-in role cannot be edited",
     "builtinRoleDeleteTip": "Built-in role cannot be deleted",
-    "unauthorizedMenus": "No menus granted",
-    "moreMenus": "{count} more"
+    "unauthorizedMenus": "No menus granted"
   },
   "messages": {
     "created": "Role created",

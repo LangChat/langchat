@@ -35,8 +35,6 @@ const currentItem = ref<null | RoleFormPayload>(null);
 const draftKeyword = ref('');
 const appliedKeyword = ref('');
 
-const menuNameMap = () => buildMenuNameMap(menuTree.value);
-
 // 系统内置角色（如超管）不允许编辑与删除
 const BUILTIN_ROLE_CODES = new Set(['ADMIN']);
 
@@ -51,11 +49,23 @@ function resolveMenuIds(roleId?: string) {
     .filter(Boolean);
 }
 
+// 菜单授权列按角色聚合已授权菜单名称，模板里直接查表，避免同一次渲染重复计算
+const menuLabelsByRole = computed<Record<string, string[]>>(() => {
+  const nameMap = buildMenuNameMap(menuTree.value);
+  const labels: Record<string, string[]> = {};
+  for (const item of roleMenus.value) {
+    const roleId = String(item.roleId ?? '');
+    const menuId = String(item.menuId ?? '');
+    if (!roleId || !menuId) {
+      continue;
+    }
+    (labels[roleId] ||= []).push(nameMap[menuId] || menuId);
+  }
+  return labels;
+});
+
 function resolveMenuLabels(roleId?: string) {
-  const nameMap = menuNameMap();
-  return resolveMenuIds(roleId)
-    .map((menuId) => nameMap[menuId] || menuId)
-    .filter(Boolean);
+  return (roleId && menuLabelsByRole.value[String(roleId)]) || [];
 }
 
 function handleSearch() {
@@ -104,27 +114,32 @@ const gridColumns = computed<VxeGridPropTypes.Columns<AigcRole>>(() => [
     field: 'name',
     title: $t('roles.columns.name'),
     minWidth: 160,
+    showOverflow: true,
   },
   {
     field: 'code',
     title: $t('roles.columns.code'),
     minWidth: 140,
+    showOverflow: true,
   },
   {
     field: 'description',
     title: $t('roles.columns.description'),
     minWidth: 220,
+    showOverflow: true,
   },
   {
     field: 'menuIds',
     title: $t('roles.columns.menuAuth'),
-    minWidth: 260,
+    minWidth: 320,
+    showOverflow: false,
     slots: { default: 'menuColumn' },
   },
   {
     field: 'updateTime',
     title: $t('roles.columns.updateTime'),
     minWidth: 180,
+    showOverflow: true,
     formatter: ({ cellValue }: { cellValue: number }) =>
       cellValue ? formatRelativeTime(cellValue) : '--',
   },
@@ -133,6 +148,7 @@ const gridColumns = computed<VxeGridPropTypes.Columns<AigcRole>>(() => [
     fixed: 'right',
     slots: { default: 'actionColumn' },
     title: $t('common.labels.actions'),
+    showOverflow: true,
     width: 110,
   },
 ]);
@@ -141,6 +157,8 @@ const [Grid, gridApi] = useVbenVxeGrid<AigcRole>({
   gridOptions: {
     columns: gridColumns.value,
     height: 'auto',
+    // 关闭单元格裁切，菜单授权列的多行标签才能撑开行高
+    showOverflow: false,
     pagerConfig: {
       pageSize: 10,
       pageSizes: [10, 20, 50],
@@ -301,9 +319,12 @@ async function syncRoleMenus(roleId: string, nextMenuIds: string[]) {
         </template>
 
         <template #menuColumn="{ row }">
-          <div class="flex flex-wrap gap-1 py-1">
+          <div
+            v-if="resolveMenuLabels(row.id).length > 0"
+            class="flex flex-wrap gap-x-2 gap-y-2.5 py-2"
+          >
             <NTag
-              v-for="menu in resolveMenuLabels(row.id).slice(0, 6)"
+              v-for="menu in resolveMenuLabels(row.id)"
               :key="menu"
               :bordered="false"
               round
@@ -312,23 +333,10 @@ async function syncRoleMenus(roleId: string, nextMenuIds: string[]) {
             >
               {{ menu }}
             </NTag>
-            <span
-              v-if="resolveMenuLabels(row.id).length === 0"
-              class="text-xs text-muted-foreground"
-            >
-              {{ $t('roles.list.unauthorizedMenus') }}
-            </span>
-            <span
-              v-else-if="resolveMenuLabels(row.id).length > 6"
-              class="text-xs text-muted-foreground"
-            >
-              {{
-                $t('roles.list.moreMenus', {
-                  count: resolveMenuLabels(row.id).length - 6,
-                })
-              }}
-            </span>
           </div>
+          <span v-else class="text-xs text-muted-foreground">
+            {{ $t('roles.list.unauthorizedMenus') }}
+          </span>
         </template>
 
         <template #actionColumn="{ row }">

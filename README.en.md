@@ -69,6 +69,19 @@ The open-source edition is designed for technical evaluation, custom development
 - **Modular monolith:** common, auth, aigc, core, datasource, and server modules balance development speed with explicit domain boundaries.
 - **Complete management UI:** the Vue 3 workspace covers models, agents, knowledge, Skills, MCP, data sources, users, roles, and core operational flows.
 
+## Knowledge-base interface
+
+<table align="center" style="width: 100%; max-width: 880px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>Document management</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>Document segments</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/knowledge-documents.webp" width="100%" alt="Knowledge-base document management and vectorization status"></td>
+    <td><img src="docs/assets/screenshots/knowledge-segments.webp" width="100%" alt="Knowledge-base document segments, metadata, and vectorization status"></td>
+  </tr>
+</table>
+
 ## Architecture
 
 ```mermaid

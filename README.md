@@ -133,6 +133,14 @@ LangChat 是一个模块化、可扩展的开源 AI Agent 应用平台。它将�
     <td><img src="docs/assets/screenshots/knowledge-import-upload.png" width="100%" alt="知识库导入文档的上传文件步骤"></td>
   </tr>
   <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>知识库 · 文档管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>知识库 · 文档分段</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/knowledge-documents.webp" width="100%" alt="知识库文档管理、向量化状态与任务操作"></td>
+    <td><img src="docs/assets/screenshots/knowledge-segments.webp" width="100%" alt="知识库文档分段列表、元数据与向量化状态"></td>
+  </tr>
+  <tr>
     <td align="center" style="padding-bottom: 4px;"><b>导入文档 · 分段配置</b></td>
     <td align="center" style="padding-bottom: 4px;"><b>导入文档 · 执行向量化</b></td>
   </tr>

@@ -2,8 +2,11 @@ package cn.langchat.aigc.biz.entity;
 
 import cn.langchat.common.persistence.BaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,7 +17,7 @@ import lombok.EqualsAndHashCode;
  * @since 2026/3/24
  */
 @Data
-@TableName("aigc_model")
+@TableName(value = "aigc_model", autoResultMap = true)
 @EqualsAndHashCode(callSuper = true)
 public class AigcModel extends BaseDO {
 
@@ -41,6 +44,12 @@ public class AigcModel extends BaseDO {
     private Integer timeout;
     /** 模型基础地址。 */
     private String baseUrl;
-    /** 向量维度。 */
-    private Integer dimension;
+    /**
+     * 模型类型专属配置。
+     *
+     * <p>例如向量模型的 {@code dimension}、文生图模型的图片尺寸与质量等。
+     * 公共连接信息仍保留为独立字段，差异化能力统一存入该 JSON 配置。</p>
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> configJson;
 }

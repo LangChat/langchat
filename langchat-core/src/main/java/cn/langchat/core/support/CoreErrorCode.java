@@ -44,7 +44,19 @@ public enum CoreErrorCode implements ErrorCode {
     CHAT_RUNTIME_ERROR("CORE_1008", "对话运行失败"),
 
     /** 对话流超时。 */
-    CHAT_STREAM_TIMEOUT("CORE_1009", "对话流执行超时");
+    CHAT_STREAM_TIMEOUT("CORE_1009", "对话流执行超时"),
+
+    /** 分段不存在。 */
+    SEGMENT_NOT_FOUND("CORE_1013", "分段不存在或不可用"),
+
+    /** 分段请求参数非法。 */
+    INVALID_SEGMENT_REQUEST("CORE_1014", "分段请求参数不合法"),
+
+    /** 模型扩展配置非法。 */
+    INVALID_MODEL_CONFIG("CORE_1015", "模型扩展配置不合法"),
+
+    /** 向量模型输出维度与向量库维度不一致。 */
+    EMBEDDING_DIMENSION_MISMATCH("CORE_1016", "向量模型与向量库的维度不一致");
 
     private final String code;
     private final String message;

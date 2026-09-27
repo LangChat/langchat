@@ -37,6 +37,13 @@ langchat:
   skill:
     # 技能工作区根目录；相对路径以 JAR 进程的运行目录为基准
     workspace-dir: ${LANGCHAT_SKILL_WORKSPACE_DIR:./langchat-workspace}
+  core:
+    knowledge:
+      index:
+        # 单文档向量化任务超过该时间仍未结束时自动标记失败
+        task-timeout: ${LANGCHAT_KNOWLEDGE_INDEX_TASK_TIMEOUT:30m}
+        # 后台检查等待中/执行中任务的间隔
+        stale-task-sweep-interval: ${LANGCHAT_KNOWLEDGE_INDEX_SWEEP_INTERVAL:1m}
   mcp:
     # MCP 客户端会话缓存时长：窗口内多次 Agent 调用复用同一个 MCP 服务连接，不重复启动；
     # 过期自动回收，配置变更/删除时立即停用（主动暂停）

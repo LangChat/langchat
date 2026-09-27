@@ -38,6 +38,12 @@ public class KnowledgeDocumentIndexStatus {
     /** 当前耗时，单位毫秒。 */
     private Long costMs;
 
+    /** 已生成分段条数。 */
+    private Integer segmentCount;
+
+    /** 已生成分段字符数。 */
+    private Long charCount;
+
     /** 最后更新时间。 */
     private Long updateTime;
 }

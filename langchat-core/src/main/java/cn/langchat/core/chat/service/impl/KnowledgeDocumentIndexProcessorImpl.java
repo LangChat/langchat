@@ -10,6 +10,7 @@ import cn.langchat.aigc.biz.service.AigcKnowledgeService;
 import cn.langchat.aigc.biz.service.AigcModelService;
 import cn.langchat.aigc.biz.service.AigcSegmentService;
 import cn.langchat.aigc.biz.service.AigcVectorStoreService;
+import cn.langchat.aigc.biz.support.ModelConfigSupport;
 import cn.langchat.common.exception.BizException;
 import cn.langchat.core.chat.enums.DocumentIndexStatusEnum;
 import cn.langchat.core.chat.model.parse.ParsedDocumentContent;
@@ -18,17 +19,15 @@ import cn.langchat.core.runtime.factory.LangChain4jModelFactory;
 import cn.langchat.core.runtime.factory.VectorStoreFactory;
 import cn.langchat.core.runtime.rag.DocumentChunkingService;
 import cn.langchat.core.runtime.rag.DocumentContentParseService;
+import cn.langchat.core.runtime.rag.SegmentMetadataFactory;
 import cn.langchat.core.support.CoreErrorCode;
-import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +54,7 @@ public class KnowledgeDocumentIndexProcessorImpl implements KnowledgeDocumentInd
     private final AigcModelService aigcModelService;
     private final DocumentChunkingService documentChunkingService;
     private final DocumentContentParseService documentContentParseService;
+    private final SegmentMetadataFactory segmentMetadataFactory;
     private final LangChain4jModelFactory langChain4jModelFactory;
     private final VectorStoreFactory vectorStoreFactory;
 
@@ -68,6 +68,7 @@ public class KnowledgeDocumentIndexProcessorImpl implements KnowledgeDocumentInd
             AigcKnowledge knowledge = requireKnowledge(knowledgeId);
             AigcVectorStore vectorStore = loadVectorStore(knowledge);
             AigcModel embeddingModelConfig = loadEmbeddingModel(knowledge);
+            validateEmbeddingDimension(embeddingModelConfig, vectorStore);
             EmbeddingStore<TextSegment> embeddingStore = vectorStoreFactory.getStore(vectorStore);
             EmbeddingModel embeddingModel = langChain4jModelFactory.getEmbeddingModel(embeddingModelConfig);
 
@@ -140,6 +141,23 @@ public class KnowledgeDocumentIndexProcessorImpl implements KnowledgeDocumentInd
         return model;
     }
 
+    private void validateEmbeddingDimension(AigcModel model, AigcVectorStore vectorStore) {
+        Integer modelDimension = ModelConfigSupport.resolveDimension(model);
+        if (modelDimension == null) {
+            throw new BizException(
+                    CoreErrorCode.INVALID_MODEL_CONFIG.code(),
+                    "向量模型 configJson.dimension 必须配置为大于 0 的整数"
+            );
+        }
+        Integer storeDimension = vectorStore.getDimension();
+        if (!Objects.equals(modelDimension, storeDimension)) {
+            throw new BizException(
+                    CoreErrorCode.EMBEDDING_DIMENSION_MISMATCH.code(),
+                    "向量模型维度 " + modelDimension + " 与向量库维度 " + storeDimension + " 不一致"
+            );
+        }
+    }
+
     private List<AigcSegment> createSegments(AigcDocs docs, Integer chunkSize, Integer overlapSize) {
         ParsedDocumentContent parsedDocument = documentContentParseService.parse(docs);
         List<String> chunks = new ArrayList<>();
@@ -174,24 +192,13 @@ public class KnowledgeDocumentIndexProcessorImpl implements KnowledgeDocumentInd
             EmbeddingStore<TextSegment> embeddingStore
     ) {
         List<TextSegment> textSegments = segments.stream()
-                .map(segment -> TextSegment.from(segment.getContent(), buildMetadata(knowledge, docs, segment)))
+                .map(segment -> TextSegment.from(segment.getContent(), segmentMetadataFactory.build(knowledge, docs, segment)))
                 .toList();
         Response<List<Embedding>> response = embeddingModel.embedAll(textSegments);
         List<Embedding> embeddings = response.content();
         List<String> ids = segments.stream().map(AigcSegment::getId).toList();
         embeddingStore.removeAll(ids);
         embeddingStore.addAll(ids, embeddings, textSegments);
-    }
-
-    private Metadata buildMetadata(AigcKnowledge knowledge, AigcDocs docs, AigcSegment segment) {
-        Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("knowledgeId", knowledge.getId());
-        metadata.put("knowledgeName", knowledge.getName());
-        metadata.put("docsId", docs.getId());
-        metadata.put("docsName", docs.getName());
-        metadata.put("segmentId", segment.getId());
-        metadata.put("position", segment.getPosition());
-        return Metadata.from(metadata);
     }
 
     private void updateDocsStatus(
@@ -201,12 +208,22 @@ public class KnowledgeDocumentIndexProcessorImpl implements KnowledgeDocumentInd
             Long startTime,
             Long endTime
     ) {
+        long now = System.currentTimeMillis();
         docs.setIndexingStatus(status.dbStatus());
         docs.setEmbedStatus(status.code());
         docs.setEmbedError(errorMessage);
         docs.setEmbedStartTime(startTime);
         docs.setEmbedEndTime(endTime);
-        aigcDocsService.updateById(docs);
+        docs.setUpdateTime(now);
+        aigcDocsService.lambdaUpdate()
+                .eq(AigcDocs::getId, docs.getId())
+                .set(AigcDocs::getIndexingStatus, status.dbStatus())
+                .set(AigcDocs::getEmbedStatus, status.code())
+                .set(AigcDocs::getEmbedError, errorMessage)
+                .set(AigcDocs::getEmbedStartTime, startTime)
+                .set(AigcDocs::getEmbedEndTime, endTime)
+                .set(AigcDocs::getUpdateTime, now)
+                .update();
     }
 
     private String resolveErrorMessage(Exception ex) {

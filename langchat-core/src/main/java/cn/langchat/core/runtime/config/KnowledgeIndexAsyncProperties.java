@@ -1,5 +1,6 @@
 package cn.langchat.core.runtime.config;
 
+import java.time.Duration;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -29,4 +30,10 @@ public class KnowledgeIndexAsyncProperties {
 
     /** 线程名前缀。 */
     private String threadNamePrefix = "langchat-doc-index-";
+
+    /** 单文档向量化任务最大执行时间。 */
+    private Duration taskTimeout = Duration.ofMinutes(30);
+
+    /** 超时任务后台扫描间隔。 */
+    private Duration staleTaskSweepInterval = Duration.ofMinutes(1);
 }

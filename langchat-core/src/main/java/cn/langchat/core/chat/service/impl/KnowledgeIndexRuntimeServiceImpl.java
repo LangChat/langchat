@@ -4,6 +4,7 @@ import cn.langchat.aigc.biz.entity.AigcDocs;
 import cn.langchat.aigc.biz.entity.AigcKnowledge;
 import cn.langchat.aigc.biz.service.AigcDocsService;
 import cn.langchat.aigc.biz.service.AigcKnowledgeService;
+import cn.langchat.aigc.biz.service.AigcSegmentService;
 import cn.langchat.common.exception.BizException;
 import cn.langchat.core.chat.enums.DocumentIndexStatusEnum;
 import cn.langchat.core.chat.model.parse.ParsedDocumentContent;
@@ -22,6 +23,7 @@ import cn.langchat.core.support.CoreErrorCode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,9 +50,11 @@ public class KnowledgeIndexRuntimeServiceImpl implements KnowledgeIndexRuntimeSe
     private static final String CONFIG_OVERLAP_SIZE_ALT = "overlap_size";
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
+    private static final SegmentSummary EMPTY_SEGMENT_SUMMARY = new SegmentSummary(0, 0L);
 
     private final AigcKnowledgeService aigcKnowledgeService;
     private final AigcDocsService aigcDocsService;
+    private final AigcSegmentService aigcSegmentService;
     private final DocumentChunkingService documentChunkingService;
     private final DocumentContentParseService documentContentParseService;
     private final KnowledgeIndexAsyncService knowledgeIndexAsyncService;
@@ -123,8 +127,9 @@ public class KnowledgeIndexRuntimeServiceImpl implements KnowledgeIndexRuntimeSe
                 .orderByDesc(AigcDocs::getUpdateTime)
                 .list();
         long now = System.currentTimeMillis();
+        Map<String, SegmentSummary> segmentSummary = loadSegmentSummary(docsList);
         List<KnowledgeDocumentIndexStatus> docStatuses = docsList.stream()
-                .map(docs -> buildDocumentIndexStatus(docs, now))
+                .map(docs -> buildDocumentIndexStatus(docs, now, segmentSummary))
                 .toList();
 
         int pendingCount = countByStatus(docStatuses, DocumentIndexStatusEnum.PENDING.code());
@@ -272,25 +277,75 @@ public class KnowledgeIndexRuntimeServiceImpl implements KnowledgeIndexRuntimeSe
     }
 
     private void markDocsQueued(AigcDocs docs) {
+        long now = System.currentTimeMillis();
         docs.setIndexingStatus(DocumentIndexStatusEnum.PENDING.dbStatus());
         docs.setEmbedStatus(DocumentIndexStatusEnum.PENDING.code());
         docs.setEmbedError(null);
         docs.setEmbedStartTime(null);
         docs.setEmbedEndTime(null);
-        aigcDocsService.updateById(docs);
+        docs.setUpdateTime(now);
+        aigcDocsService.lambdaUpdate()
+                .eq(AigcDocs::getId, docs.getId())
+                .set(AigcDocs::getIndexingStatus, DocumentIndexStatusEnum.PENDING.dbStatus())
+                .set(AigcDocs::getEmbedStatus, DocumentIndexStatusEnum.PENDING.code())
+                .set(AigcDocs::getEmbedError, null)
+                .set(AigcDocs::getEmbedStartTime, null)
+                .set(AigcDocs::getEmbedEndTime, null)
+                .set(AigcDocs::getUpdateTime, now)
+                .update();
     }
 
-    private KnowledgeDocumentIndexStatus buildDocumentIndexStatus(AigcDocs docs, long now) {
+    private Map<String, SegmentSummary> loadSegmentSummary(List<AigcDocs> docsList) {
+        List<String> docsIds = docsList.stream().map(AigcDocs::getId).toList();
+        Map<String, SegmentSummary> summary = new HashMap<>();
+        for (Map<String, Object> row : aigcSegmentService.summarizeByDocsIds(docsIds)) {
+            Object docsId = row.get("docsId");
+            if (docsId == null) {
+                continue;
+            }
+            summary.put(docsId.toString(), new SegmentSummary(
+                    intValue(row.get("segmentCount")),
+                    longValue(row.get("charCount"))
+            ));
+        }
+        return summary;
+    }
+
+    private int intValue(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return 0;
+    }
+
+    private long longValue(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return 0L;
+    }
+
+    private KnowledgeDocumentIndexStatus buildDocumentIndexStatus(
+            AigcDocs docs,
+            long now,
+            Map<String, SegmentSummary> segmentSummary
+    ) {
+        SegmentSummary summary = segmentSummary.getOrDefault(docs.getId(), EMPTY_SEGMENT_SUMMARY);
         KnowledgeDocumentIndexStatus status = new KnowledgeDocumentIndexStatus();
         status.setDocsId(docs.getId());
         status.setName(docs.getName());
         status.setExt(docs.getExt());
         status.setIndexingStatus(docs.getIndexingStatus());
-        status.setEmbedStatus(resolveEmbedStatus(docs));
-        status.setEmbedError(docs.getEmbedError());
+        String embedStatus = resolveEmbedStatus(docs);
+        status.setEmbedStatus(embedStatus);
+        status.setEmbedError(Objects.equals(embedStatus, DocumentIndexStatusEnum.FAILED.code())
+                ? docs.getEmbedError()
+                : null);
         status.setEmbedStartTime(docs.getEmbedStartTime());
         status.setEmbedEndTime(docs.getEmbedEndTime());
         status.setCostMs(calculateCostMs(docs, now));
+        status.setSegmentCount(summary.segmentCount());
+        status.setCharCount(summary.charCount());
         status.setUpdateTime(docs.getUpdateTime());
         return status;
     }
@@ -343,6 +398,20 @@ public class KnowledgeIndexRuntimeServiceImpl implements KnowledgeIndexRuntimeSe
     private record DocumentSplitConfig(
             Integer chunkSize,
             Integer overlapSize
+    ) {
+    }
+
+    /**
+     * 文档分段统计。
+     *
+     * @param segmentCount 分段条数
+     * @param charCount 分段字符数
+     * @author LangChat Team
+     * @since 2026/9/27
+     */
+    private record SegmentSummary(
+            int segmentCount,
+            long charCount
     ) {
     }
 }

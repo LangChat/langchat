@@ -2,7 +2,10 @@ package cn.langchat.aigc.api.controller;
 
 import cn.langchat.aigc.biz.entity.AigcVectorStore;
 import cn.langchat.aigc.biz.service.AigcVectorStoreService;
+import cn.langchat.aigc.biz.support.VectorStoreSupport;
 import cn.langchat.common.core.ApiResponse;
+import cn.langchat.common.core.CommonErrorCode;
+import cn.langchat.common.exception.BizException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,7 @@ public class AigcVectorStoreController {
     @PostMapping
     public ApiResponse<Boolean> create(@RequestBody AigcVectorStore vectorStore) {
         log.info("新增向量库，name={}, provider={}", vectorStore.getName(), vectorStore.getProvider());
+        validateVectorStore(vectorStore);
         return ApiResponse.success(aigcVectorStoreService.save(vectorStore));
     }
 
@@ -49,6 +53,7 @@ public class AigcVectorStoreController {
     public ApiResponse<Boolean> update(@PathVariable("id") String id, @RequestBody AigcVectorStore vectorStore) {
         vectorStore.setId(id);
         log.info("更新向量库，id={}", id);
+        validateVectorStore(vectorStore);
         return ApiResponse.success(aigcVectorStoreService.updateById(vectorStore));
     }
 
@@ -56,5 +61,27 @@ public class AigcVectorStoreController {
     public ApiResponse<Boolean> remove(@PathVariable("id") String id) {
         log.info("删除向量库，id={}", id);
         return ApiResponse.success(aigcVectorStoreService.removeById(id));
+    }
+
+    /**
+     * 校验向量库配置必填项，避免保存后向量化时才因缺少表名/维度等配置失败。
+     */
+    private void validateVectorStore(AigcVectorStore vectorStore) {
+        if (vectorStore.getName() == null || vectorStore.getName().isBlank()) {
+            throw new BizException(CommonErrorCode.BAD_REQUEST.code(), "向量库名称不能为空");
+        }
+        if (vectorStore.getProvider() == null || vectorStore.getProvider().isBlank()) {
+            throw new BizException(CommonErrorCode.BAD_REQUEST.code(), "向量库供应商不能为空");
+        }
+        if (vectorStore.getHost() == null || vectorStore.getHost().isBlank()) {
+            throw new BizException(CommonErrorCode.BAD_REQUEST.code(), "向量库主机地址不能为空");
+        }
+        if (VectorStoreSupport.requiresTableName(vectorStore)
+                && (vectorStore.getTableName() == null || vectorStore.getTableName().isBlank())) {
+            throw new BizException(CommonErrorCode.BAD_REQUEST.code(), "向量库表名/集合名不能为空");
+        }
+        if (vectorStore.getDimension() == null || vectorStore.getDimension() <= 0) {
+            throw new BizException(CommonErrorCode.BAD_REQUEST.code(), "向量库维度必须大于 0");
+        }
     }
 }

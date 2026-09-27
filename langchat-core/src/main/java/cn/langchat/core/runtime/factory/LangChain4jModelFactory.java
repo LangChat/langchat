@@ -3,6 +3,7 @@ package cn.langchat.core.runtime.factory;
 import cn.hutool.core.util.StrUtil;
 import cn.langchat.aigc.biz.entity.AigcAgent;
 import cn.langchat.aigc.biz.entity.AigcModel;
+import cn.langchat.aigc.biz.support.ModelConfigSupport;
 import cn.langchat.common.ai.enums.AiProviderType;
 import cn.langchat.common.exception.BizException;
 import cn.langchat.core.support.CoreErrorCode;
@@ -184,7 +185,7 @@ public class LangChain4jModelFactory {
         OpenAiEmbeddingModel.OpenAiEmbeddingModelBuilder builder = OpenAiEmbeddingModel.builder()
                 .modelName(model.getModel())
                 .apiKey(defaultApiKey(model))
-                .dimensions(model.getDimension())
+                .dimensions(embeddingDimension(model))
                 .timeout(timeout(model))
                 .listeners(listeners);
         applyBaseUrl(model, builder::baseUrl);
@@ -204,7 +205,7 @@ public class LangChain4jModelFactory {
         QwenEmbeddingModel.QwenEmbeddingModelBuilder builder = QwenEmbeddingModel.builder()
                 .modelName(model.getModel())
                 .apiKey(defaultApiKey(model))
-                .dimension(model.getDimension());
+                .dimension(embeddingDimension(model));
         // 同上：过滤 OpenAI 兼容地址，避免原生 SDK 404
         applyDashScopeBaseUrl(model, builder::baseUrl);
         return builder.build();
@@ -255,6 +256,17 @@ public class LangChain4jModelFactory {
     private Duration timeout(AigcModel model) {
         int minutes = model.getTimeout() == null || model.getTimeout() <= 0 ? 3 : model.getTimeout();
         return Duration.ofMinutes(minutes);
+    }
+
+    private Integer embeddingDimension(AigcModel model) {
+        Integer dimension = ModelConfigSupport.resolveDimension(model);
+        if (dimension == null) {
+            throw new BizException(
+                    CoreErrorCode.INVALID_MODEL_CONFIG.code(),
+                    "向量模型 configJson.dimension 必须配置为大于 0 的整数"
+            );
+        }
+        return dimension;
     }
 
     private Integer maxTokens(AgentModelConfig config, AigcModel model) {

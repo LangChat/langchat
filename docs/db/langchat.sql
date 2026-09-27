@@ -185,7 +185,7 @@ CREATE TABLE `aigc_model` (
   `timeout` int DEFAULT NULL COMMENT '超时时间（分钟）',
   `base_url` varchar(100) DEFAULT NULL,
   `endpoint` varchar(100) DEFAULT NULL,
-  `dimension` int DEFAULT NULL COMMENT '向量维数',
+  `config_json` json DEFAULT NULL COMMENT '模型类型专属配置（JSON）',
   `secret_key` varchar(255) DEFAULT NULL,
   `creator` varchar(100) DEFAULT NULL COMMENT '创建人',
   `updater` varchar(100) DEFAULT NULL COMMENT '更新人',

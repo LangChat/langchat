@@ -5,8 +5,9 @@ import type {AigcModel} from '#/api/aigc/model';
 
 import {onMounted, ref} from 'vue';
 
-import {Page} from '@vben/common-ui';
-import {Copy, FileSearch, ScanText} from '@vben/icons';
+import { Page } from '@vben/common-ui';
+import { Copy, FileSearch, ScanText } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import {NButton, NForm, NFormItem, NInput, NSpin, NUpload, NUploadDragger,} from 'naive-ui';
 
@@ -25,7 +26,7 @@ const fileList = ref<UploadFileInfo[]>([]);
 
 const form = ref({
   modelId: '',
-  prompt: '请识别图片中的文字内容。',
+  prompt: $t('studio.ocr.defaultPrompt'),
 });
 
 async function loadModels() {
@@ -58,11 +59,11 @@ function handleRemove() {
 
 async function handleRecognize() {
   if (!form.value.modelId) {
-    message.warning('请选择视觉模型');
+    message.warning($t('studio.ocr.selectModel'));
     return;
   }
   if (!previewUrl.value) {
-    message.warning('请先上传图片');
+    message.warning($t('studio.ocr.uploadFirst'));
     return;
   }
   loading.value = true;
@@ -75,10 +76,14 @@ async function handleRecognize() {
     });
     recognizeText.value = result?.text || '';
     if (!recognizeText.value) {
-      message.warning('未识别到文字内容');
+      message.warning($t('studio.ocr.noTextFound'));
     }
   } catch (error) {
-    message.error(`识别失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('studio.ocr.recognizeFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
   } finally {
     loading.value = false;
   }
@@ -90,9 +95,9 @@ async function handleCopy() {
   }
   try {
     await navigator.clipboard.writeText(recognizeText.value);
-    message.success('已复制到剪贴板');
+    message.success($t('common.messages.copySuccess'));
   } catch {
-    message.error('复制失败');
+    message.error($t('common.messages.copyFailed'));
   }
 }
 
@@ -106,9 +111,11 @@ onMounted(loadModels);
         class="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
       >
         <div>
-          <div class="text-lg font-semibold text-foreground">图片识别</div>
+          <div class="text-lg font-semibold text-foreground">
+            {{ $t('studio.ocr.title') }}
+          </div>
           <div class="mt-1 text-sm text-muted-foreground">
-            选择视觉模型，上传图片进行 OCR 文字识别与结构化抽取。
+            {{ $t('studio.ocr.description') }}
           </div>
         </div>
       </div>
@@ -120,7 +127,7 @@ onMounted(loadModels);
             class="flex h-full min-h-0 flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-card p-4"
           >
           <NForm label-placement="top">
-            <NFormItem label="视觉模型">
+            <NFormItem :label="$t('studio.ocr.model')">
               <ModelSelector
                 :allowed-types="['IMAGE2TEXT', 'OCR', 'VISION']"
                 :config="{}"
@@ -130,7 +137,7 @@ onMounted(loadModels);
               />
             </NFormItem>
 
-            <NFormItem label="上传图片">
+            <NFormItem :label="$t('studio.ocr.upload')">
               <NUpload
                 v-model:file-list="fileList"
                 :max="1"
@@ -142,20 +149,22 @@ onMounted(loadModels);
                 <NUploadDragger>
                   <div class="flex flex-col items-center gap-2 py-6 text-muted-foreground">
                     <FileSearch class="size-10" />
-                    <span class="text-sm">点击或拖拽图片到此处上传</span>
-                    <span class="text-xs">支持 png / jpg / jpeg / webp</span>
+                    <span class="text-sm">{{ $t('studio.ocr.dropHere') }}</span>
+                    <span class="text-xs">{{
+                      $t('studio.ocr.supportedFormats')
+                    }}</span>
                   </div>
                 </NUploadDragger>
               </NUpload>
               <img
                 v-if="previewUrl"
                 :src="previewUrl"
-                alt="预览"
+                :alt="$t('studio.ocr.previewAlt')"
                 class="mt-2 max-h-56 w-full rounded-lg object-contain"
               />
             </NFormItem>
 
-            <NFormItem label="识别提示">
+            <NFormItem :label="$t('studio.ocr.prompt')">
               <NInput
                 v-model:value="form.prompt"
                 :autosize="{minRows: 2, maxRows: 5}"
@@ -172,7 +181,7 @@ onMounted(loadModels);
               <template #icon>
                 <ScanText class="size-4" />
               </template>
-              开始识别
+              {{ $t('studio.ocr.start') }}
             </NButton>
           </NForm>
           </div>
@@ -189,7 +198,9 @@ onMounted(loadModels);
             class="flex h-full min-h-[420px] flex-col gap-3 rounded-xl border border-border bg-card p-4"
           >
           <div class="flex items-center justify-between">
-            <div class="text-sm font-semibold text-foreground">识别结果</div>
+            <div class="text-sm font-semibold text-foreground">
+              {{ $t('studio.ocr.resultTitle') }}
+            </div>
             <NButton
               v-if="recognizeText"
               size="small"
@@ -198,7 +209,7 @@ onMounted(loadModels);
               <template #icon>
                 <Copy class="size-3.5" />
               </template>
-              复制文本
+              {{ $t('studio.ocr.copyText') }}
             </NButton>
           </div>
 
@@ -215,7 +226,7 @@ onMounted(loadModels);
                 class="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground"
               >
                 <ScanText class="size-12" />
-                <span class="text-sm">识别出的文字将展示在这里</span>
+                <span class="text-sm">{{ $t('studio.ocr.emptyResult') }}</span>
               </div>
             </NSpin>
           </div>

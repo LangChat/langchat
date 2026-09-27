@@ -1,0 +1,90 @@
+{
+  "type": {
+    "TEXT2TEXT": {
+      "label": "文本生成",
+      "description": "通用对话、推理、代码生成"
+    },
+    "EMBEDDINGS": {
+      "label": "向量模型",
+      "description": "向量化检索、召回、聚类"
+    },
+    "IMAGE2TEXT": {
+      "label": "图像理解",
+      "description": "图像理解、多模态问答"
+    },
+    "OCR": {
+      "label": "光学识别",
+      "description": "图文识别、结构化抽取"
+    },
+    "SPEECH2TEXT": {
+      "label": "语音识别",
+      "description": "语音识别、实时听写"
+    },
+    "TEXT2IMAGE": {
+      "label": "文生图",
+      "description": "文生图、风格化生成"
+    },
+    "TEXT2SPEECH": {
+      "label": "文本转语音",
+      "description": "语音播报、语音克隆"
+    },
+    "TEXT2VIDEO": {
+      "label": "文生视频",
+      "description": "文生视频、镜头编排"
+    }
+  },
+  "provider": {
+    "DASHSCOPE": "通义千问",
+    "ZHIPU": "智谱",
+    "VOLCENGINE": "火山引擎",
+    "CUSTOM": "自定义供应商"
+  },
+  "card": {
+    "unnamed": "未命名模型",
+    "unnamedModelId": "未配置模型标识",
+    "maxToken": "最大令牌",
+    "baseUrl": "地址"
+  },
+  "list": {
+    "title": "模型中心",
+    "allProviders": "全部供应商",
+    "allTypes": "全部类型",
+    "allTypesDescription": "展示所有类型的模型",
+    "breadcrumbAll": "全部供应商 / 全部类型",
+    "breadcrumbBoth": "{provider} / {type}",
+    "breadcrumbProvider": "{provider} / 全部类型",
+    "breadcrumbType": "全部供应商 / {type}",
+    "searchPlaceholder": "搜索模型名称、标识或供应商",
+    "total": "共 {count} 条模型配置",
+    "recommended": "推荐模型",
+    "noRecommended": "当前映射暂无推荐模型",
+    "suggestedConfig": "建议配置项",
+    "empty": "当前筛选条件下没有模型数据。"
+  },
+  "form": {
+    "createTitle": "新建模型",
+    "editTitle": "编辑模型",
+    "alias": "模型别名",
+    "provider": "供应商",
+    "type": "模型类型",
+    "namePlaceholderByPreset": "例如：{list}",
+    "namePlaceholder": "输入模型名称",
+    "name": "模型名称",
+    "apiKeyPlaceholder": "输入模型 API Key",
+    "baseUrlPlaceholder": "例如：https://api.openai.com/v1",
+    "timeout": "timeout（秒）"
+  },
+  "messages": {
+    "created": "模型已创建",
+    "updated": "模型已更新",
+    "deleted": "模型已删除",
+    "deleteTitle": "删除模型"
+  },
+  "typeOptions": {
+    "chat": "聊天模型",
+    "reasoning": "推理模型",
+    "embedding": "向量模型",
+    "vision": "视觉模型",
+    "speech": "语音模型"
+  }
+}

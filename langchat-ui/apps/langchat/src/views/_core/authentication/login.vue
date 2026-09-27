@@ -17,11 +17,11 @@ const formSchema = computed((): VbenFormSchema[] => {
     {
       component: 'VbenInput',
       componentProps: {
-        placeholder: '请输入管理员账号',
+        placeholder: $t('auth.form.usernamePlaceholder'),
       },
       defaultValue: 'admin',
       fieldName: 'username',
-      help: '默认初始化账户：admin',
+      help: $t('auth.form.usernameHelp'),
       label: $t('authentication.username'),
       rules: z
         .string()
@@ -35,7 +35,7 @@ const formSchema = computed((): VbenFormSchema[] => {
       },
       defaultValue: '123456',
       fieldName: 'password',
-      help: '默认初始化密码：123456',
+      help: $t('auth.form.passwordHelp'),
       label: $t('authentication.password'),
       rules: z
         .string()

@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "mysql": {
+      "description": "轻量、广泛使用的关系型数据库"
+    },
+    "postgresql": {
+      "description": "功能完整的开源对象关系型数据库"
+    },
+    "oracle": {
+      "description": "面向企业级业务的商业数据库"
+    },
+    "sqlserver": {
+      "description": "Microsoft 企业级关系型数据库"
+    }
+  },
+  "card": {
+    "unnamed": "未命名数据源",
+    "noConnectionInfo": "暂未填写连接信息。",
+    "databaseShort": "库名"
+  },
+  "list": {
+    "create": "新建数据源",
+    "emptyDescription": "暂无数据源",
+    "emptyHint": "创建一个数据源，开始连接和管理数据库。",
+    "searchPlaceholder": "按数据源名称搜索",
+    "actionsTitle": "数据源操作",
+    "actionsDescription": "配置常用数据库连接，支持 MySQL、PostgreSQL、Oracle、SQL Server。"
+  },
+  "detail": {
+    "fallbackTitle": "数据源详情",
+    "discoveryTitle": "数据库发现",
+    "tablesCount": "{count} 张表",
+    "pendingImport": "{count} 张待导入",
+    "discoveryHint": "实时内省结果，选择后导入到 AI 检索配置",
+    "aiConfigTitle": "AI 检索配置",
+    "retrievalCount": "{count} 张可检索",
+    "aiConfigHint": "只有已导入且启用的表，才会提供给 AI 查询",
+    "legend": "绿色标记 = 已导入；开关开启 = 允许 AI 检索。",
+    "saveConfig": "保存检索配置",
+    "importedTables": "已导入表",
+    "originalTables": "数据库原始表",
+    "allImportedTables": "全部已导入表",
+    "allOriginalTables": "全部原始表",
+    "imported": "已导入",
+    "import": "导入",
+    "retrievalDisabled": "已停用",
+    "retrievalEnabled": "可检索",
+    "allFields": "全部字段",
+    "fieldsCount": "{count} 个字段",
+    "fieldsEditable": "字段名称、类型、含义均可编辑",
+    "allowAiRetrieval": "允许 AI 检索",
+    "removeImportedTable": "移除导入表",
+    "aiFieldNamePlaceholder": "AI 看到的字段名",
+    "aiFieldTypePlaceholder": "例如 VARCHAR(255)",
+    "aiFieldCommentPlaceholder": "填写字段含义 / 中文解释",
+    "noImportedTables": "还没有导入任何表",
+    "noIntrospectedTables": "未能内省到表结构",
+    "columns": {
+      "tableName": "表名",
+      "originalName": "原始字段名",
+      "originalType": "原始类型",
+      "length": "长度",
+      "primaryKey": "主键",
+      "nullable": "可空",
+      "comment": "数据库备注",
+      "importedTable": "导入表",
+      "aiName": "AI 字段名称",
+      "aiType": "AI 字段类型",
+      "aiComment": "字段含义 / 中文解释"
+    },
+    "selectedLabelAllFields": "{table} · 全部字段",
+    "selectedLabelWithColumn": "{table} · {column}"
+  },
+  "edit": {
+    "createTitle": "新建数据源",
+    "editTitle": "编辑数据源",
+    "name": "数据源名称",
+    "host": "主机地址",
+    "hostPlaceholder": "例如 127.0.0.1",
+    "database": "数据库名",
+    "remark": "备注",
+    "enabled": "是否启用",
+    "vendorTitle": "数据库厂商",
+    "defaultPort": "默认端口 {port}",
+    "connectionTitle": "连接配置",
+    "connectionSummary": "{type} · 默认端口 {port}",
+    "testConnection": "测试连接",
+    "connectionInfoRequired": "请先填写连接信息"
+  },
+  "messages": {
+    "saved": "数据源已保存",
+    "deleted": "数据源已删除",
+    "deleteTitle": "删除数据源",
+    "connectionSuccess": "连接成功",
+    "connectionFailed": "连接失败：{message}",
+    "tableImported": "已导入表「{table}」，AI 现在可以配置它的检索字段",
+    "tableRemoved": "已移除表「{table}」的 AI 检索配置",
+    "structureSaved": "AI 检索表结构已保存",
+    "datasourceLoadFailed": "数据源加载失败：{message}",
+    "structureLoadFailed": "表结构加载失败：{message}",
+    "customStructureLoadFailed": "自定义结构加载失败：{message}"
+  }
+}

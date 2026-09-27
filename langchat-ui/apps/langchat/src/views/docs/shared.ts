@@ -1,5 +1,7 @@
 import type { RouteLocationRaw } from 'vue-router';
 
+import { $t } from '@vben/locales';
+
 export const DOC_EMBED_STATUS = {
   COMPLETED: 'completed',
   FAILED: 'failed',
@@ -77,23 +79,25 @@ export function resolveDocsTypeByFilename(filename = '') {
   }
 }
 
-export const DOC_PARSE_MODE_OPTIONS = [
-  {
-    description: '使用内置 Tika / PDFBox 解析，无需外部服务',
-    label: '内置解析',
-    value: 'BUILTIN',
-  },
-  {
-    description: '使用 Docling 服务解析，复杂排版还原效果更好',
-    label: 'Docling 解析',
-    value: 'DOCLING',
-  },
-  {
-    description: '优先 Docling，服务不可用时自动回退内置解析',
-    label: '自动（Docling 优先）',
-    value: 'AUTO',
-  },
-] as const;
+export function docParseModeOptions() {
+  return [
+    {
+      description: $t('docs.parser.builtin.description'),
+      label: $t('docs.parser.builtin.label'),
+      value: 'BUILTIN',
+    },
+    {
+      description: $t('docs.parser.docling.description'),
+      label: $t('docs.parser.docling.label'),
+      value: 'DOCLING',
+    },
+    {
+      description: $t('docs.parser.auto.description'),
+      label: $t('docs.parser.auto.label'),
+      value: 'AUTO',
+    },
+  ];
+}
 
 export function buildDocsIngestionConfig(
   chunkSize?: number | null,

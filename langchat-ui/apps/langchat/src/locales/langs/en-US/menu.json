@@ -1,0 +1,32 @@
+{
+  "login": "Sign in",
+  "overview": "Overview",
+  "market": "App Market",
+  "about": "About",
+  "agentBuilder": "Agent Builder",
+  "docsList": "Document List",
+  "docsUpload": "Document Upload",
+  "docsPreview": "Document Preview",
+  "marketChat": "Agent Chat",
+  "dynamic": {
+    "ai": "AI Applications",
+    "agents": "Agent Management",
+    "knowledges": "Knowledge Bases",
+    "data_analysis": "Data Analysis",
+    "studio": "Image Studio",
+    "studio_image": "Image Generation",
+    "studio_ocr": "Image OCR",
+    "model": "Models & Capabilities",
+    "models": "Model Management",
+    "vector_stores": "Vector Stores",
+    "skills": "Skill Management",
+    "mcp": "MCP Management",
+    "datasources": "Data Sources",
+    "model_monitor": "Model Monitoring",
+    "datasource_detail": "Data Source Details",
+    "permissions": "System",
+    "users": "User Management",
+    "roles": "Role Management",
+    "permission_menus": "Menu Management"
+  }
+}

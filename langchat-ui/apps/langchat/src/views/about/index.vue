@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { ExternalLink, Globe, SvgGithubIcon } from '@vben/icons';
+import { $t } from '@vben/locales';
 import { preferences, usePreferences } from '@vben/preferences';
 
 import LcCard from '#/components/LcCard/index.vue';
@@ -22,43 +23,43 @@ const logoSrc = computed(() =>
     : preferences.logo.source,
 );
 
-const productHighlights = [
+const productHighlights = computed(() => [
   {
-    description: '统一管理不同厂商与能力类型的模型服务',
-    label: '多模型统一接入',
+    description: $t('about.features.models.description'),
+    label: $t('about.features.models.label'),
   },
   {
-    description: '覆盖文档解析、切片、向量化与检索增强',
-    label: '知识库与文档工程',
+    description: $t('about.features.knowledge.description'),
+    label: $t('about.features.knowledge.label'),
   },
   {
-    description: '让 Agent 连接技能、工具与外部业务能力',
-    label: 'Skills 与 MCP 编排',
+    description: $t('about.features.orchestration.description'),
+    label: $t('about.features.orchestration.label'),
   },
   {
-    description: '以实时响应、权限体系和模块化架构支撑交付',
-    label: '流式对话与平台治理',
+    description: $t('about.features.streaming.description'),
+    label: $t('about.features.streaming.label'),
   },
-];
+]);
 
-const techStacks = [
+const techStacks = computed(() => [
   {
-    label: '前端应用',
-    value: 'Vue 3、TypeScript、Vben Admin、Naive UI、Tailwind CSS',
+    label: $t('about.stack.frontend.label'),
+    value: $t('about.stack.frontend.value'),
   },
   {
-    label: '后端服务',
-    value: 'JDK 17、Spring Boot 3、MyBatis-Plus、Sa-Token',
+    label: $t('about.stack.backend.label'),
+    value: $t('about.stack.backend.value'),
   },
   {
-    label: 'AI 运行时',
-    value: 'LangChain4j、RAG、SSE 流式响应、工具与技能执行',
+    label: $t('about.stack.runtime.label'),
+    value: $t('about.stack.runtime.value'),
   },
   {
-    label: '数据与存储',
-    value: 'MySQL、PGVector / Milvus、S3 兼容对象存储',
+    label: $t('about.stack.storage.label'),
+    value: $t('about.stack.storage.value'),
   },
-];
+]);
 </script>
 
 <template>
@@ -84,28 +85,30 @@ const techStacks = [
                 <span v-else class="text-xs font-bold text-primary">LC</span>
               </div>
               <span class="text-xs font-medium text-muted-foreground">
-                {{ LANGCHAT_PRODUCT_TEAM }} · 开源产品
+                {{ LANGCHAT_PRODUCT_TEAM }} · {{ $t('about.hero.openSourceLabel') }}
               </span>
             </div>
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <h1 class="text-balance text-xl font-semibold text-foreground">
-                {{ LANGCHAT_PRODUCT_NAME }}：连接模型、知识与智能体的开源应用平台
+                {{
+                  $t('about.hero.title', { name: LANGCHAT_PRODUCT_NAME })
+                }}
               </h1>
               <span
                 class="rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold text-primary"
               >
-                Open Source
+                {{ $t('market.openSourceLabel') }}
               </span>
             </div>
             <p
               class="mt-3 max-w-4xl text-pretty text-sm leading-6 text-muted-foreground"
             >
-              LangChat 面向需要构建知识增强与智能体应用的团队，将模型接入、知识工程、Agent、Skills 与 MCP 汇聚到统一的产品体系中。它不仅提供应用配置界面，也打通从数据准备、能力编排到对话运行和平台治理的完整链路。
+              {{ $t('about.hero.introFirst') }}
             </p>
             <p
               class="mt-1.5 max-w-4xl text-pretty text-xs leading-5 text-muted-foreground"
             >
-              项目的核心价值是把分散的 AI 基础能力沉淀为可管理、可组合、可交付的业务模块，让开发团队能够保留技术自主性，同时减少重复建设模型网关、RAG 流程、工具调用和权限体系的成本。
+              {{ $t('about.hero.introSecond') }}
             </p>
           </div>
 
@@ -113,7 +116,7 @@ const techStacks = [
             <div
               class="mb-2 text-[10px] font-medium text-muted-foreground"
             >
-              官方与开源地址
+              {{ $t('about.links.title') }}
             </div>
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
               <a
@@ -159,7 +162,7 @@ const techStacks = [
                 target="_blank"
               >
                 <Globe class="size-3.5 shrink-0" />
-                官方网站
+                {{ $t('about.links.website') }}
                 <ExternalLink
                   class="ml-auto size-3 text-muted-foreground transition-colors group-hover:text-primary"
                 />
@@ -187,9 +190,11 @@ const techStacks = [
       <LcCard :hoverable="false" :show-icon="false">
         <template #header>
           <div>
-            <div class="text-sm font-semibold text-foreground">系统组件架构</div>
+            <div class="text-sm font-semibold text-foreground">
+              {{ $t('about.architecture.title') }}
+            </div>
             <div class="mt-1 text-xs font-normal text-muted-foreground">
-              从前端交互、服务聚合到 AI 核心能力与基础设施的模块关系
+              {{ $t('about.architecture.description') }}
             </div>
           </div>
         </template>
@@ -198,7 +203,9 @@ const techStacks = [
 
       <LcCard :hoverable="false" :show-icon="false">
         <template #header>
-          <div class="text-sm font-semibold text-foreground">技术架构</div>
+          <div class="text-sm font-semibold text-foreground">
+            {{ $t('about.stack.title') }}
+          </div>
         </template>
         <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <div

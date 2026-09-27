@@ -1,0 +1,34 @@
+{
+  "title": "智能问数",
+  "selectedTables": "{count} 张表已选择",
+  "datasource": "数据源",
+  "datasourcePlaceholder": "选择数据源",
+  "retrievalTables": "可检索表",
+  "noRetrievalTables": "暂无可检索表",
+  "emptyTitle": "从已授权的数据中提问",
+  "placeholder": "输入你的数据问题",
+  "suggestions": {
+    "statusDistribution": "统计各状态的数据量并展示占比",
+    "timeTrend": "按时间分析最近的数据变化趋势",
+    "topTen": "找出数量最多的前十项并生成图表"
+  },
+  "messages": {
+    "selectDatasourceAndTable": "请先选择数据源和要检索的表",
+    "queryCompleted": "数据查询完成",
+    "querying": "正在查询数据",
+    "failed": "智能问数执行失败",
+    "apiRequestFailed": "智能问数请求失败",
+    "apiStreamEmpty": "智能问数响应流为空"
+  },
+  "result": {
+    "chartTab": "图表",
+    "tableTab": "数据表",
+    "rowCount": "{count} 行",
+    "viewSql": "查看 SQL"
+  },
+  "events": {
+    "queryResult": "查询结果",
+    "chartTitle": "分析图表",
+    "invalidChartConfig": "图表配置无效"
+  }
+}

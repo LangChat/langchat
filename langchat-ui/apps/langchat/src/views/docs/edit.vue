@@ -4,9 +4,10 @@ import type { LabelOption } from '#/views/shared/aigc/options';
 
 import { computed, watch } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
-import { DOC_TYPE_OPTIONS } from '#/views/shared/aigc/options';
+import { docTypeOptions } from '#/views/shared/aigc/options';
 
 interface Props {
   knowledgeOptions: LabelOption[];
@@ -27,14 +28,14 @@ const emit = defineEmits<{
 }>();
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑文档' : '新建文档',
+  props.modelValue?.id ? $t('docs.title.edit') : $t('docs.title.create'),
 );
 
 const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '文档名称',
+    label: $t('docs.form.name'),
     rules: 'required',
   },
   {
@@ -44,27 +45,27 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       options: props.knowledgeOptions,
     },
     fieldName: 'knowledgeId',
-    label: '所属知识库',
+    label: $t('docs.form.knowledge'),
     rules: 'selectRequired',
   },
   {
     component: 'Select',
     componentProps: {
-      options: DOC_TYPE_OPTIONS,
+      options: docTypeOptions(),
     },
     fieldName: 'type',
-    label: '文档类型',
+    label: $t('docs.form.type'),
     rules: 'selectRequired',
   },
   {
     component: 'Switch',
     fieldName: 'enabled',
-    label: '是否启用',
+    label: $t('docs.form.enabled'),
   },
   {
     component: 'Input',
     fieldName: 'ext',
-    label: '文件后缀',
+    label: $t('docs.form.ext'),
   },
   {
     component: 'InputNumber',
@@ -72,17 +73,17 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       min: 0,
     },
     fieldName: 'size',
-    label: '文件大小',
+    label: $t('docs.form.size'),
   },
   {
     component: 'Input',
     fieldName: 'ossId',
-    label: '资源文件 ID',
+    label: $t('docs.form.resourceId'),
   },
   {
     component: 'Input',
     fieldName: 'parentId',
-    label: '父节点 ID',
+    label: $t('docs.form.parentId'),
   },
   {
     component: 'Input',
@@ -92,7 +93,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     },
     fieldName: 'url',
     formItemClass: 'sm:cols-span-2',
-    label: '文件地址',
+    label: $t('docs.form.url'),
   },
   {
     component: 'Input',
@@ -102,7 +103,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     },
     fieldName: 'pdfUrl',
     formItemClass: 'sm:cols-span-2',
-    label: 'PDF 地址',
+    label: $t('docs.form.pdfUrl'),
   },
   {
     component: 'Input',
@@ -112,7 +113,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     },
     fieldName: 'content',
     formItemClass: 'sm:cols-span-2',
-    label: '文档内容',
+    label: $t('docs.form.content'),
   },
   {
     component: 'Input',
@@ -122,7 +123,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     },
     fieldName: 'ingestionConfig',
     formItemClass: 'sm:cols-span-2',
-    label: '向量化配置 JSON',
+    label: $t('docs.form.ingestionConfig'),
   },
 ]);
 
@@ -158,7 +159,7 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[860px]',
-  confirmText: '保存',
+  confirmText: $t('common.actions.save'),
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -168,6 +169,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   title: drawerTitle.value,
 });
+
+watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
 
 watch(
   () => props.saving,

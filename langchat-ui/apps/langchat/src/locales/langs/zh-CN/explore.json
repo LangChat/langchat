@@ -1,0 +1,24 @@
+{
+  "banner": {
+    "description": "面向知识增强与智能体应用构建的全栈开源平台，统一连接模型、知识库、Agent、Skills 与 MCP 能力。",
+    "maintainedByPre": "由",
+    "maintainedByPost": "开发维护"
+  },
+  "metrics": {
+    "label": "指标项",
+    "tokens": "Token 消耗量",
+    "messages": "消息数量",
+    "apps": "应用数量",
+    "users": "用户数量"
+  },
+  "charts": {
+    "messageTrend": "消息趋势（近7天）",
+    "tokenTrend": "Token 消耗趋势（近7天）",
+    "userTrend": "用户趋势（近7天）"
+  },
+  "hints": {
+    "prefix": "较前 7 天",
+    "flat": "持平",
+    "published": "已发布 {count}"
+  }
+}

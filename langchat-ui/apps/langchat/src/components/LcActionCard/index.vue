@@ -19,7 +19,7 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   actions: () => [],
   description: '',
-  title: '快捷操作',
+  title: undefined,
 });
 
 const emit = defineEmits<{
@@ -33,7 +33,9 @@ const emit = defineEmits<{
     class="lc-action-card min-h-[180px] !px-2 !pb-1.5 !pt-2"
   >
     <template #header>
-      <div class="text-[12px] font-semibold text-foreground">{{ title }}</div>
+      <div class="text-[12px] font-semibold text-foreground">
+        {{ title ?? $t('components.actionCard.title') }}
+      </div>
     </template>
 
     <div v-if="description" class="text-[10px] leading-4 text-muted-foreground">

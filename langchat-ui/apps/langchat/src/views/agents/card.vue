@@ -35,7 +35,7 @@ const emit = defineEmits<{
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -45,7 +45,7 @@ const emit = defineEmits<{
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

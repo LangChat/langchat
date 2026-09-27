@@ -51,7 +51,7 @@ const coreRoutes: RouteRecordRaw[] = [
         path: 'login',
         component: () => import('#/views/_core/authentication/login.vue'),
         meta: {
-          title: 'page.auth.login',
+          title: 'menu.login',
         },
       },
     ],

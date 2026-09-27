@@ -4,6 +4,7 @@ import type { AigcDatasource, TestConnectionPayload } from '#/api/aigc/datasourc
 import { computed, ref, watch } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
 import { Check, PlugZap } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton } from 'naive-ui';
 
@@ -16,7 +17,7 @@ import {
 } from '#/api/aigc/datasource';
 
 import {
-  DATASOURCE_TYPE_OPTIONS,
+  datasourceTypeOptions,
   getDatasourceTypeMeta,
 } from './datasource-meta';
 
@@ -41,7 +42,9 @@ const testing = ref(false);
 const selectedDbType = ref('MYSQL');
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑数据源' : '新建数据源',
+  props.modelValue?.id
+    ? $t('datasource.edit.editTitle')
+    : $t('datasource.edit.createTitle'),
 );
 const selectedTypeMeta = computed(() =>
   getDatasourceTypeMeta(selectedDbType.value),
@@ -52,16 +55,16 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     component: 'Input',
     fieldName: 'name',
     formItemClass: 'sm:col-span-2',
-    label: '数据源名称',
+    label: $t('datasource.edit.name'),
     rules: 'required',
   },
   {
     component: 'Input',
     componentProps: {
-      placeholder: '例如 127.0.0.1',
+      placeholder: $t('datasource.edit.hostPlaceholder'),
     },
     fieldName: 'host',
-    label: '主机地址',
+    label: $t('datasource.edit.host'),
     rules: 'required',
   },
   {
@@ -70,19 +73,19 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       min: 1,
     },
     fieldName: 'port',
-    label: '端口',
+    label: $t('common.labels.port'),
     rules: 'required',
   },
   {
     component: 'Input',
     fieldName: 'databaseName',
-    label: '数据库名',
+    label: $t('datasource.edit.database'),
     rules: 'required',
   },
   {
     component: 'Input',
     fieldName: 'username',
-    label: '用户名',
+    label: $t('common.labels.username'),
     rules: 'required',
   },
   {
@@ -92,7 +95,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       type: 'password',
     },
     fieldName: 'password',
-    label: '密码',
+    label: $t('common.labels.password'),
     rules: 'required',
   },
   {
@@ -102,13 +105,13 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       type: 'textarea',
     },
     fieldName: 'remark',
-    label: '备注',
+    label: $t('datasource.edit.remark'),
     formItemClass: 'sm:col-span-2',
   },
   {
     component: 'Switch',
     fieldName: 'enabled',
-    label: '是否启用',
+    label: $t('datasource.edit.enabled'),
   },
 ]);
 
@@ -162,10 +165,14 @@ async function handleSave() {
     } else {
       await createDataSource(payload as Partial<AigcDatasource>);
     }
-    message.success('数据源已保存');
+    message.success($t('datasource.messages.saved'));
     emit('save', payload as Partial<AigcDatasource>);
   } catch (error) {
-    message.error(`保存失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('common.messages.saveFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
   }
 }
 
@@ -180,15 +187,19 @@ async function handleTest() {
     username: String(values.username || ''),
   };
   if (!payload.host || !payload.databaseName) {
-    message.warning('请先填写连接信息');
+    message.warning($t('datasource.edit.connectionInfoRequired'));
     return;
   }
   testing.value = true;
   try {
     await testDataSource(payload);
-    message.success('连接成功');
+    message.success($t('datasource.messages.connectionSuccess'));
   } catch (error) {
-    message.error(`连接失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('datasource.messages.connectionFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
   } finally {
     testing.value = false;
   }
@@ -196,7 +207,6 @@ async function handleTest() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[920px]',
-  confirmText: '保存',
   contentClass: 'p-0',
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
@@ -220,6 +230,14 @@ watch(
   () => drawerTitle.value,
   (value) => {
     drawerApi.setState({ title: value });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
   },
   { immediate: true },
 );
@@ -260,11 +278,11 @@ watch(
     <div class="grid min-h-full md:grid-cols-[250px_minmax(0,1fr)]">
       <aside class="border-b border-border bg-muted/20 p-4 md:border-b-0 md:border-r">
         <div class="mb-3 text-xs font-semibold text-foreground">
-          数据库厂商
+          {{ $t('datasource.edit.vendorTitle') }}
         </div>
         <div class="grid grid-cols-2 gap-2 md:grid-cols-1">
           <button
-            v-for="option in DATASOURCE_TYPE_OPTIONS"
+            v-for="option in datasourceTypeOptions()"
             :key="option.value"
             :aria-pressed="selectedDbType === option.value"
             :class="[
@@ -290,7 +308,7 @@ watch(
                 {{ option.label }}
               </span>
               <span class="mt-0.5 block truncate text-[10px] text-muted-foreground">
-                默认端口 {{ option.port }}
+                {{ $t('datasource.edit.defaultPort', { port: option.port }) }}
               </span>
             </span>
             <span
@@ -315,9 +333,9 @@ watch(
             />
           </span>
           <div class="min-w-0">
-            <div class="text-sm font-semibold text-foreground">连接配置</div>
+            <div class="text-sm font-semibold text-foreground">{{ $t('datasource.edit.connectionTitle') }}</div>
             <div class="mt-0.5 text-[11px] text-muted-foreground">
-              {{ selectedTypeMeta.label }} · 默认端口 {{ selectedTypeMeta.port }}
+              {{ $t('datasource.edit.connectionSummary', { type: selectedTypeMeta.label, port: selectedTypeMeta.port }) }}
             </div>
           </div>
         </div>
@@ -328,18 +346,18 @@ watch(
       <div class="flex w-full items-center justify-between gap-3">
         <NButton :loading="testing" secondary @click="handleTest">
           <PlugZap class="mr-1.5 size-4" />
-          测试连接
+          {{ $t('datasource.edit.testConnection') }}
         </NButton>
         <div class="flex items-center gap-2">
           <NButton :disabled="saving" quaternary @click="drawerApi.onCancel">
-            取消
+            {{ $t('common.actions.cancel') }}
           </NButton>
           <NButton
             :loading="saving"
             type="primary"
             @click="drawerApi.onConfirm"
           >
-            保存
+            {{ $t('common.actions.save') }}
           </NButton>
         </div>
       </div>

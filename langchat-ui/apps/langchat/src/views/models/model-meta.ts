@@ -11,6 +11,8 @@ import {
   Video,
 } from '@vben/icons';
 
+import { $t } from '@vben/locales';
+
 import { PROVIDER_ICON_MAP } from './provider-icons';
 
 function pi(key: string) {
@@ -41,6 +43,7 @@ export interface ModelTypeMeta {
   label: string;
 }
 
+/** 后端/前端历史枚举值到规范模型类型的归一化映射。 */
 const MODEL_TYPE_ALIAS_MAP: Record<string, ModelTypeKey> = {
   CHAT: 'TEXT2TEXT',
   EMBEDDING: 'EMBEDDINGS',
@@ -56,12 +59,20 @@ const MODEL_TYPE_ALIAS_MAP: Record<string, ModelTypeKey> = {
   VISION: 'IMAGE2TEXT',
 };
 
+/**
+ * 模型类型元信息：label/description 为多语言文案，经 getter 惰性读取，
+ * 保持导出结构不变且随界面语言切换。
+ */
 export const MODEL_TYPE_META: Record<ModelTypeKey, ModelTypeMeta> = {
   EMBEDDINGS: {
     configItems: ['dimension', 'timeout', 'baseUrl', 'apiKey'],
-    description: '向量化检索、召回、聚类',
+    get description() {
+      return $t('models.type.EMBEDDINGS.description');
+    },
     icon: DatabaseZap,
-    label: '向量模型',
+    get label() {
+      return $t('models.type.EMBEDDINGS.label');
+    },
   },
   IMAGE2TEXT: {
     configItems: [
@@ -72,33 +83,53 @@ export const MODEL_TYPE_META: Record<ModelTypeKey, ModelTypeMeta> = {
       'baseUrl',
       'apiKey',
     ],
-    description: '图像理解、多模态问答',
+    get description() {
+      return $t('models.type.IMAGE2TEXT.description');
+    },
     icon: Image,
-    label: '图像理解',
+    get label() {
+      return $t('models.type.IMAGE2TEXT.label');
+    },
   },
   OCR: {
     configItems: ['timeout', 'baseUrl', 'apiKey'],
-    description: '图文识别、结构化抽取',
+    get description() {
+      return $t('models.type.OCR.description');
+    },
     icon: FileSearch,
-    label: '光学识别',
+    get label() {
+      return $t('models.type.OCR.label');
+    },
   },
   SPEECH2TEXT: {
     configItems: ['timeout', 'baseUrl', 'apiKey'],
-    description: '语音识别、实时听写',
+    get description() {
+      return $t('models.type.SPEECH2TEXT.description');
+    },
     icon: AudioLines,
-    label: '语音识别',
+    get label() {
+      return $t('models.type.SPEECH2TEXT.label');
+    },
   },
   TEXT2IMAGE: {
     configItems: ['timeout', 'baseUrl', 'apiKey'],
-    description: '文生图、风格化生成',
+    get description() {
+      return $t('models.type.TEXT2IMAGE.description');
+    },
     icon: ImagePlus,
-    label: '文生图',
+    get label() {
+      return $t('models.type.TEXT2IMAGE.label');
+    },
   },
   TEXT2SPEECH: {
     configItems: ['timeout', 'baseUrl', 'apiKey'],
-    description: '语音播报、语音克隆',
+    get description() {
+      return $t('models.type.TEXT2SPEECH.description');
+    },
     icon: AudioWaveform,
-    label: '文本转语音',
+    get label() {
+      return $t('models.type.TEXT2SPEECH.label');
+    },
   },
   TEXT2TEXT: {
     configItems: [
@@ -109,15 +140,23 @@ export const MODEL_TYPE_META: Record<ModelTypeKey, ModelTypeMeta> = {
       'baseUrl',
       'apiKey',
     ],
-    description: '通用对话、推理、代码生成',
+    get description() {
+      return $t('models.type.TEXT2TEXT.description');
+    },
     icon: Bot,
-    label: '文本生成',
+    get label() {
+      return $t('models.type.TEXT2TEXT.label');
+    },
   },
   TEXT2VIDEO: {
     configItems: ['timeout', 'baseUrl', 'apiKey'],
-    description: '文生视频、镜头编排',
+    get description() {
+      return $t('models.type.TEXT2VIDEO.description');
+    },
     icon: Video,
-    label: '文生视频',
+    get label() {
+      return $t('models.type.TEXT2VIDEO.label');
+    },
   },
 };
 
@@ -142,7 +181,9 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
   DASHSCOPE: {
     baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     icon: pi('DASHSCOPE'),
-    label: '通义千问',
+    get label() {
+      return $t('models.provider.DASHSCOPE');
+    },
     models: {
       EMBEDDINGS: ['text-embedding-v3'],
       TEXT2IMAGE: ['wanx2.1-t2i-turbo', 'wanx2.1-t2i-plus'],
@@ -160,7 +201,9 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
   ZHIPU: {
     baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
     icon: pi('ZHIPU'),
-    label: '智谱',
+    get label() {
+      return $t('models.provider.ZHIPU');
+    },
     models: {
       EMBEDDINGS: ['embedding-3'],
       TEXT2TEXT: ['glm-4-plus', 'glm-4-air'],
@@ -169,7 +212,9 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
   VOLCENGINE: {
     baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
     icon: pi('VOLCENGINE'),
-    label: '火山引擎',
+    get label() {
+      return $t('models.provider.VOLCENGINE');
+    },
     models: {
       EMBEDDINGS: ['doubao-embedding-large'],
       TEXT2TEXT: ['doubao-pro-32k', 'doubao-lite-32k'],
@@ -217,7 +262,9 @@ const MODEL_CONFIG_FIELD_LABEL_MAP: Record<string, string> = {
 const DEFAULT_PROVIDER_META: ModelProviderMeta = {
   baseUrl: '',
   icon: '',
-  label: '自定义供应商',
+  get label() {
+    return $t('models.provider.CUSTOM');
+  },
   models: {},
 };
 

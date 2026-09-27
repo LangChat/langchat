@@ -1,0 +1,60 @@
+{
+  "title": {
+    "create": "New User",
+    "edit": "Edit User"
+  },
+  "actions": {
+    "create": "New User"
+  },
+  "form": {
+    "username": "Username",
+    "realName": "Full Name",
+    "password": "Password",
+    "passwordPlaceholder": "Leave blank when editing to keep the current password",
+    "status": "User Status",
+    "gender": "Gender",
+    "phone": "Phone",
+    "email": "Email",
+    "deptId": "Department ID",
+    "avatar": "Avatar URL",
+    "roles": "Role Assignment",
+    "rolesPlaceholder": "Select roles"
+  },
+  "card": {
+    "unnamed": "Untitled User",
+    "rolesLabel": "Roles",
+    "roleCount": "This user has {count} roles; manage them in the edit drawer.",
+    "notAssigned": "Not assigned",
+    "phone": "Phone",
+    "locked": "Locked"
+  },
+  "columns": {
+    "seq": "#",
+    "username": "Username",
+    "realName": "Full Name",
+    "status": "Status",
+    "gender": "Gender",
+    "phone": "Phone",
+    "email": "Email",
+    "roles": "Roles",
+    "updateTime": "Updated At"
+  },
+  "list": {
+    "tableTitle": "User Management",
+    "keywordPlaceholder": "Username / name / phone / email",
+    "statusPlaceholder": "All statuses",
+    "editUser": "Edit user",
+    "deleteUser": "Delete user",
+    "notAssignedRoles": "No roles assigned"
+  },
+  "messages": {
+    "created": "User created",
+    "updated": "User updated",
+    "deleted": "User deleted",
+    "deleteTitle": "Delete User"
+  },
+  "gender": {
+    "male": "Male",
+    "female": "Female"
+  }
+}

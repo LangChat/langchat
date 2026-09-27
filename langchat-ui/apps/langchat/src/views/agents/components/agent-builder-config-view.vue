@@ -13,6 +13,7 @@ import {
   Maximize2,
   Minimize2,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@vben-core/shadcn-ui';
 
@@ -93,9 +94,15 @@ defineExpose({ layoutRef });
         class="flex h-full min-h-0 flex-col rounded-lg border border-border/70 bg-card p-3"
       >
         <div class="mb-2 flex shrink-0 items-center justify-between gap-2">
-          <div class="text-sm font-semibold text-foreground">应用配置</div>
+          <div class="text-sm font-semibold text-foreground">
+            {{ $t('agents.configView.appConfig') }}
+          </div>
           <button
-            v-tippy="maximizedPanel === 'config' ? '还原' : '全屏'"
+            v-tippy="
+              maximizedPanel === 'config'
+                ? $t('agents.actions.restore')
+                : $t('agents.actions.maximize')
+            "
             class="flex size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="toggleMaximize('config')"
@@ -123,7 +130,7 @@ defineExpose({ layoutRef });
                   class="inline-flex items-center gap-2 text-sm font-semibold text-foreground"
                 >
                   <FileText class="size-4 text-primary" />
-                  提示词与欢迎语配置
+                  {{ $t('agents.configView.promptGroup') }}
                 </span>
                 <ChevronUp
                   v-if="promptExpanded"
@@ -137,22 +144,22 @@ defineExpose({ layoutRef });
               >
                 <div>
                   <div class="mb-1.5 text-xs font-medium text-foreground/80">
-                    系统提示词
+                    {{ $t('agents.configView.systemPrompt') }}
                   </div>
                   <NInput
                     v-model:value="formModel.systemPrompt"
                     :autosize="{ minRows: 6, maxRows: 14 }"
-                    placeholder="请输入系统提示词"
+                    :placeholder="$t('agents.configView.systemPromptPlaceholder')"
                     type="textarea"
                   />
                 </div>
                 <div>
                   <div class="mb-1.5 text-xs font-medium text-foreground/80">
-                    欢迎语
+                    {{ $t('agents.configView.welcome') }}
                   </div>
                   <NInput
                     v-model:value="formModel.welcomeMessage"
-                    placeholder="当聊天为空时展示的欢迎语"
+                    :placeholder="$t('agents.configView.welcomePlaceholder')"
                   />
                 </div>
                 <div
@@ -161,10 +168,10 @@ defineExpose({ layoutRef });
                   <div class="flex items-center justify-between gap-3">
                     <div>
                       <div class="text-xs font-semibold text-foreground">
-                        自动建议
+                        {{ $t('agents.configView.autoSuggest') }}
                       </div>
                       <div class="text-xs leading-5 text-muted-foreground">
-                        开启后，每次 AI 回复后会显示推荐追问卡片
+                        {{ $t('agents.configView.autoSuggestHint') }}
                       </div>
                     </div>
                     <NSwitch v-model:value="formModel.enableAutoSuggestion" />
@@ -172,7 +179,7 @@ defineExpose({ layoutRef });
                 </div>
                 <div>
                   <div class="mb-1.5 text-xs font-medium text-foreground/80">
-                    默认建议问题
+                    {{ $t('agents.configView.defaultSuggestions') }}
                   </div>
                   <NDynamicInput
                     v-model:value="formModel.defaultSuggestionsList"
@@ -180,7 +187,11 @@ defineExpose({ layoutRef });
                   >
                     <template #default="{ index, value }">
                       <NInput
-                        :placeholder="`建议问题 ${index + 1}`"
+                        :placeholder="
+                          $t('agents.configView.suggestionPlaceholder', {
+                            index: index + 1,
+                          })
+                        "
                         :value="value"
                         @update:value="
                           formModel.defaultSuggestionsList[index] = $event
@@ -210,9 +221,15 @@ defineExpose({ layoutRef });
     >
       <div class="flex h-full min-h-0 flex-col rounded-lg border border-border/70 bg-card p-3">
         <div class="mb-3 flex items-center justify-between gap-2">
-          <div class="text-sm font-semibold text-foreground">聊天调试</div>
+          <div class="text-sm font-semibold text-foreground">
+            {{ $t('agents.configView.chatDebug') }}
+          </div>
           <button
-            v-tippy="maximizedPanel === 'chat' ? '还原' : '全屏'"
+            v-tippy="
+              maximizedPanel === 'chat'
+                ? $t('agents.actions.restore')
+                : $t('agents.actions.maximize')
+            "
             class="flex size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="toggleMaximize('chat')"
@@ -229,7 +246,7 @@ defineExpose({ layoutRef });
             :empty-title="welcomeMessage"
             :initial-messages="chatMessages"
             :loading="historyLoading"
-            placeholder="输入调试消息并回车发送"
+            :placeholder="$t('agents.configView.debugPlaceholder')"
             :show-attachment="true"
             :show-model="false"
             :suggestions="defaultSuggestions.map((label) => ({ label }))"

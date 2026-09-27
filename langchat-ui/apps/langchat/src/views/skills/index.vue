@@ -7,6 +7,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { FolderUp, PackageOpen } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import {
   NAlert,
@@ -21,7 +22,7 @@ import { dialog, message } from '#/adapter/naive';
 import { skillApi } from '#/api/aigc/skill';
 import LcActionCard from '#/components/LcActionCard/index.vue';
 import LcListCard from '#/components/LcListCard/index.vue';
-import { AIGC_COMMON_TAG_OPTIONS } from '#/views/shared/aigc/options';
+import { aigcCommonTagOptions } from '#/views/shared/aigc/options';
 import { parseTagList, stringifyTagList } from '#/views/shared/aigc/tags';
 
 import SkillCard from './card.vue';
@@ -40,14 +41,16 @@ const pageSize = ref(9);
 const items = ref<AigcSkill[]>([]);
 const currentSkill = ref<null | Partial<AigcSkill>>(null);
 
-const tagOptions = AIGC_COMMON_TAG_OPTIONS.map((item) => ({
-  label: item.label,
-  value: String(item.value),
-}));
+const tagOptions = computed(() =>
+  aigcCommonTagOptions().map((item) => ({
+    label: item.label,
+    value: String(item.value),
+  })),
+);
 
 const tagFilterOptions = computed(() => [
-  { label: '全部', value: 'ALL' },
-  ...tagOptions,
+  { label: $t('common.labels.all'), value: 'ALL' },
+  ...tagOptions.value,
 ]);
 
 const filteredItems = computed(() => {
@@ -81,16 +84,30 @@ watch([keyword, selectedTag], () => {
 });
 
 const actionItems = computed(() => [
-  { key: 'upload', label: '上传技能', icon: PackageOpen },
+  { key: 'upload', label: $t('skills.list.upload'), icon: PackageOpen },
 ]);
 
 const [UploadModal, uploadModalApi] = useVbenModal({
   class: 'w-[640px]',
   confirmDisabled: true,
-  confirmText: '开始上传',
-  title: '上传技能',
   onConfirm: handleUpload,
 });
+
+watch(
+  () => $t('skills.list.startUpload'),
+  (value) => {
+    uploadModalApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('skills.list.upload'),
+  (value) => {
+    uploadModalApi.setState({ title: value });
+  },
+  { immediate: true },
+);
 
 async function loadList() {
   loading.value = true;
@@ -128,7 +145,7 @@ async function handleUpload() {
     if (uploadMode.value === 'zip') {
       const file = zipFileList.value[0]?.file;
       if (!file) {
-        message.warning('请选择技能包 zip 文件');
+        message.warning($t('skills.messages.zipRequired'));
         return;
       }
       const formData = new FormData();
@@ -148,7 +165,7 @@ async function handleUpload() {
         })
         .filter((entry): entry is { file: File; path: string } => !!entry);
       if (entries.length === 0) {
-        message.warning('请选择技能文件夹');
+        message.warning($t('skills.messages.folderRequired'));
         return;
       }
       const formData = new FormData();
@@ -161,7 +178,9 @@ async function handleUpload() {
       }
       skill = await skillApi.uploadFolder(formData);
     }
-    message.success(`技能包已安装：${skill.title || skill.name}`);
+    message.success(
+      $t('skills.messages.uploaded', { name: skill.title || skill.name }),
+    );
     uploadModalApi.close();
     await loadList();
   } finally {
@@ -183,17 +202,24 @@ function handleToggle(item: AigcSkill) {
     return;
   }
   const nextEnabled = !(item.enabled ?? false);
+  const name = item.title || item.name;
   dialog.warning({
     closable: false,
     content: nextEnabled
-      ? `确认启用技能「${item.title || item.name}」吗？启用后 Agent 可调用该技能。`
-      : `确认停用技能「${item.title || item.name}」吗？停用后 Agent 将无法调用该技能。`,
-    negativeText: '取消',
-    positiveText: nextEnabled ? '确认启用' : '确认停用',
-    title: nextEnabled ? '启用技能' : '停用技能',
+      ? $t('skills.messages.enableConfirm', { name })
+      : $t('skills.messages.disableConfirm', { name }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirm'),
+    title: nextEnabled
+      ? $t('skills.messages.enableTitle')
+      : $t('skills.messages.disableTitle'),
     onPositiveClick: async () => {
       await skillApi.update(item.id!, { enabled: nextEnabled });
-      message.success(nextEnabled ? '技能已启用' : '技能已停用');
+      message.success(
+        nextEnabled
+          ? $t('skills.messages.enabled')
+          : $t('skills.messages.disabled'),
+      );
       await loadList();
     },
   });
@@ -205,13 +231,15 @@ async function handleDelete(item: AigcSkill) {
   }
   dialog.warning({
     closable: false,
-    content: `删除将同时移除 OSS 原始包与本地工作区，且不可恢复。确认删除「${item.title || item.name}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除技能',
+    content: $t('skills.messages.deleteConfirm', {
+      name: item.title || item.name,
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('skills.messages.deleteTitle'),
     onPositiveClick: async () => {
       await skillApi.remove(item.id!);
-      message.success('技能已删除');
+      message.success($t('skills.messages.deleted'));
       await loadList();
     },
   });
@@ -233,7 +261,7 @@ onMounted(loadList);
         :active-tag="selectedTag"
         :items="pagedItems"
         :loading="loading"
-        search-placeholder="按技能名称、描述、标签搜索"
+        :search-placeholder="$t('skills.list.searchPlaceholder')"
         :search-value="keyword"
         :tags="tagFilterOptions"
         @update:active-tag="selectedTag = $event"
@@ -242,8 +270,8 @@ onMounted(loadList);
         <template #leading-card>
           <LcActionCard
             :actions="actionItems"
-            description="技能以标准技能包形式管理：上传 zip 或文件夹，根目录必须包含 SKILL.md。"
-            title="技能操作"
+            :description="$t('skills.list.actionsDescription')"
+            :title="$t('skills.list.actionsTitle')"
             @action="handleAction"
           />
         </template>
@@ -276,28 +304,30 @@ onMounted(loadList);
 
     <UploadModal>
       <div class="flex flex-col gap-3">
-        <NAlert type="info" :show-icon="true" title="标准技能包格式">
+        <NAlert type="info" :show-icon="true" :title="$t('skills.list.formatTitle')">
           <div class="flex flex-col gap-1 text-xs leading-5">
             <span>
-              1. 包根目录必须包含
-              <b>SKILL.md</b>：使用 YAML frontmatter 声明
-              <code>name</code>（技能标识，必填）、<code>description</code>（技能描述）、<code>version</code> 等字段，正文为标准化的技能指令文档。
+              {{ $t('skills.list.formatFirstPre') }}<b>SKILL.md</b>{{ $t('skills.list.formatFirstPost') }}<code>name</code>{{ $t('skills.list.formatFirstNameHint') }}<code>description</code>{{ $t('skills.list.formatFirstDescHint') }}<code>version</code>{{ $t('skills.list.formatFirstVersionHint') }}
             </span>
             <span>
-              2. 可选目录：<code>scripts/</code>（脚本）、<code>references/</code>（参考文档）、<code>assets/</code>（资源文件）。
+              {{ $t('skills.list.formatSecondPre') }}<code>scripts/</code>{{ $t('skills.list.formatSecondScriptsHint') }}<code>references/</code>{{ $t('skills.list.formatSecondRefsHint') }}<code>assets/</code>{{ $t('skills.list.formatSecondAssetsHint') }}
             </span>
-            <span>
-              3. 支持 .zip 压缩包或整个文件夹（自动解析目录结构），单包最大 500MB。
-            </span>
-            <span>
-              4. 原始包将归档到 OSS，解压副本存放在服务器本地工作区，运行时直接调用本地技能文档。
-            </span>
+            <span>{{ $t('skills.list.formatThird') }}</span>
+            <span>{{ $t('skills.list.formatFourth') }}</span>
           </div>
         </NAlert>
 
         <NRadioGroup v-model:value="uploadMode">
-          <NRadioButton value="zip">zip 压缩包</NRadioButton>
-          <NRadioButton value="folder">文件夹</NRadioButton>
+          <NRadioButton value="zip">
+{{
+            $t('skills.list.zipMode')
+          }}
+</NRadioButton>
+          <NRadioButton value="folder">
+{{
+            $t('skills.list.folderMode')
+          }}
+</NRadioButton>
         </NRadioGroup>
 
         <NUpload
@@ -310,9 +340,9 @@ onMounted(loadList);
           <NUploadDragger>
             <div class="flex flex-col items-center gap-1 py-4">
               <PackageOpen class="size-8 text-primary" />
-              <span class="text-sm">点击或拖拽 zip 技能包到此处</span>
+              <span class="text-sm">{{ $t('skills.list.zipDropTitle') }}</span>
               <span class="text-[11px] text-muted-foreground">
-                单个 .zip 文件，根目录需包含 SKILL.md
+                {{ $t('skills.list.zipDropHint') }}
               </span>
             </div>
           </NUploadDragger>
@@ -329,9 +359,11 @@ onMounted(loadList);
           <NUploadDragger>
             <div class="flex flex-col items-center gap-1 py-4">
               <FolderUp class="size-8 text-primary" />
-              <span class="text-sm">点击或拖拽整个技能文件夹到此处</span>
+              <span class="text-sm">{{
+                $t('skills.list.folderDropTitle')
+              }}</span>
               <span class="text-[11px] text-muted-foreground">
-                将保留目录结构上传，根目录需包含 SKILL.md
+                {{ $t('skills.list.folderDropHint') }}
               </span>
             </div>
           </NUploadDragger>
@@ -339,7 +371,14 @@ onMounted(loadList);
 
         <div class="flex items-center gap-2">
           <span class="text-xs text-muted-foreground">
-            已选择 {{ uploadMode === 'zip' ? zipFileList.length : folderFileList.length }} 个文件
+            {{
+              $t('skills.list.selectedFiles', {
+                count:
+                  uploadMode === 'zip'
+                    ? zipFileList.length
+                    : folderFileList.length,
+              })
+            }}
           </span>
         </div>
       </div>

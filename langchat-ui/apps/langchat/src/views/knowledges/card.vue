@@ -5,10 +5,12 @@ import type { LabelOption } from '#/views/shared/aigc/options';
 import { computed } from 'vue';
 
 import { Database, SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface Props {
   item: AigcKnowledge;
@@ -29,31 +31,26 @@ const vectorModelLabel = computed(() => {
   const found = props.modelOptions.find(
     (o) => o.value === props.item.vectorModelId,
   );
-  return found?.label || '未配置';
+  return found?.label || $t('common.status.notConfigured');
 });
 
 const vectorStoreLabel = computed(() => {
   const found = props.vectorStoreOptions.find(
     (o) => o.value === props.item.vectorStoreId,
   );
-  return found?.label || '未配置';
+  return found?.label || $t('common.status.notConfigured');
 });
 
 const metaItems = computed(() => [
-  { label: '向量模型', value: vectorModelLabel.value },
-  { label: '向量库', value: vectorStoreLabel.value },
+  { label: $t('knowledge.card.vectorModel'), value: vectorModelLabel.value },
+  { label: $t('knowledge.card.vectorStore'), value: vectorStoreLabel.value },
   {
-    label: '召回',
-    value: props.item.maxResults ? `Top ${props.item.maxResults}` : '默认',
+    label: $t('knowledge.card.recall'),
+    value: props.item.maxResults
+      ? $t('knowledge.card.topN', { count: props.item.maxResults })
+      : $t('common.status.default'),
   },
 ]);
-
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -69,27 +66,27 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground group-hover:text-primary"
         >
-          {{ item.name || '未命名知识库' }}
+          {{ item.name || $t('knowledge.card.unnamed') }}
         </div>
       </div>
     </template>
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        {{ item.description || '用于承载文档切片与向量召回配置。' }}
+        {{ item.description || $t('knowledge.card.defaultDescription') }}
       </p>
     </template>
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -99,7 +96,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

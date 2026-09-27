@@ -1,0 +1,65 @@
+{
+  "title": {
+    "create": "新建菜单",
+    "edit": "编辑菜单"
+  },
+  "actions": {
+    "create": "新建菜单"
+  },
+  "form": {
+    "name": "菜单名称",
+    "type": "菜单类型",
+    "parent": "上级菜单",
+    "parentPlaceholder": "请选择上级菜单",
+    "orderNo": "排序号",
+    "path": "路由路径",
+    "perms": "权限标识",
+    "icon": "图标",
+    "component": "组件路径",
+    "isShow": "是否显示",
+    "isKeepalive": "是否缓存",
+    "isExternal": "是否外链",
+    "isDisabled": "是否禁用"
+  },
+  "card": {
+    "unnamed": "未命名菜单",
+    "typeLabel": "类型",
+    "route": "路由",
+    "parent": "上级",
+    "order": "排序",
+    "noComponentPath": "未配置组件路径",
+    "hidden": "已隐藏"
+  },
+  "columns": {
+    "name": "菜单名称",
+    "type": "类型",
+    "path": "路径",
+    "perms": "权限标识",
+    "component": "组件路径",
+    "orderNo": "排序",
+    "isShow": "显示",
+    "isKeepalive": "缓存",
+    "isDisabled": "禁用",
+    "updateTime": "更新时间"
+  },
+  "list": {
+    "tableTitle": "菜单管理",
+    "keywordPlaceholder": "菜单名称 / 路径 / 权限标识 / 组件路径",
+    "typePlaceholder": "全部类型",
+    "editMenu": "编辑菜单",
+    "deleteMenu": "删除菜单",
+    "show": "显示",
+    "hide": "隐藏"
+  },
+  "messages": {
+    "created": "菜单已创建",
+    "updated": "菜单已更新",
+    "deleted": "菜单已删除",
+    "deleteTitle": "删除菜单"
+  },
+  "typeOptions": {
+    "catalog": "目录",
+    "menu": "菜单",
+    "button": "按钮"
+  }
+}

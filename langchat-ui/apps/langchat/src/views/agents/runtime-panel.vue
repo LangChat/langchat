@@ -3,11 +3,14 @@ import type { AigcAgent } from '#/api/aigc/agent';
 import type { LabelOption } from '#/views/shared/aigc/options';
 
 import { computed } from 'vue';
+
+import { $t } from '@vben/locales';
+
 import { NEmpty, NSelect, NTag } from 'naive-ui';
 
 import { resolveOptionLabels } from '#/views/shared/aigc/id-list';
 import {
-  AGENT_STATUS_OPTIONS,
+  agentStatusOptions,
   findOptionLabel,
 } from '#/views/shared/aigc/options';
 
@@ -37,7 +40,7 @@ const selectedSkillLabels = computed(() =>
 
 const modelConfigText = computed(() => {
   if (!props.agent?.modelConfigJson) {
-    return '当前未配置模型参数覆盖。';
+    return $t('agents.runtimePanel.paramsEmpty');
   }
   try {
     return JSON.stringify(JSON.parse(props.agent.modelConfigJson), null, 2);
@@ -48,7 +51,8 @@ const modelConfigText = computed(() => {
 
 function resolveModelLabel(modelId?: string) {
   return (
-    props.modelOptions.find((item) => item.value === modelId)?.label || '未配置'
+    props.modelOptions.find((item) => item.value === modelId)?.label ||
+    $t('common.status.notConfigured')
   );
 }
 </script>
@@ -57,9 +61,11 @@ function resolveModelLabel(modelId?: string) {
   <div class="rounded-xl border border-border bg-card p-3">
     <div class="flex items-start justify-between gap-3">
       <div>
-        <div class="text-sm font-semibold text-foreground">运行时概览</div>
+        <div class="text-sm font-semibold text-foreground">
+          {{ $t('agents.runtimePanel.title') }}
+        </div>
         <div class="mt-1 text-xs leading-5 text-muted-foreground">
-          查看当前智能体模型、知识库、技能与提示词摘要。
+          {{ $t('agents.runtimePanel.description') }}
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -69,14 +75,14 @@ function resolveModelLabel(modelId?: string) {
           type="button"
           @click="emit('builder')"
         >
-          构建调试
+          {{ $t('agents.runtimePanel.buildDebug') }}
         </button>
         <button
           class="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
           type="button"
           @click="emit('refresh')"
         >
-          刷新
+          {{ $t('common.actions.refresh') }}
         </button>
       </div>
     </div>
@@ -85,13 +91,13 @@ function resolveModelLabel(modelId?: string) {
       <div
         class="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
       >
-        当前智能体
+        {{ $t('agents.runtimePanel.currentAgent') }}
       </div>
       <NSelect
         :options="options"
         :value="selectedAgentId"
         clearable
-        placeholder="请选择智能体"
+        :placeholder="$t('agents.runtimePanel.agentPlaceholder')"
         @update:value="emit('update:selectedAgentId', $event || '')"
       />
     </div>
@@ -100,7 +106,7 @@ function resolveModelLabel(modelId?: string) {
       <div class="rounded-lg border border-border bg-muted/40 p-3">
         <div class="flex items-start justify-between gap-3">
           <div class="truncate text-sm font-semibold text-foreground">
-            {{ agent.agentName || '未命名智能体' }}
+            {{ agent.agentName || $t('agents.runtimePanel.unnamed') }}
           </div>
           <NTag
             :bordered="false"
@@ -113,16 +119,20 @@ function resolveModelLabel(modelId?: string) {
             "
             round
           >
-            {{ findOptionLabel(AGENT_STATUS_OPTIONS, agent.status) }}
+            {{ findOptionLabel(agentStatusOptions(), agent.status) }}
           </NTag>
         </div>
       </div>
 
       <div class="grid gap-3">
         <div class="rounded-lg border border-border bg-card p-3">
-          <div class="text-xs font-medium text-muted-foreground">模型配置</div>
+          <div class="text-xs font-medium text-muted-foreground">
+            {{ $t('agents.runtimePanel.modelConfig') }}
+          </div>
           <div class="mt-2 text-sm">
-            <div class="text-[11px] text-muted-foreground">推理模型</div>
+            <div class="text-[11px] text-muted-foreground">
+              {{ $t('agents.runtimePanel.reasoningModel') }}
+            </div>
             <div class="mt-1 truncate text-foreground">
               {{ resolveModelLabel(agent.reasoningModelId) }}
             </div>
@@ -131,7 +141,7 @@ function resolveModelLabel(modelId?: string) {
 
         <div class="rounded-lg border border-border bg-card p-3">
           <div class="text-xs font-medium text-muted-foreground">
-            绑定知识库
+            {{ $t('agents.runtimePanel.boundKnowledge') }}
           </div>
           <div class="mt-2 flex flex-wrap gap-2">
             <NTag
@@ -147,13 +157,15 @@ function resolveModelLabel(modelId?: string) {
               v-if="selectedKnowledgeLabels.length === 0"
               class="text-sm text-muted-foreground"
             >
-              当前未配置知识库
+              {{ $t('agents.runtimePanel.knowledgeEmpty') }}
             </span>
           </div>
         </div>
 
         <div class="rounded-lg border border-border bg-card p-3">
-          <div class="text-xs font-medium text-muted-foreground">绑定技能</div>
+          <div class="text-xs font-medium text-muted-foreground">
+            {{ $t('agents.runtimePanel.boundSkills') }}
+          </div>
           <div class="mt-2 flex flex-wrap gap-2">
             <NTag
               v-for="label in selectedSkillLabels"
@@ -168,36 +180,35 @@ function resolveModelLabel(modelId?: string) {
               v-if="selectedSkillLabels.length === 0"
               class="text-sm text-muted-foreground"
             >
-              当前未配置技能
+              {{ $t('agents.runtimePanel.skillsEmpty') }}
             </span>
           </div>
         </div>
 
         <div class="rounded-lg border border-border bg-card p-3">
           <div class="text-xs font-medium text-muted-foreground">
-            系统提示词
+            {{ $t('agents.runtimePanel.systemPrompt') }}
           </div>
           <div
             class="mt-2 line-clamp-6 whitespace-pre-wrap text-sm leading-7 text-foreground/85"
           >
-            {{ agent.systemPrompt || '当前未配置系统提示词。' }}
+            {{ agent.systemPrompt || $t('agents.runtimePanel.systemPromptEmpty') }}
           </div>
         </div>
 
         <div class="rounded-lg border border-border bg-card p-3">
           <div class="text-xs font-medium text-muted-foreground">
-            参数覆盖 JSON
+            {{ $t('agents.runtimePanel.paramsOverride') }}
           </div>
           <pre
             class="mt-2 overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-foreground/85"
-            >{{ modelConfigText }}</pre
-          >
+            >{{ modelConfigText }}</pre>
         </div>
       </div>
     </div>
 
     <div v-else class="mt-4">
-      <NEmpty description="当前还没有智能体数据。" />
+      <NEmpty :description="$t('agents.runtimePanel.empty')" />
     </div>
   </div>
 </template>

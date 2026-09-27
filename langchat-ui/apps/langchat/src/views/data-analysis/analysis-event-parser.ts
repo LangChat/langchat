@@ -4,6 +4,8 @@ import type {
   OpenAiDeltaEventPayload,
 } from '#/api/aigc/chat';
 
+import { $t } from '@vben/locales';
+
 export interface AnalysisTableResult {
   columns: string[];
   rowCount: number;
@@ -46,7 +48,7 @@ export function parseDataAnalysisEvent(
           ? (event.rows as Record<string, unknown>[])
           : [],
         sql: String(event.sql || ''),
-        title: String(event.title || '查询结果'),
+        title: String(event.title || $t('dataAnalysis.events.queryResult')),
       },
       type: 'table',
     };
@@ -54,13 +56,13 @@ export function parseDataAnalysisEvent(
   if (streamEvent.eventType === 'analysis.echart' && event) {
     const option = sanitizeEchartOption(event.option);
     if (!option) {
-      return { message: '图表配置无效', type: 'error' };
+      return { message: $t('dataAnalysis.events.invalidChartConfig'), type: 'error' };
     }
     return {
       result: {
         chartType: String(event.chart_type || 'auto'),
         option,
-        title: String(event.title || '分析图表'),
+        title: String(event.title || $t('dataAnalysis.events.chartTitle')),
       },
       type: 'chart',
     };
@@ -73,7 +75,10 @@ export function parseDataAnalysisEvent(
     };
   }
   if (streamEvent.eventType === 'error' || streamEvent.eventType === 'timeout') {
-    return { message: String(event?.message || '智能问数执行失败'), type: 'error' };
+    return {
+      message: String(event?.message || $t('dataAnalysis.messages.failed')),
+      type: 'error',
+    };
   }
   return { type: 'ignore' };
 }

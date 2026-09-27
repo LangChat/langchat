@@ -16,7 +16,7 @@ const routes: RouteRecordRaw[] = [
       hideInMenu: true,
       hideInTab: false,
       keepAlive: false,
-      title: 'page.menu.agentBuilder',
+      title: 'menu.agentBuilder',
     },
   },
 
@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       activePath: '/knowledges',
       hideInMenu: true,
-      title: 'page.menu.docsList',
+      title: 'menu.docsList',
     },
   },
   {
@@ -40,7 +40,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       activePath: '/knowledges',
       hideInMenu: true,
-      title: 'page.menu.docsUpload',
+      title: 'menu.docsUpload',
     },
   },
   {
@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       activePath: '/knowledges',
       hideInMenu: true,
-      title: 'page.menu.docsPreview',
+      title: 'menu.docsPreview',
     },
   },
 
@@ -65,7 +65,7 @@ const routes: RouteRecordRaw[] = [
       icon: Store,
       keepAlive: true,
       order: 2,
-      title: 'page.menu.market',
+      title: 'menu.market',
     },
   },
   {
@@ -77,7 +77,7 @@ const routes: RouteRecordRaw[] = [
       hideInMenu: true,
       hideInTab: true,
       keepAlive: false,
-      title: 'page.menu.marketChat',
+      title: 'menu.marketChat',
     },
   },
 
@@ -92,7 +92,7 @@ const routes: RouteRecordRaw[] = [
       icon: LayoutDashboard,
       keepAlive: true,
       order: 1,
-      title: 'page.menu.overview',
+      title: 'menu.overview',
     },
   },
 
@@ -108,7 +108,7 @@ const routes: RouteRecordRaw[] = [
       icon: Info,
       keepAlive: true,
       order: 999,
-      title: 'page.menu.about',
+      title: 'menu.about',
     },
   },
 ];

@@ -1,22 +1,28 @@
 <script setup lang="ts">
+import type { VxeGridPropTypes } from '#/adapter/vxe-table';
 import type { AigcRole } from '#/api/auth/role';
 import type { AigcUser, AigcUserRole } from '#/api/auth/user';
 
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+
 import { Page } from '@vben/common-ui';
 import { SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
+
 import { NButton, NInput, NSelect, NTag } from 'naive-ui';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { dialog, message } from '#/adapter/naive';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { roleApi } from '#/api/auth/role';
 import { userApi, userRoleApi } from '#/api/auth/user';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 import ManageCard from '#/views/shared/auth/manage-card.vue';
 import {
   findAuthOptionLabel,
-  USER_SEX_OPTIONS,
-  USER_STATUS_OPTIONS,
+  userSexOptions,
+  userStatusOptions,
 } from '#/views/shared/auth/options';
+
 import UserEdit from './edit.vue';
 
 interface UserFormPayload extends Partial<AigcUser> {
@@ -27,7 +33,7 @@ const roles = ref<AigcRole[]>([]);
 const userRoles = ref<AigcUserRole[]>([]);
 const saving = ref(false);
 const showEdit = ref(false);
-const currentItem = ref<UserFormPayload | null>(null);
+const currentItem = ref<null | UserFormPayload>(null);
 
 // 搜索条件：draft 为输入框草稿值，applied 为已生效值（工具栏刷新时沿用生效值）
 const draftKeyword = ref('');
@@ -39,13 +45,13 @@ const roleNameMap = () =>
   Object.fromEntries(
     roles.value.map((item) => [
       item.id ?? '',
-      item.name || item.code || '未命名角色',
+      item.name || item.code || $t('roles.card.unnamed'),
     ]),
   ) as Record<string, string>;
 
 const roleOptions = () =>
   roles.value.map((item) => ({
-    label: item.name || item.code || '未命名角色',
+    label: item.name || item.code || $t('roles.card.unnamed'),
     value: item.id ?? '',
   }));
 
@@ -109,51 +115,67 @@ async function queryUsers(params: {
   };
 }
 
+const gridColumns = computed<VxeGridPropTypes.Columns<AigcUser>>(() => [
+  { type: 'seq', title: $t('users.columns.seq'), width: 60 },
+  {
+    field: 'username',
+    title: $t('users.columns.username'),
+    minWidth: 140,
+  },
+  {
+    field: 'realName',
+    title: $t('users.columns.realName'),
+    minWidth: 140,
+  },
+  {
+    field: 'status',
+    title: $t('users.columns.status'),
+    width: 100,
+    formatter: ({ cellValue }: { cellValue: number | string }) =>
+      findAuthOptionLabel(userStatusOptions(), cellValue),
+  },
+  {
+    field: 'sex',
+    title: $t('users.columns.gender'),
+    width: 100,
+    formatter: ({ cellValue }: { cellValue: number | string }) =>
+      findAuthOptionLabel(userSexOptions(), cellValue),
+  },
+  {
+    field: 'phone',
+    title: $t('users.columns.phone'),
+    minWidth: 140,
+  },
+  {
+    field: 'email',
+    title: $t('users.columns.email'),
+    minWidth: 180,
+  },
+  {
+    field: 'roleIds',
+    title: $t('users.columns.roles'),
+    minWidth: 220,
+    slots: { default: 'roleColumn' },
+  },
+  {
+    field: 'updateTime',
+    title: $t('users.columns.updateTime'),
+    minWidth: 180,
+    formatter: ({ cellValue }: { cellValue: number }) =>
+      cellValue ? formatRelativeTime(cellValue) : '--',
+  },
+  {
+    field: 'actions',
+    fixed: 'right',
+    slots: { default: 'actionColumn' },
+    title: $t('common.labels.actions'),
+    width: 110,
+  },
+]);
+
 const [Grid, gridApi] = useVbenVxeGrid<AigcUser>({
   gridOptions: {
-    columns: [
-      { type: 'seq', title: '序号', width: 60 },
-      { field: 'username', title: '用户名', minWidth: 140 },
-      { field: 'realName', title: '姓名', minWidth: 140 },
-      {
-        field: 'status',
-        title: '状态',
-        width: 100,
-        formatter: ({ cellValue }: { cellValue: number | string }) =>
-          findAuthOptionLabel(USER_STATUS_OPTIONS, cellValue),
-      },
-      {
-        field: 'sex',
-        title: '性别',
-        width: 100,
-        formatter: ({ cellValue }: { cellValue: number | string }) =>
-          findAuthOptionLabel(USER_SEX_OPTIONS, cellValue),
-      },
-      { field: 'phone', title: '手机号', minWidth: 140 },
-      { field: 'email', title: '邮箱', minWidth: 180 },
-      {
-        field: 'roleIds',
-        title: '角色',
-        minWidth: 220,
-        slots: { default: 'roleColumn' },
-      },
-      {
-        field: 'updateTime',
-        title: '更新时间',
-        minWidth: 180,
-        formatter: ({ cellValue }: { cellValue: number }) =>
-          cellValue
-            ? new Date(cellValue).toLocaleString('zh-CN', { hour12: false })
-            : '--',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'actionColumn' },
-        title: '操作',
-        width: 110,
-      },
-    ],
+    columns: gridColumns.value,
     height: 'auto',
     pagerConfig: {
       pageSize: 10,
@@ -169,8 +191,24 @@ const [Grid, gridApi] = useVbenVxeGrid<AigcUser>({
       zoom: true,
     },
   },
-  tableTitle: '用户管理',
+  tableTitle: $t('users.list.tableTitle'),
 });
+
+watch(
+  gridColumns,
+  (columns) => {
+    gridApi.setGridOptions({ columns });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('users.list.tableTitle'),
+  (value) => {
+    gridApi.setState({ tableTitle: value });
+  },
+  { immediate: true },
+);
 
 function openCreate() {
   currentItem.value = null;
@@ -192,13 +230,15 @@ async function handleDelete(item: AigcUser) {
   const userId = item.id;
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除用户「${item.realName || item.username || '未命名用户'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除用户',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.realName || item.username || $t('users.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('users.messages.deleteTitle'),
     onPositiveClick: async () => {
       await userApi.remove(userId);
-      message.success('用户已删除');
+      message.success($t('users.messages.deleted'));
       await gridApi.reload();
     },
   });
@@ -207,7 +247,7 @@ async function handleDelete(item: AigcUser) {
 async function handleSave(payload: UserFormPayload) {
   saving.value = true;
   try {
-    const nextRoleIds = [...new Set(payload.roleIds ?? [])];
+    const nextRoleIds = [...new Set(payload.roleIds)];
     const userPayload: Partial<AigcUser> = { ...payload };
     delete (userPayload as UserFormPayload).roleIds;
     if (!userPayload.password) {
@@ -217,13 +257,13 @@ async function handleSave(payload: UserFormPayload) {
     let targetUserId = currentItem.value?.id ?? '';
     if (currentItem.value?.id) {
       await userApi.update(currentItem.value.id, userPayload);
-      message.success('用户已更新');
+      message.success($t('users.messages.updated'));
     } else {
       await userApi.create(userPayload);
       const users = await userApi.list();
       targetUserId =
         users.find((item) => item.username === userPayload.username)?.id ?? '';
-      message.success('用户已创建');
+      message.success($t('users.messages.created'));
     }
 
     if (targetUserId) {
@@ -271,34 +311,44 @@ async function syncUserRoles(userId: string, nextRoleIds: string[]) {
     <ManageCard>
       <template #search>
         <div class="flex items-center gap-2">
-          <span class="shrink-0 text-sm text-muted-foreground">关键词</span>
+          <span class="shrink-0 text-sm text-muted-foreground">{{
+            $t('common.labels.keyword')
+          }}</span>
           <NInput
             v-model:value="draftKeyword"
             clearable
-            placeholder="用户名 / 姓名 / 手机号 / 邮箱"
+            :placeholder="$t('users.list.keywordPlaceholder')"
             style="width: 240px"
             @keyup.enter="handleSearch"
           />
         </div>
         <div class="flex items-center gap-2">
-          <span class="shrink-0 text-sm text-muted-foreground">状态</span>
+          <span class="shrink-0 text-sm text-muted-foreground">{{
+            $t('common.labels.status')
+          }}</span>
           <NSelect
             v-model:value="draftStatus"
-            :options="USER_STATUS_OPTIONS"
+            :options="userStatusOptions()"
             clearable
-            placeholder="全部状态"
+            :placeholder="$t('users.list.statusPlaceholder')"
             style="width: 180px"
           />
         </div>
         <div class="ml-auto flex items-center gap-2">
-          <NButton @click="handleReset">重置</NButton>
-          <NButton type="primary" @click="handleSearch">搜索</NButton>
+          <NButton @click="handleReset">{{ $t('common.actions.reset') }}</NButton>
+          <NButton type="primary" @click="handleSearch">
+{{
+            $t('common.actions.search')
+          }}
+</NButton>
         </div>
       </template>
 
       <Grid class="min-h-0 flex-1" grid-class="px-4 pb-4 pt-3">
         <template #toolbar-tools>
-          <NButton type="primary" @click="openCreate"> 新建用户 </NButton>
+          <NButton type="primary" @click="openCreate">
+            {{ $t('users.actions.create') }}
+          </NButton>
         </template>
 
         <template #roleColumn="{ row }">
@@ -317,7 +367,7 @@ async function syncUserRoles(userId: string, nextRoleIds: string[]) {
               v-if="resolveRoleLabels(row.id).length === 0"
               class="text-xs text-muted-foreground"
             >
-              未分配角色
+              {{ $t('users.list.notAssignedRoles') }}
             </span>
           </div>
         </template>
@@ -325,7 +375,7 @@ async function syncUserRoles(userId: string, nextRoleIds: string[]) {
         <template #actionColumn="{ row }">
           <div class="flex items-center justify-center gap-1">
             <NButton
-              v-tippy="'编辑用户'"
+              v-tippy="$t('users.list.editUser')"
               circle
               quaternary
               size="small"
@@ -337,7 +387,7 @@ async function syncUserRoles(userId: string, nextRoleIds: string[]) {
               </template>
             </NButton>
             <NButton
-              v-tippy="'删除用户'"
+              v-tippy="$t('users.list.deleteUser')"
               circle
               quaternary
               size="small"

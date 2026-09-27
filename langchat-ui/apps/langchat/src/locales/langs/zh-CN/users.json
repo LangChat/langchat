@@ -1,0 +1,60 @@
+{
+  "title": {
+    "create": "新建用户",
+    "edit": "编辑用户"
+  },
+  "actions": {
+    "create": "新建用户"
+  },
+  "form": {
+    "username": "用户名",
+    "realName": "姓名",
+    "password": "登录密码",
+    "passwordPlaceholder": "编辑时留空则保持原密码",
+    "status": "用户状态",
+    "gender": "性别",
+    "phone": "手机号",
+    "email": "邮箱",
+    "deptId": "部门 ID",
+    "avatar": "头像地址",
+    "roles": "角色分配",
+    "rolesPlaceholder": "请选择角色"
+  },
+  "card": {
+    "unnamed": "未命名用户",
+    "rolesLabel": "角色",
+    "roleCount": "当前用户已分配 {count} 个角色，可在编辑抽屉中维护角色关系。",
+    "notAssigned": "未分配",
+    "phone": "手机",
+    "locked": "锁定"
+  },
+  "columns": {
+    "seq": "序号",
+    "username": "用户名",
+    "realName": "姓名",
+    "status": "状态",
+    "gender": "性别",
+    "phone": "手机号",
+    "email": "邮箱",
+    "roles": "角色",
+    "updateTime": "更新时间"
+  },
+  "list": {
+    "tableTitle": "用户管理",
+    "keywordPlaceholder": "用户名 / 姓名 / 手机号 / 邮箱",
+    "statusPlaceholder": "全部状态",
+    "editUser": "编辑用户",
+    "deleteUser": "删除用户",
+    "notAssignedRoles": "未分配角色"
+  },
+  "messages": {
+    "created": "用户已创建",
+    "updated": "用户已更新",
+    "deleted": "用户已删除",
+    "deleteTitle": "删除用户"
+  },
+  "gender": {
+    "male": "男",
+    "female": "女"
+  }
+}

@@ -1,0 +1,274 @@
+{
+  "title": {
+    "create": "Create Agent",
+    "edit": "Edit Agent",
+    "builderNew": "New Agent App",
+    "builderDetail": "Agent App Detail"
+  },
+  "actions": {
+    "create": "New Agent",
+    "refreshList": "Refresh list",
+    "saveAndPublish": "Save / Publish",
+    "saveDraft": "Save draft",
+    "publish": "Publish app",
+    "unpublish": "Unpublish",
+    "maximize": "Maximize",
+    "restore": "Restore"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published",
+    "disabled": "Disabled"
+  },
+  "memory": {
+    "window": "Window memory",
+    "summary": "Summary memory",
+    "longTerm": "Long-term memory"
+  },
+  "scope": {
+    "general": "General",
+    "production": "Production",
+    "testing": "Testing",
+    "internal": "Internal",
+    "external": "External",
+    "core": "Core"
+  },
+  "form": {
+    "name": "Agent Name",
+    "appIcon": "App Icon",
+    "status": "Status",
+    "reasoningModel": "Reasoning Model",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter agent description",
+    "appName": "App Name",
+    "appNamePlaceholder": "Enter app name",
+    "appDescription": "App Description",
+    "appDescriptionPlaceholder": "Enter app description",
+    "selectModel": "Select a model"
+  },
+  "card": {
+    "unnamed": "Untitled Agent"
+  },
+  "list": {
+    "searchPlaceholder": "Search by agent name or status",
+    "baseConfigTitle": "App Base Config"
+  },
+  "quickActions": {
+    "title": "Agent Actions"
+  },
+  "messages": {
+    "created": "Agent created",
+    "updated": "Agent updated",
+    "deleted": "Agent deleted",
+    "baseConfigUpdated": "Base config updated",
+    "deleteTitle": "Delete Agent"
+  },
+  "builder": {
+    "tabs": {
+      "config": "Config",
+      "apiKeys": "API Access",
+      "logs": "Message Logs",
+      "stats": "Statistics"
+    },
+    "knowledgeCard": {
+      "description": "Enrich business knowledge context for {name}.",
+      "vectorModel": "Vector model {name}",
+      "docsCount": "Docs {count}",
+      "topK": "TopK {count}",
+      "untitled": "Untitled knowledge base"
+    },
+    "skillCard": {
+      "descriptionFallback": "This skill has no description yet.",
+      "version": "Version {version}",
+      "filesCount": "Files {count}",
+      "untitled": "Untitled skill"
+    },
+    "mcpCard": {
+      "descriptionFallback": "This MCP service has no description yet.",
+      "untitled": "Untitled MCP Service",
+      "protocol": "Protocol {value}"
+    },
+    "authorized": "Authorized",
+    "pendingAuthorized": "Pending auth",
+    "messages": {
+      "created": "Agent app created",
+      "saved": "Agent app saved",
+      "saveBeforeDebug": "Save the agent before starting chat debugging",
+      "chatRequestFailed": "Chat request failed",
+      "generationFailed": "Failed to generate a reply",
+      "chatTimeout": "The conversation timed out, please try again later"
+    },
+    "runtime": {
+      "callingSkill": "Calling skill {name}",
+      "callingSkillGeneric": "Calling skill",
+      "skillFailed": "Skill execution failed"
+    },
+    "loadingDetail": "Loading agent app details..."
+  },
+  "configPanel": {
+    "modelInfo": "Model Info Config",
+    "knowledge": {
+      "title": "Knowledge Base Relations",
+      "add": "Add knowledge base",
+      "selectTitle": "Select Knowledge Base",
+      "placeholder": "Select a knowledge base to link"
+    },
+    "skills": {
+      "title": "Skill Relations",
+      "add": "Add skill",
+      "selectTitle": "Select Skill",
+      "placeholder": "Select a skill to link"
+    },
+    "mcp": {
+      "title": "MCP Relations",
+      "add": "Add MCP service",
+      "selectTitle": "Select MCP Service",
+      "placeholder": "Select an MCP service to link"
+    }
+  },
+  "configView": {
+    "appConfig": "App Config",
+    "promptGroup": "Prompt & Welcome Config",
+    "systemPrompt": "System Prompt",
+    "systemPromptPlaceholder": "Enter the system prompt",
+    "welcome": "Welcome Message",
+    "welcomePlaceholder": "Shown when the chat is empty",
+    "autoSuggest": "Auto Suggestions",
+    "autoSuggestHint": "When enabled, follow-up suggestion cards appear after each AI reply",
+    "defaultSuggestions": "Default Suggested Questions",
+    "suggestionPlaceholder": "Suggested question {index}",
+    "welcomeFallback": "Welcome to this app. Start with a question.",
+    "suggestionDefaults": {
+      "first": "Explain what this app can do",
+      "second": "Give me a quick-start example",
+      "third": "Suggest what to do next"
+    },
+    "chatDebug": "Chat Debugging",
+    "debugPlaceholder": "Type a debug message and press Enter to send"
+  },
+  "header": {
+    "untitled": "Untitled App",
+    "updatedAt": "Updated {time}",
+    "modelLabel": "Model {model}",
+    "createdBy": "Created by",
+    "createdAt": "Created at",
+    "lastModified": "Last modified",
+    "modifiedBy": "Modified by"
+  },
+  "apiKey": {
+    "title": "API Access",
+    "description": "Create revocable access tokens for this agent, integrate external systems through the standard API, and monitor each key's usage.",
+    "createButton": "New API Key",
+    "createTitle": "Create API Key",
+    "saveFirstTitle": "Save the agent before configuring API access",
+    "saveFirstDescription": "Once saved, you can create keys and start serving external calls.",
+    "guideTitle": "Integration Guide",
+    "guideDescription": "Uses the standard OpenAI Chat Completions protocol",
+    "endpointTitle": "OpenAI-compatible Endpoint",
+    "copyExample": "Copy call example",
+    "exampleCopied": "Call example copied",
+    "exampleContent": "Hello",
+    "quickStart": "Quick Start",
+    "steps": {
+      "first": "Create an API key with a clear purpose name.",
+      "second": "Store the key in server-side environment variables, never in frontend code or public repositories.",
+      "thirdBefore": "Use the path above as the request URL and pass the key in the",
+      "thirdAfter": "header."
+    },
+    "authHeader": "Authorization: Bearer <key>",
+    "keysTitle": "Access Keys",
+    "keysDescription": "Keys are only used to call this agent and can be disabled or deleted at any time.",
+    "count": "{count} keys",
+    "loading": "Loading key list...",
+    "empty": "No API keys created yet",
+    "createFirst": "Create your first key",
+    "unnamed": "Untitled key",
+    "logTitleFallback": "API Key",
+    "logTitle": "Call Logs · {name}",
+    "copyKey": "Copy full key",
+    "keyCopied": "API key copied",
+    "logs": "Call Logs",
+    "enabledLabel": "Enable",
+    "deleteKey": "Delete key",
+    "deleteTitle": "Delete API Key",
+    "stats": {
+      "calls": "Calls",
+      "inputTokens": "Input Tokens",
+      "outputTokens": "Output Tokens",
+      "lastCall": "Last call"
+    },
+    "modal": {
+      "title": "Create an access token for this agent",
+      "description": "Names are for team identification. After creation, each key can be disabled, deleted and inspected in the list.",
+      "name": "Key Name",
+      "namePlaceholder": "e.g. Customer service integration",
+      "remark": "Remark",
+      "remarkPlaceholder": "Record the scenario, owner or environment, e.g. Production · Customer service",
+      "warningBefore": "Save the full key immediately after creation. External systems call the API with",
+      "warningAfter": "in the Authorization header; the full key is never shown again."
+    },
+    "messages": {
+      "created": "API key created",
+      "deleted": "API key deleted",
+      "copyFailed": "Copy failed, please copy manually",
+      "nameRequired": "Please enter a key name",
+      "deleteConfirmContent": "External calls using this key will stop working immediately. Delete \"{name}\"?"
+    },
+    "logsLoading": "Loading call logs...",
+    "logsEmpty": "No calls recorded for this key yet."
+  },
+  "messageLog": {
+    "title": "Message Logs",
+    "description": "Shows the full message detail; click the action column to inspect the message trace.",
+    "searchPlaceholder": "Search content / model / conversation",
+    "roleAll": "All roles",
+    "roleUser": "User",
+    "roleAssistant": "Assistant",
+    "roleSystem": "System",
+    "roleTool": "Tool",
+    "untitledTool": "Untitled tool",
+    "untitledConversation": "Untitled conversation",
+    "untitledSegment": "Untitled segment",
+    "detailTitle": "Trace Detail",
+    "columns": {
+      "conversation": "Conversation",
+      "role": "Role",
+      "content": "Message",
+      "duration": "Duration (ms)",
+      "time": "Time"
+    },
+    "timeLabel": "Time {time}",
+    "noEvents": "No event data for this message yet"
+  },
+  "messageStats": {
+    "title": "Message Statistics",
+    "totalMessages": "Messages {count}",
+    "totalInputTokens": "Input tokens {count}",
+    "totalOutputTokens": "Output tokens {count}",
+    "refresh": "Refresh stats",
+    "messageTrend": "Message Trend",
+    "roleDistribution": "Role Distribution",
+    "tokenTrend": "Token Usage Trend",
+    "inputTokens": "Input tokens",
+    "outputTokens": "Output tokens"
+  },
+  "runtimePanel": {
+    "title": "Runtime Overview",
+    "description": "Inspect the current agent's model, knowledge bases, skills and prompt summary.",
+    "buildDebug": "Build & Debug",
+    "currentAgent": "Current Agent",
+    "agentPlaceholder": "Select an agent",
+    "unnamed": "Untitled Agent",
+    "modelConfig": "Model Config",
+    "reasoningModel": "Reasoning Model",
+    "boundKnowledge": "Bound Knowledge Bases",
+    "knowledgeEmpty": "No knowledge base configured",
+    "boundSkills": "Bound Skills",
+    "skillsEmpty": "No skill configured",
+    "systemPrompt": "System Prompt",
+    "systemPromptEmpty": "No system prompt configured.",
+    "paramsOverride": "Params Override JSON",
+    "paramsEmpty": "No model parameter overrides configured.",
+    "empty": "No agent data yet."
+  }
+}

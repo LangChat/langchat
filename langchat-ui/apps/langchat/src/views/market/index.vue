@@ -11,6 +11,7 @@ import {
   Search,
   SvgGithubIcon,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 import { preferences, usePreferences } from '@vben/preferences';
 
 import { NInput, NSpin } from 'naive-ui';
@@ -77,7 +78,7 @@ function openRoute(path: string) {
 function enterMarketAgent(item: AigcAgent) {
   const id = String(item.id || '');
   if (!id) {
-    message.error('当前应用缺少 ID');
+    message.error($t('market.missingId'));
     return;
   }
   void router.push(`/market/${id}/chat`);
@@ -123,25 +124,29 @@ onMounted(() => {
                 <h1
                   class="text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
                 >
-                  LangChat 应用市场
+                  {{ $t('market.title') }}
                 </h1>
                 <span
                   class="rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
                 >
-                  Open Source
+                  {{ $t('market.openSourceLabel') }}
                 </span>
               </div>
               <p class="mt-1.5 max-w-3xl text-sm leading-6 text-muted-foreground">
-                发现并使用团队已经发布的 Agent 应用，从知识问答到业务协作，点击卡片即可开始会话。
+                {{ $t('market.description') }}
               </p>
               <div
                 class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground"
               >
                 <span class="inline-flex items-center gap-1.5">
                   <span class="size-1.5 rounded-full bg-emerald-500"></span>
-                  {{ LANGCHAT_PRODUCT_TEAM }} 开发维护
+                  {{ $t('market.maintainer', { team: LANGCHAT_PRODUCT_TEAM }) }}
                 </span>
-                <span>{{ publishedAgents.length }} 个应用已发布</span>
+                <span>{{
+                  $t('market.publishedCount', {
+                    count: publishedAgents.length,
+                  })
+                }}</span>
               </div>
             </div>
           </div>
@@ -154,14 +159,14 @@ onMounted(() => {
               target="_blank"
             >
               <SvgGithubIcon class="size-3.5" />
-              开源仓库
+              {{ $t('market.openSourceRepo') }}
             </a>
             <button
               class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
               type="button"
               @click="openRoute('/about')"
             >
-              了解项目
+              {{ $t('market.aboutProject') }}
               <ArrowRight class="size-3.5" />
             </button>
           </div>
@@ -174,15 +179,19 @@ onMounted(() => {
         >
           <div>
             <div class="flex items-center gap-2">
-              <h2 class="text-base font-semibold text-foreground">应用广场</h2>
+              <h2 class="text-base font-semibold text-foreground">
+                {{ $t('market.plazaTitle') }}
+              </h2>
               <span
                 class="rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
               >
-                {{ publishedAgents.length }} 个应用
+                {{
+                  $t('market.plazaCount', { count: publishedAgents.length })
+                }}
               </span>
             </div>
             <p class="mt-1 text-xs text-muted-foreground">
-              搜索并打开已发布的 Agent，直接开始对话和任务协作
+              {{ $t('market.plazaDescription') }}
             </p>
           </div>
 
@@ -190,7 +199,7 @@ onMounted(() => {
             v-model:value="keyword"
             class="market-search w-full lg:w-[420px]"
             clearable
-            placeholder="搜索应用名称、介绍或标签"
+            :placeholder="$t('market.searchPlaceholder')"
           >
             <template #prefix>
               <Search class="size-4 text-muted-foreground" />
@@ -225,17 +234,17 @@ onMounted(() => {
             <Search class="size-5" />
           </div>
           <h3 class="mt-4 text-sm font-semibold text-foreground">
-            没有找到“{{ keyword.trim() }}”
+            {{ $t('market.noResults', { keyword: keyword.trim() }) }}
           </h3>
           <p class="mt-1 max-w-md text-xs leading-5 text-muted-foreground">
-            可以尝试应用名称、业务场景或能力标签，也可以清空搜索查看全部已发布应用。
+            {{ $t('market.noResultsHint') }}
           </p>
           <button
             class="mt-4 cursor-pointer text-xs font-medium text-primary hover:underline"
             type="button"
             @click="keyword = ''"
           >
-            清空搜索条件
+            {{ $t('market.clearSearch') }}
           </button>
         </section>
 
@@ -253,21 +262,23 @@ onMounted(() => {
               <Bot class="size-5" />
             </div>
             <h3 class="mt-4 text-base font-semibold text-foreground">
-              暂无已发布应用
+              {{ $t('market.emptyTitle') }}
             </h3>
             <p class="mt-1.5 text-sm leading-6 text-muted-foreground">
-              发布 Agent 后会自动出现在这里，团队成员可以点击应用卡片直接进入会话。
+              {{ $t('market.emptyHint') }}
             </p>
             <button
               class="mt-5 inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
               type="button"
               @click="openRoute('/agents')"
             >
-              前往应用管理
+              {{ $t('market.goToAgentAdmin') }}
               <ArrowRight class="size-3.5" />
             </button>
             <div class="mt-5 text-[11px] text-muted-foreground">
-              {{ LANGCHAT_PRODUCT_TEAM }} · LangChat 开源项目
+              {{
+                $t('market.openSourceFooter', { team: LANGCHAT_PRODUCT_TEAM })
+              }}
             </div>
           </div>
         </section>

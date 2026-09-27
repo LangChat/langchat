@@ -10,6 +10,7 @@ import { useRoute } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
 import { Check, Plus, SquarePen, Trash2, X } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NInput } from 'naive-ui';
 
@@ -160,12 +161,14 @@ async function syncChatMessages() {
 async function createNewConversation() {
   const agentId = selectedAgentId.value;
   if (!agentId) {
-    message.warning('当前未选择应用，无法创建会话');
+    message.warning($t('chat.conversation.selectAgentFirst'));
     return;
   }
   const created = await createConversationApi({
     agentId,
-    title: `新会话 ${new Date().toLocaleTimeString('zh-CN', { hour12: false })}`,
+    title: $t('chat.conversation.newTitle', {
+      time: new Date().toLocaleTimeString('zh-CN', { hour12: false }),
+    }),
   });
   await loadConversations(agentId);
   const createdConversationId = String(created?.id || '');
@@ -189,11 +192,11 @@ function cancelEditConversation() {
 async function confirmEditConversation(id: string) {
   const title = historyEditingTitle.value.trim();
   if (!title) {
-    message.warning('会话标题不能为空');
+    message.warning($t('chat.conversation.titleRequired'));
     return;
   }
   await updateConversationApi(id, { title });
-  message.success('会话标题已更新');
+  message.success($t('chat.conversation.titleUpdated'));
   await loadConversations(selectedAgentId.value);
   cancelEditConversation();
 }
@@ -201,13 +204,15 @@ async function confirmEditConversation(id: string) {
 async function handleDeleteConversation(id: string, title?: string) {
   dialog.warning({
     closable: false,
-    content: `确认删除会话「${title || '未命名会话'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除会话',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: title || $t('chat.conversation.untitled'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('chat.conversation.deleteTitle'),
     onPositiveClick: async () => {
       await removeConversationApi(id);
-      message.success('会话已删除');
+      message.success($t('chat.conversation.deleteSuccess'));
       if (selectedConversationId.value === id) {
         await selectConversation('');
       }
@@ -267,12 +272,14 @@ onMounted(prepareRuntime);
         <aside
           class="flex min-h-0 flex-col rounded-xl border border-border bg-card/60 px-4 py-4"
         >
-          <div class="mb-2 text-base font-semibold text-foreground">历史会话</div>
+          <div class="mb-2 text-base font-semibold text-foreground">
+            {{ $t('chat.conversation.history') }}
+          </div>
           <div class="mb-3">
             <NInput
               v-model:value="historyKeyword"
               clearable
-              placeholder="搜索会话标题"
+              :placeholder="$t('chat.conversation.searchPlaceholder')"
               size="large"
             />
           </div>
@@ -281,7 +288,7 @@ onMounted(prepareRuntime);
               <template #icon>
                 <Plus class="size-4" />
               </template>
-              新增会话
+              {{ $t('chat.conversation.newConversation') }}
             </NButton>
           </div>
           <div class="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
@@ -323,7 +330,7 @@ onMounted(prepareRuntime);
               <div v-else class="flex items-center gap-1">
                 <NInput
                   v-model:value="historyEditingTitle"
-                  placeholder="请输入会话标题"
+                  :placeholder="$t('chat.conversation.titlePlaceholder')"
                   size="small"
                 />
                 <NButton circle size="tiny" type="primary" @click="confirmEditConversation(item.id)">
@@ -338,7 +345,7 @@ onMounted(prepareRuntime);
               v-if="filteredConversationItems.length === 0"
               class="rounded-md border border-dashed border-border px-3 py-5 text-center text-xs text-muted-foreground"
             >
-              暂无历史会话
+              {{ $t('market.sessionEmpty') }}
             </div>
           </div>
         </aside>
@@ -347,9 +354,14 @@ onMounted(prepareRuntime);
           class="flex h-full min-h-0 min-w-0 flex-col rounded-xl border border-border bg-card p-3"
         >
           <div class="mb-2 shrink-0 border-b border-border pb-2">
-            <div class="text-sm font-semibold text-foreground">会话</div>
+            <div class="text-sm font-semibold text-foreground">
+              {{ $t('market.sessionHeading') }}
+            </div>
             <div class="mt-0.5 truncate text-xs text-muted-foreground">
-              {{ selectedAgent?.agentName || '当前应用' }}
+              {{
+                selectedAgent?.agentName ||
+                $t('chat.conversation.defaultAgentName')
+              }}
             </div>
           </div>
           <div class="min-h-0 flex-1">
@@ -360,11 +372,10 @@ onMounted(prepareRuntime);
               "
               :disabled="sending"
               :empty-title="
-                selectedAgent?.welcomeMessage ||
-                '欢迎使用当前应用，先从一个问题开始。'
+                selectedAgent?.welcomeMessage || $t('chat.empty.welcome')
               "
               :loading="messageLoading"
-              placeholder="请输入消息内容"
+              :placeholder="$t('chat.composer.inputMessage')"
               :show-attachment="true"
               :show-model="false"
               :suggestions="marketSuggestions"
@@ -380,8 +391,7 @@ onMounted(prepareRuntime);
                   />
                   <div class="text-base font-semibold text-foreground">
                     {{
-                      selectedAgent?.welcomeMessage ||
-                      '欢迎使用当前应用，先从一个问题开始。'
+                      selectedAgent?.welcomeMessage || $t('chat.empty.welcome')
                     }}
                   </div>
                 </div>

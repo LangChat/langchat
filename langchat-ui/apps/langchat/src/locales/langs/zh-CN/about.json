@@ -1,0 +1,80 @@
+{
+  "hero": {
+    "openSourceLabel": "开源产品",
+    "title": "{name}：连接模型、知识与智能体的开源应用平台",
+    "introFirst": "LangChat 面向需要构建知识增强与智能体应用的团队，将模型接入、知识工程、Agent、Skills 与 MCP 汇聚到统一的产品体系中。它不仅提供应用配置界面，也打通从数据准备、能力编排到对话运行和平台治理的完整链路。",
+    "introSecond": "项目的核心价值是把分散的 AI 基础能力沉淀为可管理、可组合、可交付的业务模块，让开发团队能够保留技术自主性，同时减少重复建设模型网关、RAG 流程、工具调用和权限体系的成本。"
+  },
+  "links": {
+    "title": "官方与开源地址",
+    "website": "官方网站"
+  },
+  "features": {
+    "models": {
+      "label": "多模型统一接入",
+      "description": "统一管理不同厂商与能力类型的模型服务"
+    },
+    "knowledge": {
+      "label": "知识库与文档工程",
+      "description": "覆盖文档解析、切片、向量化与检索增强"
+    },
+    "orchestration": {
+      "label": "Skills 与 MCP 编排",
+      "description": "让 Agent 连接技能、工具与外部业务能力"
+    },
+    "streaming": {
+      "label": "流式对话与平台治理",
+      "description": "以实时响应、权限体系和模块化架构支撑交付"
+    }
+  },
+  "stack": {
+    "title": "技术架构",
+    "frontend": {
+      "label": "前端应用",
+      "value": "Vue 3、TypeScript、Vben Admin、Naive UI、Tailwind CSS"
+    },
+    "backend": {
+      "label": "后端服务",
+      "value": "JDK 17、Spring Boot 3、MyBatis-Plus、Sa-Token"
+    },
+    "runtime": {
+      "label": "AI 运行时",
+      "value": "LangChain4j、RAG、SSE 流式响应、工具与技能执行"
+    },
+    "storage": {
+      "label": "数据与存储",
+      "value": "MySQL、PGVector / Milvus、S3 兼容对象存储"
+    }
+  },
+  "architecture": {
+    "title": "系统组件架构",
+    "description": "从前端交互、服务聚合到 AI 核心能力与基础设施的模块关系",
+    "diagramAria": "LangChat 系统架构图",
+    "diagramTitle": "LangChat 系统组件模块架构",
+    "diagramDesc": "用户通过 LangChat UI 访问 LangChat Server，服务端聚合权限、AIGC、AI 运行时和公共服务，并连接关系数据库、向量数据库、S3 对象存储、模型供应商与 MCP 服务。",
+    "eyebrowEntry": "交互与服务入口",
+    "eyebrowCore": "核心能力层",
+    "eyebrowData": "数据与外部能力层",
+    "userAdmin": "用户 / 管理员",
+    "userAdminDesc": "配置、构建与使用 AI 应用",
+    "ui": "统一管理与应用交互界面",
+    "server": "Spring Boot 启动、模块聚合、接口发布与运行配置",
+    "authModule": "权限与账号",
+    "authModuleDesc": "用户、角色、菜单、授权",
+    "aigcModule": "AIGC 业务",
+    "aigcModuleDesc": "模型、知识库、Agent、Skills",
+    "aiRuntime": "AI 运行时",
+    "aiRuntimeDesc": "LangChain4j、RAG、工具执行",
+    "commonServices": "公共服务",
+    "commonServicesDesc": "OSS、任务、认证与基础工具",
+    "businessData": "业务与权限数据",
+    "vectorStore": "向量存储",
+    "objectStorage": "对象存储",
+    "objectStorageDesc": "S3 协议 / RustFS",
+    "modelProviders": "模型供应商",
+    "modelProvidersDesc": "多模型统一接入",
+    "mcpServices": "MCP 服务",
+    "mcpServicesDesc": "外部工具与能力扩展",
+    "diagramNote": "模块边界依据当前仓库结构绘制，部署时可按业务规模独立扩展数据与外部服务。"
+  }
+}

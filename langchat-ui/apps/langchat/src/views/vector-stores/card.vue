@@ -4,6 +4,7 @@ import type { AigcVectorStore } from '#/api/aigc/vector-store';
 import { computed } from 'vue';
 
 import { DatabaseZap, SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
@@ -13,6 +14,7 @@ import {
   findOptionLabel,
   VECTOR_PROVIDER_OPTIONS,
 } from '#/views/shared/aigc/options';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface Props {
   item: AigcVectorStore;
@@ -26,24 +28,18 @@ const emit = defineEmits<{
 }>();
 const metaItems = computed(() => [
   {
-    label: '提供商',
+    label: $t('vectorStores.card.providerLabel'),
     value: findOptionLabel(VECTOR_PROVIDER_OPTIONS, props.item.provider),
   },
-  { label: '数据库', value: props.item.databaseName || '--' },
-  { label: '维度', value: props.item.dimension ?? '--' },
+  {label: $t('vectorStores.card.database'), value: props.item.databaseName || '--'},
+  {label: $t('vectorStores.card.dimension'), value: props.item.dimension ?? '--'},
   {
-    label: '主机',
+    label: $t('common.labels.host'),
     value: props.item.host
       ? `${props.item.host}:${props.item.port ?? ''}`
       : '--',
   },
 ]);
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -59,15 +55,20 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary"
         >
-          {{ item.name || '未命名向量库' }}
+          {{ item.name || $t('vectorStores.card.unnamed') }}
         </div>
       </div>
     </template>
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        当前节点 {{ item.host || '--' }}:{{ item.port || '--' }}，用于承载
-        {{ item.tableName || '默认表' }} 的向量化数据。
+        {{
+          $t('vectorStores.card.nodeSummary', {
+            host: item.host || '--',
+            port: item.port || '--',
+          })
+        }}{{ item.tableName || $t('vectorStores.card.defaultTable')
+        }}{{ $t('vectorStores.card.tableSummary') }}
       </p>
     </template>
 
@@ -80,14 +81,14 @@ function formatTime(timestamp?: number) {
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -97,7 +98,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

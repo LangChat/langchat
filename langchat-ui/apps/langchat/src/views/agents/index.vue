@@ -6,6 +6,7 @@ import {useRouter} from 'vue-router';
 
 import {Page} from '@vben/common-ui';
 import {Plus, RefreshCcw} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {useVbenModal} from '@vben-core/popup-ui';
 
@@ -19,7 +20,7 @@ import LcIcon from '#/components/LcIcon/index.vue';
 import LcListCard from '#/components/LcListCard/index.vue';
 import ModelSelector from '#/components/ModelSelector/index.vue';
 import {useAigcLookups} from '#/views/shared/aigc/lookups';
-import {AIGC_COMMON_TAG_OPTIONS} from '#/views/shared/aigc/options';
+import {aigcCommonTagOptions} from '#/views/shared/aigc/options';
 import {parseTagList, stringifyTagList} from '#/views/shared/aigc/tags';
 
 import AgentCard from './card.vue';
@@ -47,8 +48,8 @@ const LcIconEditor = markRaw(LcIcon);
 const ModelSelectorEditor = markRaw(ModelSelector);
 const currentBaseConfigAgent = ref<AigcAgent | null>(null);
 const tagFilterOptions = computed(() => [
-  { label: '全部', value: 'ALL' },
-  ...AIGC_COMMON_TAG_OPTIONS.map((item) => ({
+  { label: $t('common.labels.all'), value: 'ALL' },
+  ...aigcCommonTagOptions().map((item) => ({
     label: item.label,
     value: String(item.value),
   })),
@@ -78,19 +79,32 @@ watch([keyword, selectedTag], () => {
   currentPage.value = 1;
 });
 const actionItems = computed(() => [
-  { key: 'refresh', label: '刷新列表', icon: RefreshCcw },
-  { key: 'create', label: '新建智能体', icon: Plus },
+  {
+    key: 'refresh',
+    label: $t('agents.actions.refreshList'),
+    icon: RefreshCcw,
+  },
+  { key: 'create', label: $t('agents.actions.create'), icon: Plus },
 ]);
 const [BaseConfigModal, baseConfigModalApi] = useVbenModal({
   onCancel() {
     baseConfigModalApi.close();
   },
 });
-const baseConfigSchema: VbenFormSchema[] = [
+
+watch(
+  () => $t('agents.list.baseConfigTitle'),
+  (value) => {
+    baseConfigModalApi.setState({ title: value });
+  },
+  { immediate: true },
+);
+
+const baseConfigSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'agentName',
-    label: '应用名称',
+    label: $t('agents.form.appName'),
     rules: 'required',
   },
   {
@@ -103,26 +117,34 @@ const baseConfigSchema: VbenFormSchema[] = [
       size: 64,
     },
     fieldName: 'icon',
-    label: '应用图标',
+    label: $t('agents.form.appIcon'),
     modelPropName: 'modelValue',
   },
   {
     component: 'Input',
     componentProps: {
       autosize: { minRows: 2, maxRows: 6 },
-      placeholder: '请输入应用描述',
+      placeholder: $t('agents.form.appDescriptionPlaceholder'),
       type: 'textarea',
     },
     fieldName: 'description',
-    label: '应用描述',
+    label: $t('agents.form.appDescription'),
   },
-];
+]);
 const [BaseConfigForm, baseConfigFormApi] = useVbenForm({
   layout: 'vertical',
-  schema: baseConfigSchema,
+  schema: baseConfigSchema.value,
   showDefaultActions: false,
   wrapperClass: 'grid-cols-1',
 });
+
+watch(
+  () => baseConfigSchema.value,
+  (schema) => {
+    baseConfigFormApi.setState({ schema });
+  },
+  { immediate: true },
+);
 
 // 新建智能体弹窗：仅包含模型、名称、描述、标签等基础配置，创建后跳转编辑页
 const [CreateModal, createModalApi] = useVbenModal({
@@ -130,6 +152,15 @@ const [CreateModal, createModalApi] = useVbenModal({
     createModalApi.close();
   },
 });
+
+watch(
+  () => $t('agents.title.create'),
+  (value) => {
+    createModalApi.setState({ title: value });
+  },
+  { immediate: true },
+);
+
 const createModelConfig = reactive({
   maxOutputTokens: 2048,
   temperature: 0.7,
@@ -139,10 +170,10 @@ const createFormSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     componentProps: {
-      placeholder: '请输入应用名称',
+      placeholder: $t('agents.form.appNamePlaceholder'),
     },
     fieldName: 'agentName',
-    label: '应用名称',
+    label: $t('agents.form.appName'),
     rules: 'required',
   },
   {
@@ -154,7 +185,7 @@ const createFormSchema = computed<VbenFormSchema[]>(() => [
       modelEntities: lookups.value.modelEntities,
     },
     fieldName: 'reasoningModelId',
-    label: '选择模型',
+    label: $t('agents.form.selectModel'),
     modelPropName: 'modelId',
     rules: 'selectRequired',
   },
@@ -162,22 +193,22 @@ const createFormSchema = computed<VbenFormSchema[]>(() => [
     component: 'Input',
     componentProps: {
       autosize: { minRows: 2, maxRows: 6 },
-      placeholder: '请输入应用描述',
+      placeholder: $t('agents.form.appDescriptionPlaceholder'),
       type: 'textarea',
     },
     fieldName: 'description',
-    label: '应用描述',
+    label: $t('agents.form.appDescription'),
   },
   {
     component: 'Select',
     componentProps: {
       clearable: true,
       multiple: true,
-      options: AIGC_COMMON_TAG_OPTIONS,
-      placeholder: '请选择标签',
+      options: aigcCommonTagOptions(),
+      placeholder: $t('common.placeholder.selectTags'),
     },
     fieldName: 'tags',
-    label: '标签',
+    label: $t('common.labels.tags'),
   },
 ]);
 const [CreateForm, createFormApi] = useVbenForm({
@@ -191,6 +222,14 @@ watch(
   () => createFormSchema.value,
   (schema) => {
     createFormApi.setState({ schema });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('common.actions.create'),
+  (value) => {
+    createModalApi.setState({ confirmText: value });
   },
   { immediate: true },
 );
@@ -234,16 +273,12 @@ async function handleCreateAgent() {
       status: 'DRAFT',
       tags: stringifyTagList(payload.tags),
     });
-    message.success('智能体已创建');
+    message.success($t('agents.messages.created'));
     createModalApi.close();
     // create 接口仅返回布尔值，按名称查出新记录后跳转编辑页
     const list = await agentApi.list();
     const created = list.find((item) => item.agentName === agentName);
-    if (created?.id) {
-      await router.push(`/agents/${created.id}/builder`);
-    } else {
-      await loadList();
-    }
+    await (created?.id ? router.push(`/agents/${created.id}/builder`) : loadList());
   } finally {
     creating.value = false;
   }
@@ -295,7 +330,7 @@ async function handleSaveBaseConfig() {
     description: String(payload.description || '').trim(),
     icon: normalizedIcon,
   });
-  message.success('基础配置已更新');
+  message.success($t('agents.messages.baseConfigUpdated'));
   baseConfigModalApi.close();
   await loadList();
 }
@@ -305,10 +340,10 @@ async function handleSave(payload: Partial<AigcAgent>) {
   try {
     if (currentItem.value?.id) {
       await agentApi.update(currentItem.value.id, payload);
-      message.success('智能体已更新');
+      message.success($t('agents.messages.updated'));
     } else {
       await agentApi.create(payload);
-      message.success('智能体已创建');
+      message.success($t('agents.messages.created'));
     }
     showEdit.value = false;
     await loadList();
@@ -323,13 +358,15 @@ async function handleDelete(item: AigcAgent) {
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除「${item.agentName || '未命名智能体'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除智能体',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.agentName || $t('agents.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('agents.messages.deleteTitle'),
     onPositiveClick: async () => {
       await agentApi.remove(item.id!);
-      message.success('智能体已删除');
+      message.success($t('agents.messages.deleted'));
       await loadList();
     },
   });
@@ -349,7 +386,7 @@ onMounted(initializePage);
         :active-tag="selectedTag"
         :items="pagedItems"
         :loading="loading"
-        search-placeholder="按智能体名称、状态搜索"
+        :search-placeholder="$t('agents.list.searchPlaceholder')"
         :search-value="keyword"
         :tags="tagFilterOptions"
         @update:active-tag="selectedTag = $event"
@@ -358,8 +395,8 @@ onMounted(initializePage);
         <template #leading-card>
           <LcActionCard
             :actions="actionItems"
-            description="常用操作统一放置在首个卡片位。"
-            title="智能体操作"
+            :description="$t('common.messages.quickActionsDescription')"
+            :title="$t('agents.quickActions.title')"
             @action="handleAction"
           />
         </template>
@@ -376,7 +413,9 @@ onMounted(initializePage);
           />
         </template>
         <template #empty-extra>
-          <NButton type="primary" @click="openCreateModal">新建智能体</NButton>
+          <NButton type="primary" @click="openCreateModal">
+            {{ $t('agents.actions.create') }}
+          </NButton>
         </template>
       </LcListCard>
 
@@ -393,14 +432,18 @@ onMounted(initializePage);
       <BaseConfigModal
         class="w-[560px]"
         header-class="border-b"
-        title="应用基础配置"
+        :title="$t('agents.list.baseConfigTitle')"
       >
         <BaseConfigForm />
 
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <NButton @click="baseConfigModalApi.close()">取消</NButton>
-            <NButton type="primary" @click="handleSaveBaseConfig">保存</NButton>
+            <NButton @click="baseConfigModalApi.close()">
+              {{ $t('common.actions.cancel') }}
+            </NButton>
+            <NButton type="primary" @click="handleSaveBaseConfig">
+              {{ $t('common.actions.save') }}
+            </NButton>
           </div>
         </template>
       </BaseConfigModal>
@@ -408,15 +451,17 @@ onMounted(initializePage);
       <CreateModal
         class="w-[560px]"
         header-class="border-b"
-        title="新建智能体"
+        :title="$t('agents.title.create')"
       >
         <CreateForm />
 
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <NButton @click="createModalApi.close()">取消</NButton>
+            <NButton @click="createModalApi.close()">
+              {{ $t('common.actions.cancel') }}
+            </NButton>
             <NButton :loading="creating" type="primary" @click="handleCreateAgent">
-              创建
+              {{ $t('common.actions.create') }}
             </NButton>
           </div>
         </template>

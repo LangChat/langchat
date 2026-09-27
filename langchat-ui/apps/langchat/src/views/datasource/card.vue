@@ -4,11 +4,14 @@ import type { AigcDatasource } from '#/api/aigc/datasource';
 import { computed } from 'vue';
 
 import { Eye, SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
 import LcStatusTag from '#/components/LcStatusTag/index.vue';
+
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 import { getDatasourceTypeMeta } from './datasource-meta';
 
@@ -33,31 +36,27 @@ const connectionSummary = computed(() => {
     .filter((value) => value !== undefined && value !== null && value !== '')
     .join(':');
   const database = props.item.databaseName || '';
-  return [address, database].filter(Boolean).join(' / ') || '暂未填写连接信息。';
+  return (
+    [address, database].filter(Boolean).join(' / ') ||
+    $t('datasource.card.noConnectionInfo')
+  );
 });
 
 const metaItems = computed(() => [
-  { label: '类型', value: datasourceTypeMeta.value.label },
+  { label: $t('common.labels.type'), value: datasourceTypeMeta.value.label },
   {
-    label: '主机',
+    label: $t('common.labels.host'),
     value: props.item.host || '--',
   },
   {
-    label: '端口',
+    label: $t('common.labels.port'),
     value: props.item.port ? String(props.item.port) : '--',
   },
   {
-    label: '库名',
+    label: $t('datasource.card.databaseShort'),
     value: props.item.databaseName || '--',
   },
 ]);
-
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -73,7 +72,7 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground group-hover:text-primary"
         >
-          {{ item.name || '未命名数据源' }}
+          {{ item.name || $t('datasource.card.unnamed') }}
         </div>
       </div>
     </template>
@@ -86,21 +85,21 @@ function formatTime(timestamp?: number) {
 
     <template #header-extra>
       <LcStatusTag
-        :label="item.enabled ? '启用' : '停用'"
+        :label="item.enabled ? $t('common.status.enabled') : $t('common.status.disabled')"
         :type="item.enabled ? 'success' : 'default'"
       />
     </template>
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'查看详情'"
+          v-tippy="$t('common.actions.viewDetails')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -110,7 +109,7 @@ function formatTime(timestamp?: number) {
           <Eye class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -120,7 +119,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

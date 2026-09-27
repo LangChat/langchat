@@ -1,0 +1,51 @@
+{
+  "title": {
+    "create": "新建角色",
+    "edit": "编辑角色"
+  },
+  "actions": {
+    "create": "新建角色"
+  },
+  "form": {
+    "name": "角色名称",
+    "code": "角色编码",
+    "description": "角色描述",
+    "descriptionPlaceholder": "请输入角色描述",
+    "menuAuth": "菜单授权",
+    "menuSearchPlaceholder": "搜索菜单名称",
+    "grantAll": "全部授权",
+    "clearAll": "清空授权"
+  },
+  "card": {
+    "unnamed": "未命名角色",
+    "notAssigned": "未分配",
+    "code": "编码",
+    "menuAuth": "菜单权限",
+    "menuCount": "{count} 个",
+    "defaultDescription": "当前角色用于承接菜单权限分配。"
+  },
+  "columns": {
+    "seq": "序号",
+    "name": "角色名称",
+    "code": "角色编码",
+    "description": "描述",
+    "menuAuth": "菜单授权",
+    "updateTime": "更新时间"
+  },
+  "list": {
+    "tableTitle": "角色管理",
+    "keywordPlaceholder": "角色名称 / 编码 / 描述",
+    "editRole": "编辑角色",
+    "deleteRole": "删除角色",
+    "builtinRoleEditTip": "系统内置角色，不可编辑",
+    "builtinRoleDeleteTip": "系统内置角色，不可删除",
+    "unauthorizedMenus": "未授权菜单",
+    "moreMenus": "另有 {count} 项"
+  },
+  "messages": {
+    "created": "角色已创建",
+    "updated": "角色已更新",
+    "deleted": "角色已删除",
+    "deleteTitle": "删除角色"
+  }
+}

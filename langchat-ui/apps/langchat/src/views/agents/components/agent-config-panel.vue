@@ -10,6 +10,7 @@ import {
   Plus,
   Wrench,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import ModelSelector from '#/components/ModelSelector/index.vue';
 import RelationCardPicker from '#/components/RelationCardPicker/index.vue';
@@ -70,7 +71,7 @@ function toggleGroup(name: string) {
           class="inline-flex items-center gap-2 text-sm font-semibold text-foreground"
         >
           <BrainCircuit class="size-4 text-primary" />
-          模型信息配置
+          {{ $t('agents.configPanel.modelInfo') }}
         </span>
         <ChevronUp
           v-if="isExpanded('model')"
@@ -104,7 +105,7 @@ function toggleGroup(name: string) {
         >
           <Database class="size-4 shrink-0 text-primary" />
           <span class="truncate text-sm font-semibold text-foreground">
-            知识库关联
+            {{ $t('agents.configPanel.knowledge.title') }}
           </span>
           <span
             class="shrink-0 rounded bg-muted px-1.5 text-[11px] leading-[18px] text-muted-foreground"
@@ -114,13 +115,13 @@ function toggleGroup(name: string) {
         </button>
         <div class="flex shrink-0 items-center gap-0.5">
           <button
-            v-tippy="'添加知识库'"
+            v-tippy="$t('agents.configPanel.knowledge.add')"
             class="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="knowledgePickerRef?.open()"
           >
             <Plus class="size-3" />
-            添加
+            {{ $t('common.actions.add') }}
           </button>
           <button
             class="cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
@@ -144,10 +145,10 @@ function toggleGroup(name: string) {
           v-model="formModel.knowledgeIdsList"
           compact
           :icon="Database"
-          modal-title="选择知识库"
+          :modal-title="$t('agents.configPanel.knowledge.selectTitle')"
           :options="knowledgeRelationOptions"
-          placeholder="请选择关联知识库"
-          title="知识库关联"
+          :placeholder="$t('agents.configPanel.knowledge.placeholder')"
+          :title="$t('agents.configPanel.knowledge.title')"
         />
       </div>
     </section>
@@ -163,7 +164,7 @@ function toggleGroup(name: string) {
         >
           <Wrench class="size-4 shrink-0 text-primary" />
           <span class="truncate text-sm font-semibold text-foreground">
-            技能关联
+            {{ $t('agents.configPanel.skills.title') }}
           </span>
           <span
             class="shrink-0 rounded bg-muted px-1.5 text-[11px] leading-[18px] text-muted-foreground"
@@ -173,13 +174,13 @@ function toggleGroup(name: string) {
         </button>
         <div class="flex shrink-0 items-center gap-0.5">
           <button
-            v-tippy="'添加技能'"
+            v-tippy="$t('agents.configPanel.skills.add')"
             class="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="skillPickerRef?.open()"
           >
             <Plus class="size-3" />
-            添加
+            {{ $t('common.actions.add') }}
           </button>
           <button
             class="cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
@@ -200,10 +201,10 @@ function toggleGroup(name: string) {
           v-model="formModel.skillIdsList"
           compact
           :icon="Wrench"
-          modal-title="选择技能"
+          :modal-title="$t('agents.configPanel.skills.selectTitle')"
           :options="skillRelationOptions"
-          placeholder="请选择关联技能"
-          title="技能关联"
+          :placeholder="$t('agents.configPanel.skills.placeholder')"
+          :title="$t('agents.configPanel.skills.title')"
         />
       </div>
     </section>
@@ -219,7 +220,7 @@ function toggleGroup(name: string) {
         >
           <PlugZap class="size-4 shrink-0 text-primary" />
           <span class="truncate text-sm font-semibold text-foreground">
-            MCP 关联
+            {{ $t('agents.configPanel.mcp.title') }}
           </span>
           <span
             class="shrink-0 rounded bg-muted px-1.5 text-[11px] leading-[18px] text-muted-foreground"
@@ -229,13 +230,13 @@ function toggleGroup(name: string) {
         </button>
         <div class="flex shrink-0 items-center gap-0.5">
           <button
-            v-tippy="'添加 MCP 服务'"
+            v-tippy="$t('agents.configPanel.mcp.add')"
             class="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             type="button"
             @click="mcpPickerRef?.open()"
           >
             <Plus class="size-3" />
-            添加
+            {{ $t('common.actions.add') }}
           </button>
           <button
             class="cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
@@ -256,10 +257,10 @@ function toggleGroup(name: string) {
           v-model="formModel.mcpIdsList"
           compact
           :icon="PlugZap"
-          modal-title="选择 MCP 服务"
+          :modal-title="$t('agents.configPanel.mcp.selectTitle')"
           :options="mcpRelationOptions"
-          placeholder="请选择关联 MCP 服务"
-          title="MCP 关联"
+          :placeholder="$t('agents.configPanel.mcp.placeholder')"
+          :title="$t('agents.configPanel.mcp.title')"
         />
       </div>
     </section>

@@ -1,0 +1,17 @@
+{
+  "product": {
+    "title": "产品与开源",
+    "about": "关于",
+    "aboutTitle": "关于 LangChat",
+    "github": "开源地址",
+    "githubTitle": "访问 LangChat GitHub 开源仓库"
+  },
+  "sidebar": {
+    "about": "关于 LangChat",
+    "feedback": "问题反馈"
+  },
+  "user": {
+    "currentTenant": "当前租户：{tenantId}",
+    "defaultDesc": "LangChat 控制台用户"
+  }
+}

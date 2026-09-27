@@ -4,10 +4,11 @@ import type { LabelOption } from '#/views/shared/aigc/options';
 
 import { computed, markRaw, watch } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
 import LcIcon from '#/components/LcIcon/index.vue';
-import { AIGC_COMMON_TAG_OPTIONS } from '#/views/shared/aigc/options';
+import { aigcCommonTagOptions } from '#/views/shared/aigc/options';
 import { parseTagList, stringifyTagList } from '#/views/shared/aigc/tags';
 
 interface Props {
@@ -31,14 +32,16 @@ const emit = defineEmits<{
 }>();
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑知识库' : '新建知识库',
+  props.modelValue?.id
+    ? $t('knowledge.title.edit')
+    : $t('knowledge.title.create'),
 );
 
 const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '知识库名称',
+    label: $t('knowledge.form.name'),
     rules: 'required',
   },
   {
@@ -49,7 +52,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       size: 64,
     },
     fieldName: 'coverUrl',
-    label: '知识库图标',
+    label: $t('knowledge.form.icon'),
     modelPropName: 'modelValue',
   },
   {
@@ -59,7 +62,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       options: props.vectorStoreOptions,
     },
     fieldName: 'vectorStoreId',
-    label: '向量库',
+    label: $t('knowledge.form.vectorStore'),
     rules: 'selectRequired',
   },
   {
@@ -69,7 +72,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       options: props.modelOptions,
     },
     fieldName: 'vectorModelId',
-    label: '向量模型',
+    label: $t('knowledge.form.vectorModel'),
     rules: 'selectRequired',
   },
   {
@@ -78,7 +81,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       min: 1,
     },
     fieldName: 'maxResults',
-    label: '召回数量',
+    label: $t('knowledge.form.maxResults'),
   },
   {
     component: 'InputNumber',
@@ -87,7 +90,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       step: 0.05,
     },
     fieldName: 'minScore',
-    label: '最低分数',
+    label: $t('knowledge.form.minScore'),
   },
   {
     component: 'Select',
@@ -95,23 +98,23 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       clearable: true,
       filterable: true,
       multiple: true,
-      options: AIGC_COMMON_TAG_OPTIONS,
-      placeholder: '请选择标签',
+      options: aigcCommonTagOptions(),
+      placeholder: $t('common.placeholder.selectTags'),
     },
     fieldName: 'tags',
     formItemClass: 'sm:col-span-2',
-    label: '标签',
+    label: $t('common.labels.tags'),
   },
   {
     component: 'Input',
     componentProps: {
       autosize: { maxRows: 8, minRows: 4 },
-      placeholder: '请输入知识库描述',
+      placeholder: $t('knowledge.form.descriptionPlaceholder'),
       type: 'textarea',
     },
     fieldName: 'description',
     formItemClass: 'sm:col-span-2',
-    label: '知识库描述',
+    label: $t('knowledge.form.description'),
   },
 ]);
 
@@ -152,7 +155,6 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[860px]',
-  confirmText: '保存',
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -160,13 +162,20 @@ const [Drawer, drawerApi] = useVbenDrawer({
       emitClose(true);
     }
   },
-  title: drawerTitle.value,
 });
 
 watch(
   () => props.saving,
   (value) => {
     drawerApi.setState({ confirmLoading: value });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
   },
   { immediate: true },
 );

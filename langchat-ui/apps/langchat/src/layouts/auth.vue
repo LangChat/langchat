@@ -11,6 +11,7 @@ import {
   Wrench,
 } from '@vben/icons';
 import { AuthPageLayout } from '@vben/layouts';
+import { $t } from '@vben/locales';
 import { preferences } from '@vben/preferences';
 
 import AuthIllustration from './auth-illustration.vue';
@@ -22,28 +23,28 @@ const logoDark = computed(() => preferences.logo.sourceDark);
 /**
  * 登录页左侧特色功能卡片
  */
-const authFeatures = [
+const authFeatures = computed(() => [
   {
     icon: Bot,
-    title: '智能应用构建',
-    description: '可视化编排 Agent，一键发布 AI 应用',
+    title: $t('auth.features.builder.title'),
+    description: $t('auth.features.builder.description'),
   },
   {
     icon: LibraryBig,
-    title: '知识库问答',
-    description: '文档沉淀与 RAG 检索增强回答',
+    title: $t('auth.features.knowledge.title'),
+    description: $t('auth.features.knowledge.description'),
   },
   {
     icon: Wrench,
-    title: '技能 / MCP 扩展',
-    description: '灵活挂载技能与外部工具能力',
+    title: $t('auth.features.extensions.title'),
+    description: $t('auth.features.extensions.description'),
   },
   {
     icon: ChartNoAxesCombined,
-    title: '智能问数',
-    description: '自然语言直达数据洞察',
+    title: $t('auth.features.dataAnalysis.title'),
+    description: $t('auth.features.dataAnalysis.description'),
   },
-];
+]);
 </script>
 
 <template>
@@ -53,10 +54,10 @@ const authFeatures = [
       <div class="flex w-full max-w-xl flex-col items-center">
         <AuthIllustration class="w-56 md:w-72" />
         <div class="mt-6 text-2xl font-semibold tracking-tight text-foreground">
-          开箱即用的企业级 AIGC 应用平台
+          {{ $t('auth.brand.slogan') }}
         </div>
         <div class="mt-2 text-sm text-muted-foreground md:text-base">
-          聚合大模型、知识库、技能与 MCP 工具，让 AI 能力快速融入你的业务
+          {{ $t('auth.brand.description') }}
         </div>
 
         <div class="mt-8 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
@@ -88,10 +89,10 @@ const authFeatures = [
       >
         <div class="flex items-center gap-1.5">
           <span class="text-sm font-semibold text-foreground/80">LangChat</span>
-          <span>· LangChat Team 作品</span>
+          <span>{{ $t('auth.footer.team') }}</span>
         </div>
         <div>
-          官网：
+          {{ $t('auth.footer.website') }}
           <a
             class="transition-colors hover:text-primary"
             href="https://langchat.cn"

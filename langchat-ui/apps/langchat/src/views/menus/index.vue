@@ -1,25 +1,31 @@
 <script setup lang="ts">
+import type { VxeGridPropTypes } from '#/adapter/vxe-table';
 import type { AigcMenu, AigcMenuTreeNode } from '#/api/auth/menu';
 
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+
 import { Page } from '@vben/common-ui';
 import { SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
+
 import { NButton, NInput, NSelect, NTag } from 'naive-ui';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { dialog, message } from '#/adapter/naive';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { menuApi } from '#/api/auth/menu';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
+import ManageCard from '#/views/shared/auth/manage-card.vue';
+import { filterMenuTree } from '#/views/shared/auth/menu-tree';
 import {
   findAuthOptionLabel,
-  MENU_TYPE_OPTIONS,
+  menuTypeOptions,
 } from '#/views/shared/auth/options';
-import { filterMenuTree } from '#/views/shared/auth/menu-tree';
-import ManageCard from '#/views/shared/auth/manage-card.vue';
+
 import MenuEdit from './edit.vue';
 
 const saving = ref(false);
 const showEdit = ref(false);
-const currentItem = ref<Partial<AigcMenu> | null>(null);
+const currentItem = ref<null | Partial<AigcMenu>>(null);
 const allMenus = ref<AigcMenuTreeNode[]>([]);
 
 // 搜索条件：draft 为输入框草稿值，applied 为已生效值（工具栏刷新时沿用生效值）
@@ -59,61 +65,77 @@ async function queryMenus(_params: {
   };
 }
 
+const gridColumns = computed<VxeGridPropTypes.Columns<AigcMenuTreeNode>>(() => [
+  {
+    field: 'name',
+    treeNode: true,
+    title: $t('menus.columns.name'),
+    minWidth: 220,
+  },
+  {
+    field: 'type',
+    title: $t('menus.columns.type'),
+    width: 100,
+    formatter: ({ cellValue }: { cellValue: number | string }) =>
+      findAuthOptionLabel(menuTypeOptions(), cellValue),
+  },
+  {
+    field: 'path',
+    title: $t('menus.columns.path'),
+    minWidth: 180,
+  },
+  {
+    field: 'perms',
+    title: $t('menus.columns.perms'),
+    minWidth: 180,
+  },
+  {
+    field: 'component',
+    title: $t('menus.columns.component'),
+    minWidth: 180,
+  },
+  {
+    field: 'orderNo',
+    title: $t('menus.columns.orderNo'),
+    width: 80,
+  },
+  {
+    field: 'isShow',
+    title: $t('menus.columns.isShow'),
+    width: 80,
+    slots: { default: 'showColumn' },
+  },
+  {
+    field: 'isKeepalive',
+    title: $t('menus.columns.isKeepalive'),
+    width: 80,
+    slots: { default: 'keepaliveColumn' },
+  },
+  {
+    field: 'isDisabled',
+    title: $t('menus.columns.isDisabled'),
+    width: 80,
+    slots: { default: 'disabledColumn' },
+  },
+  {
+    field: 'updateTime',
+    title: $t('menus.columns.updateTime'),
+    minWidth: 180,
+    formatter: ({ cellValue }: { cellValue: number }) =>
+      cellValue ? formatRelativeTime(cellValue) : '--',
+  },
+  {
+    field: 'actions',
+    fixed: 'right',
+    slots: { default: 'actionColumn' },
+    title: $t('common.labels.actions'),
+    width: 110,
+  },
+]);
+
 const [Grid, gridApi] = useVbenVxeGrid<AigcMenuTreeNode>({
   gridOptions: {
-    columns: [
-      {
-        field: 'name',
-        treeNode: true,
-        title: '菜单名称',
-        minWidth: 220,
-      },
-      {
-        field: 'type',
-        title: '类型',
-        width: 100,
-        formatter: ({ cellValue }: { cellValue: number | string }) =>
-          findAuthOptionLabel(MENU_TYPE_OPTIONS, cellValue),
-      },
-      { field: 'path', title: '路径', minWidth: 180 },
-      { field: 'perms', title: '权限标识', minWidth: 180 },
-      { field: 'component', title: '组件路径', minWidth: 180 },
-      { field: 'orderNo', title: '排序', width: 80 },
-      {
-        field: 'isShow',
-        title: '显示',
-        width: 80,
-        slots: { default: 'showColumn' },
-      },
-      {
-        field: 'isKeepalive',
-        title: '缓存',
-        width: 80,
-        slots: { default: 'keepaliveColumn' },
-      },
-      {
-        field: 'isDisabled',
-        title: '禁用',
-        width: 80,
-        slots: { default: 'disabledColumn' },
-      },
-      {
-        field: 'updateTime',
-        title: '更新时间',
-        minWidth: 180,
-        formatter: ({ cellValue }: { cellValue: number }) =>
-          cellValue
-            ? new Date(cellValue).toLocaleString('zh-CN', { hour12: false })
-            : '--',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'actionColumn' },
-        title: '操作',
-        width: 110,
-      },
-    ],
+    columns: gridColumns.value,
     height: 'auto',
     pagerConfig: {
       enabled: false,
@@ -134,8 +156,24 @@ const [Grid, gridApi] = useVbenVxeGrid<AigcMenuTreeNode>({
       transform: false,
     },
   },
-  tableTitle: '菜单管理',
+  tableTitle: $t('menus.list.tableTitle'),
 });
+
+watch(
+  gridColumns,
+  (columns) => {
+    gridApi.setGridOptions({ columns });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('menus.list.tableTitle'),
+  (value) => {
+    gridApi.setState({ tableTitle: value });
+  },
+  { immediate: true },
+);
 
 function openCreate() {
   currentItem.value = null;
@@ -154,13 +192,15 @@ async function handleDelete(item: AigcMenu) {
   const menuId = item.id;
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除菜单「${item.name || '未命名菜单'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除菜单',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.name || $t('menus.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('menus.messages.deleteTitle'),
     onPositiveClick: async () => {
       await menuApi.remove(menuId);
-      message.success('菜单已删除');
+      message.success($t('menus.messages.deleted'));
       await gridApi.reload();
     },
   });
@@ -171,10 +211,10 @@ async function handleSave(payload: Partial<AigcMenu>) {
   try {
     if (currentItem.value?.id) {
       await menuApi.update(currentItem.value.id, payload);
-      message.success('菜单已更新');
+      message.success($t('menus.messages.updated'));
     } else {
       await menuApi.create(payload);
-      message.success('菜单已创建');
+      message.success($t('menus.messages.created'));
     }
     showEdit.value = false;
     await gridApi.reload();
@@ -189,34 +229,44 @@ async function handleSave(payload: Partial<AigcMenu>) {
     <ManageCard>
       <template #search>
         <div class="flex items-center gap-2">
-          <span class="shrink-0 text-sm text-muted-foreground">关键词</span>
+          <span class="shrink-0 text-sm text-muted-foreground">{{
+            $t('common.labels.keyword')
+          }}</span>
           <NInput
             v-model:value="draftKeyword"
             clearable
-            placeholder="菜单名称 / 路径 / 权限标识 / 组件路径"
+            :placeholder="$t('menus.list.keywordPlaceholder')"
             style="width: 240px"
             @keyup.enter="handleSearch"
           />
         </div>
         <div class="flex items-center gap-2">
-          <span class="shrink-0 text-sm text-muted-foreground">菜单类型</span>
+          <span class="shrink-0 text-sm text-muted-foreground">{{
+            $t('menus.form.type')
+          }}</span>
           <NSelect
             v-model:value="draftType"
-            :options="MENU_TYPE_OPTIONS"
+            :options="menuTypeOptions()"
             clearable
-            placeholder="全部类型"
+            :placeholder="$t('menus.list.typePlaceholder')"
             style="width: 180px"
           />
         </div>
         <div class="ml-auto flex items-center gap-2">
-          <NButton @click="handleReset">重置</NButton>
-          <NButton type="primary" @click="handleSearch">搜索</NButton>
+          <NButton @click="handleReset">{{ $t('common.actions.reset') }}</NButton>
+          <NButton type="primary" @click="handleSearch">
+{{
+            $t('common.actions.search')
+          }}
+</NButton>
         </div>
       </template>
 
       <Grid class="min-h-0 flex-1" grid-class="px-4 pb-4 pt-3">
         <template #toolbar-tools>
-          <NButton type="primary" @click="openCreate"> 新建菜单 </NButton>
+          <NButton type="primary" @click="openCreate">
+            {{ $t('menus.actions.create') }}
+          </NButton>
         </template>
 
         <template #showColumn="{ row }">
@@ -226,7 +276,11 @@ async function handleSave(payload: Partial<AigcMenu>) {
             round
             size="small"
           >
-            {{ row.isShow === false ? '隐藏' : '显示' }}
+            {{
+              row.isShow === false
+                ? $t('menus.list.hide')
+                : $t('menus.list.show')
+            }}
           </NTag>
         </template>
 
@@ -237,7 +291,7 @@ async function handleSave(payload: Partial<AigcMenu>) {
             round
             size="small"
           >
-            {{ row.isKeepalive ? '是' : '否' }}
+            {{ row.isKeepalive ? $t('common.status.yes') : $t('common.status.no') }}
           </NTag>
         </template>
 
@@ -248,14 +302,14 @@ async function handleSave(payload: Partial<AigcMenu>) {
             round
             size="small"
           >
-            {{ row.isDisabled ? '是' : '否' }}
+            {{ row.isDisabled ? $t('common.status.yes') : $t('common.status.no') }}
           </NTag>
         </template>
 
         <template #actionColumn="{ row }">
           <div class="flex items-center justify-center gap-1">
             <NButton
-              v-tippy="'编辑菜单'"
+              v-tippy="$t('menus.list.editMenu')"
               circle
               quaternary
               size="small"
@@ -267,7 +321,7 @@ async function handleSave(payload: Partial<AigcMenu>) {
               </template>
             </NButton>
             <NButton
-              v-tippy="'删除菜单'"
+              v-tippy="$t('menus.list.deleteMenu')"
               circle
               quaternary
               size="small"

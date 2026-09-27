@@ -1,11 +1,12 @@
 <script lang="ts" setup>
+import type {VxeGridPropTypes} from '#/adapter/vxe-table';
 import type {AigcMessage, AigcMessageEvent, OpenAiChatCompletionChunk,} from '#/api/aigc/chat';
 
 import {computed, ref, watch} from 'vue';
 
 import {useVbenDrawer} from '@vben/common-ui';
-
 import {FileText, Logs, Wrench} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {NButton, NEmpty, NInput, NSelect, NSpin, NTag} from 'naive-ui';
 
@@ -15,6 +16,7 @@ import {
   listConversationMessagesApi,
   listMessageEventsApi,
 } from '#/api/aigc/chat';
+import {formatDocsTimestamp} from '#/views/shared/aigc/docs-status';
 
 interface Props {
   agentId?: string;
@@ -54,13 +56,13 @@ const selectedRowId = ref('');
 const selectedRow = ref<MessageLogRow | null>(null);
 const eventRows = ref<AigcMessageEvent[]>([]);
 
-const roleOptions = [
-  { label: '全部角色', value: '' },
-  { label: '用户', value: 'user' },
-  { label: '助手', value: 'assistant' },
-  { label: '系统', value: 'system' },
-  { label: '工具', value: 'tool' },
-];
+const roleOptions = computed(() => [
+  { label: $t('agents.messageLog.roleAll'), value: '' },
+  { label: $t('agents.messageLog.roleUser'), value: 'user' },
+  { label: $t('agents.messageLog.roleAssistant'), value: 'assistant' },
+  { label: $t('agents.messageLog.roleSystem'), value: 'system' },
+  { label: $t('agents.messageLog.roleTool'), value: 'tool' },
+]);
 
 const filteredRows = computed(() => {
   const query = keyword.value.trim().toLowerCase();
@@ -121,7 +123,7 @@ const replayNodes = computed<ReplayNode[]>(() => {
           status: 'running',
           toolArguments: String(detail?.arguments || ''),
           toolName: String(
-            detail?.tool_name || detail?.toolName || '未命名工具',
+            detail?.tool_name || detail?.toolName || $t('agents.messageLog.untitledTool'),
           ),
           type: 'tool',
         };
@@ -133,7 +135,10 @@ const replayNodes = computed<ReplayNode[]>(() => {
         detail?.arguments || node.toolArguments || '',
       );
       node.toolName = String(
-        detail?.tool_name || detail?.toolName || node.toolName || '未命名工具',
+        detail?.tool_name ||
+          detail?.toolName ||
+          node.toolName ||
+          $t('agents.messageLog.untitledTool'),
       );
       node.result = String(detail?.result || node.result || '');
       node.detail = detail;
@@ -224,13 +229,14 @@ async function loadRows() {
         const records = await listConversationMessagesApi(conversation.id);
         return records.map((item) => ({
           ...item,
-          conversationTitle: conversation.title || '未命名会话',
+          conversationTitle:
+            conversation.title || $t('agents.messageLog.untitledConversation'),
         }));
       }),
     );
     rows.value = messageGroups
       .flat()
-      .sort((a, b) => (b.createTime ?? 0) - (a.createTime ?? 0));
+      .toSorted((a, b) => (b.createTime ?? 0) - (a.createTime ?? 0));
     await gridApi.reload();
   } finally {
     loading.value = false;
@@ -258,8 +264,16 @@ async function openDetail(row: MessageLogRow) {
 const [DetailDrawer, drawerApi] = useVbenDrawer({
   class: 'w-[640px]',
   footer: false,
-  title: '链路详情',
+  title: $t('agents.messageLog.detailTitle'),
 });
+
+watch(
+  () => $t('agents.messageLog.detailTitle'),
+  (value) => {
+    drawerApi.setState({ title: value });
+  },
+  { immediate: true },
+);
 
 function parseChunk(payloadJson: string) {
   if (!payloadJson) {
@@ -323,9 +337,7 @@ function resolveRoleTone(role?: string) {
 }
 
 function formatTimestamp(value?: number) {
-  return value
-    ? new Date(value).toLocaleString('zh-CN', { hour12: false })
-    : '--';
+  return formatDocsTimestamp(value);
 }
 
 function resolveUsage(detail?: Record<string, unknown>) {
@@ -340,43 +352,51 @@ function shouldRenderDetail(node: ReplayNode) {
   return Boolean(node.detail && node.kind !== 'tool' && node.kind !== 'meta');
 }
 
+const gridColumns = computed<VxeGridPropTypes.Columns<MessageLogRow>>(() => [
+  {
+    field: 'conversationTitle',
+    minWidth: 160,
+    title: $t('agents.messageLog.columns.conversation'),
+  },
+  {
+    field: 'role',
+    title: $t('agents.messageLog.columns.role'),
+    width: 90,
+    slots: { default: 'roleCol' },
+  },
+  {
+    align: 'left',
+    field: 'message',
+    minWidth: 260,
+    title: $t('agents.messageLog.columns.content'),
+  },
+  { field: 'model', title: $t('common.labels.model'), width: 140 },
+  {
+    field: 'duration',
+    title: $t('agents.messageLog.columns.duration'),
+    width: 100,
+  },
+  {
+    field: 'createTime',
+    title: $t('agents.messageLog.columns.time'),
+    width: 170,
+    formatter: ({ cellValue }: { cellValue: number }) =>
+      formatDocsTimestamp(cellValue),
+  },
+  {
+    field: 'actions',
+    fixed: 'right',
+    title: $t('common.labels.actions'),
+    width: 90,
+    slots: { default: 'actionCol' },
+  },
+]);
+
 const [Grid, gridApi] = useVbenVxeGrid<MessageLogRow>({
   class: 'bg-transparent shadow-none',
   gridClass: 'px-0 pb-0',
   gridOptions: {
-    columns: [
-      { field: 'conversationTitle', minWidth: 160, title: '会话' },
-      {
-        field: 'role',
-        title: '角色',
-        width: 90,
-        slots: { default: 'roleCol' },
-      },
-      {
-        align: 'left',
-        field: 'message',
-        minWidth: 260,
-        title: '消息内容',
-      },
-      { field: 'model', title: '模型', width: 140 },
-      { field: 'duration', title: '耗时(ms)', width: 100 },
-      {
-        field: 'createTime',
-        title: '时间',
-        width: 170,
-        formatter: ({ cellValue }: { cellValue: number }) =>
-          cellValue
-            ? new Date(cellValue).toLocaleString('zh-CN', { hour12: false })
-            : '--',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        title: '操作',
-        width: 90,
-        slots: { default: 'actionCol' },
-      },
-    ],
+    columns: gridColumns.value,
     pagerConfig: {
       pageSize: 20,
       pageSizes: [20, 50, 100],
@@ -406,6 +426,14 @@ const [Grid, gridApi] = useVbenVxeGrid<MessageLogRow>({
 });
 
 watch(
+  gridColumns,
+  (columns) => {
+    gridApi.setGridOptions({ columns });
+  },
+  { immediate: true },
+);
+
+watch(
   () => props.agentId,
   async () => {
     await loadRows();
@@ -430,9 +458,11 @@ watch([keyword, roleFilter], () => {
           <Logs class="size-4 text-primary" />
         </div>
         <div>
-          <div class="text-sm font-semibold text-foreground">消息日志</div>
+          <div class="text-sm font-semibold text-foreground">
+            {{ $t('agents.messageLog.title') }}
+          </div>
           <div class="text-xs text-muted-foreground">
-            全量展示消息明细，点击操作列查看消息链路详情。
+            {{ $t('agents.messageLog.description') }}
           </div>
         </div>
       </div>
@@ -440,7 +470,7 @@ watch([keyword, roleFilter], () => {
         <NInput
           v-model:value="keyword"
           clearable
-          placeholder="搜索内容 / 模型 / 会话"
+          :placeholder="$t('agents.messageLog.searchPlaceholder')"
           style="width: 280px"
         />
         <NSelect
@@ -448,7 +478,9 @@ watch([keyword, roleFilter], () => {
           :options="roleOptions"
           style="width: 140px"
         />
-        <NButton :loading="loading" secondary @click="loadRows">刷新</NButton>
+        <NButton :loading="loading" secondary @click="loadRows">
+          {{ $t('common.actions.refresh') }}
+        </NButton>
       </div>
     </div>
 
@@ -474,7 +506,7 @@ watch([keyword, roleFilter], () => {
             type="primary"
             @click="openDetail(row)"
           >
-            查看详情
+            {{ $t('common.actions.viewDetails') }}
           </NButton>
         </template>
       </Grid>
@@ -498,8 +530,7 @@ watch([keyword, roleFilter], () => {
               </NTag>
               <span
                 class="truncate text-sm font-medium text-foreground"
-                >{{ selectedRow?.conversationTitle || '--' }}</span
-              >
+                >{{ selectedRow?.conversationTitle || '--' }}</span>
             </div>
             <div class="mt-1 text-xs text-muted-foreground">
               chat_id {{ selectedRow?.chatId || '--' }}
@@ -509,7 +540,9 @@ watch([keyword, roleFilter], () => {
             v-if="selectedRow"
             class="text-right text-xs text-muted-foreground"
           >
-            <div>时间 {{ formatTimestamp(selectedRow.createTime) }}</div>
+            <div>
+              {{ $t('agents.messageLog.timeLabel', { time: formatTimestamp(selectedRow.createTime) }) }}
+            </div>
           </div>
         </div>
 
@@ -521,7 +554,7 @@ watch([keyword, roleFilter], () => {
           v-else-if="replayNodes.length === 0"
           class="flex h-40 items-center justify-center"
         >
-          <NEmpty description="当前消息还没有事件数据" />
+          <NEmpty :description="$t('agents.messageLog.noEvents')" />
         </div>
 
         <div v-else class="space-y-2">
@@ -539,8 +572,7 @@ watch([keyword, roleFilter], () => {
                 </span>
                 <span
                   class="truncate text-xs font-medium text-foreground"
-                  >{{ item.name }}</span
-                >
+                  >{{ item.name }}</span>
                 <NTag v-if="item.type" :bordered="false" round size="small">
                   {{ item.type }}
                 </NTag>
@@ -567,7 +599,7 @@ watch([keyword, roleFilter], () => {
               <div class="flex items-center gap-2 text-xs text-foreground">
                 <Wrench class="size-3.5 text-primary" />
                 <span class="font-medium">{{
-                  item.toolName || '未命名工具'
+                  item.toolName || $t('agents.messageLog.untitledTool')
                 }}</span>
               </div>
               <pre
@@ -637,7 +669,7 @@ watch([keyword, roleFilter], () => {
                     entry.docs_name ||
                     entry.knowledgeName ||
                     entry.knowledge_name ||
-                    '未命名片段'
+                    $t('agents.messageLog.untitledSegment')
                   }}
                 </span>
               </div>

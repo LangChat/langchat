@@ -15,6 +15,7 @@ import {
   SvgGithubIcon,
   UserRound,
 } from '@vben/icons';
+import {$t} from '@vben/locales';
 import {EchartsUI, useEcharts} from '@vben/plugins/echarts';
 import {preferences, usePreferences} from '@vben/preferences';
 
@@ -66,16 +67,51 @@ function openRoute(path: string) {
   void router.push(path);
 }
 
+/** 指标文案来自后端统计，这里按已知枚举值映射到本地化键，未命中时原样展示。 */
+const METRIC_LABEL_KEYS: Record<string, string> = {
+  'Token 消耗量': 'explore.metrics.tokens',
+  '消息数量': 'explore.metrics.messages',
+  '应用数量': 'explore.metrics.apps',
+  '用户数量': 'explore.metrics.users',
+};
+
+/**
+ * 指标 hint 文案来自后端统计（中文），这里识别已知模式并映射为当前语言，未命中时原样展示。
+ */
+function formatMetricHint(hint?: string): string {
+  const text = String(hint ?? '').trim();
+  if (!text) {
+    return '';
+  }
+  const deltaPrefix = '较前 7 天';
+  if (text.startsWith(deltaPrefix)) {
+    const delta = text.slice(deltaPrefix.length).trim();
+    const value = delta === '持平' ? $t('explore.hints.flat') : delta;
+    return `${$t('explore.hints.prefix')} ${value}`;
+  }
+  const published = /^已发布 (\d+)$/.exec(text);
+  if (published) {
+    return $t('explore.hints.published', { count: published[1] });
+  }
+  return text;
+}
+
+function metricLabel(label?: string) {
+  const key = METRIC_LABEL_KEYS[String(label ?? '')];
+  return key ? $t(key) : String(label ?? '');
+}
+
 function resolveMetricRoute(label?: string) {
-  switch (label) {
-    case 'Token 消耗量':
-    case '消息数量': {
-      return '/chat';
-    }
-    case '应用数量': {
+  const key = METRIC_LABEL_KEYS[String(label ?? '')];
+  switch (key) {
+    case 'explore.metrics.apps': {
       return '/agents';
     }
-    case '用户数量': {
+    case 'explore.metrics.messages':
+    case 'explore.metrics.tokens': {
+      return '/chat';
+    }
+    case 'explore.metrics.users': {
       return '/permissions/users';
     }
     default: {
@@ -85,17 +121,18 @@ function resolveMetricRoute(label?: string) {
 }
 
 function resolveMetricIcon(label?: string) {
-  switch (label) {
-    case 'Token 消耗量': {
-      return Coins;
-    }
-    case '应用数量': {
+  const key = METRIC_LABEL_KEYS[String(label ?? '')];
+  switch (key) {
+    case 'explore.metrics.apps': {
       return LayoutGrid;
     }
-    case '消息数量': {
+    case 'explore.metrics.messages': {
       return MessageSquare;
     }
-    case '用户数量': {
+    case 'explore.metrics.tokens': {
+      return Coins;
+    }
+    case 'explore.metrics.users': {
       return UserRound;
     }
     default: {
@@ -222,29 +259,29 @@ onMounted(async () => {
                 <span
                   class="rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
                 >
-                  Open Source
+                  {{ $t('market.openSourceLabel') }}
                 </span>
               </div>
               <p class="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
-                面向知识增强与智能体应用构建的全栈开源平台，统一连接模型、知识库、Agent、Skills 与 MCP 能力。
+                {{ $t('explore.banner.description') }}
               </p>
               <div
                 class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground"
               >
                 <span class="inline-flex items-center gap-1.5">
                   <span class="size-1.5 rounded-full bg-primary"></span>
-                  由
+                  {{ $t('explore.banner.maintainedByPre') }}
                   <strong class="font-medium text-foreground">
                     {{ LANGCHAT_PRODUCT_TEAM }}
                   </strong>
-                  开发维护
+                  {{ $t('explore.banner.maintainedByPost') }}
                 </span>
                 <button
                   class="inline-flex cursor-pointer items-center gap-1 transition-colors hover:text-primary"
                   type="button"
                   @click="openRoute('/about')"
                 >
-                  了解项目
+                  {{ $t('market.aboutProject') }}
                   <ExternalLink class="size-3" />
                 </button>
               </div>
@@ -255,7 +292,7 @@ onMounted(async () => {
             <div
               class="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground"
             >
-              官方与开源地址
+              {{ $t('about.links.title') }}
             </div>
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
               <a
@@ -301,7 +338,7 @@ onMounted(async () => {
                 target="_blank"
               >
                 <Globe class="size-3.5 shrink-0" />
-                官方网站
+                {{ $t('about.links.website') }}
                 <ExternalLink
                   class="ml-auto size-3 text-muted-foreground transition-colors group-hover:text-primary"
                 />
@@ -326,10 +363,10 @@ onMounted(async () => {
             <template #header>
               <div class="min-w-0">
                 <div class="truncate text-[13px] font-semibold text-foreground">
-                  {{ item.label }}
+                  {{ metricLabel(item.label) }}
                 </div>
                 <div class="mt-0.5 text-[9px] leading-4 text-muted-foreground">
-                  {{ item.hint }}
+                  {{ formatMetricHint(item.hint) }}
                 </div>
               </div>
             </template>
@@ -345,7 +382,7 @@ onMounted(async () => {
                 round
                 size="small"
               >
-                指标项
+                {{ $t('explore.metrics.label') }}
               </NTag>
             </div>
           </LcCard>
@@ -359,7 +396,7 @@ onMounted(async () => {
             >
               <template #header>
                 <div class="text-[13px] font-semibold text-foreground">
-                  消息趋势（近7天）
+                  {{ $t('explore.charts.messageTrend') }}
                 </div>
               </template>
               <EchartsUI ref="coreChartRef" height="300px" />
@@ -368,7 +405,7 @@ onMounted(async () => {
             <LcCard :hoverable="false" :icon-component="Coins">
               <template #header>
                 <div class="text-[13px] font-semibold text-foreground">
-                  Token 消耗趋势（近7天）
+                  {{ $t('explore.charts.tokenTrend') }}
                 </div>
               </template>
               <EchartsUI ref="governanceChartRef" height="300px" />
@@ -378,7 +415,7 @@ onMounted(async () => {
           <LcCard :hoverable="false" :icon-component="UserRound">
             <template #header>
               <div class="text-[13px] font-semibold text-foreground">
-                用户趋势（近7天）
+                {{ $t('explore.charts.userTrend') }}
               </div>
             </template>
             <EchartsUI ref="activityChartRef" height="300px" />

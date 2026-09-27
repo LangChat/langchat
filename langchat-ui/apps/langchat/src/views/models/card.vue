@@ -4,11 +4,13 @@ import type { AigcModel } from '#/api/aigc/model';
 import { computed } from 'vue';
 
 import { SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
 import LcStatusTag from '#/components/LcStatusTag/index.vue';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 import { getModelTypeIcon, getModelTypeLabel, getProviderLabel } from './model-meta';
 import { getProviderIconUrl } from './provider-icons';
@@ -29,18 +31,14 @@ const providerIconUrl = computed(() => getProviderIconUrl(props.item.provider));
 const typeIcon = computed(() => getModelTypeIcon(props.item.type));
 
 const metaItems = computed(() => [
-  { label: '类型', value: typeLabel.value },
-  { label: '供应商', value: providerLabel.value },
-  { label: '最大令牌', value: props.item.maxToken || '--' },
-  { label: '地址', value: props.item.baseUrl || '默认' },
+  { label: $t('common.labels.type'), value: typeLabel.value },
+  { label: $t('common.labels.provider'), value: providerLabel.value },
+  { label: $t('models.card.maxToken'), value: props.item.maxToken || '--' },
+  {
+    label: $t('models.card.baseUrl'),
+    value: props.item.baseUrl || $t('common.status.default'),
+  },
 ]);
-
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -64,14 +62,14 @@ function formatTime(timestamp?: number) {
         <div
           class="flex items-center gap-1.5 truncate text-[13px] font-semibold text-foreground transition-colors group-hover:text-primary"
         >
-          {{ item.name || '未命名模型' }}
+          {{ item.name || $t('models.card.unnamed') }}
         </div>
       </div>
     </template>
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        {{ item.model || '未配置模型标识' }}
+        {{ item.model || $t('models.card.unnamedModelId') }}
       </p>
     </template>
 
@@ -81,14 +79,14 @@ function formatTime(timestamp?: number) {
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[9px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="2">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -98,7 +96,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

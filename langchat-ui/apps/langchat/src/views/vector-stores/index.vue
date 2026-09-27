@@ -5,6 +5,7 @@ import {computed, onMounted, ref, watch} from 'vue';
 
 import {Page} from '@vben/common-ui';
 import {LayoutGrid, Plus, RefreshCcw, Tag} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {NButton, NPagination} from 'naive-ui';
 
@@ -27,7 +28,7 @@ const pageSize = ref(9);
 const items = ref<AigcVectorStore[]>([]);
 const currentItem = ref<null | Partial<AigcVectorStore>>(null);
 const providerTagOptions = computed(() => [
-  { label: '全部', value: 'ALL' },
+  {label: $t('common.labels.all'), value: 'ALL'},
   ...VECTOR_PROVIDER_OPTIONS.map((item) => ({
     label: item.label,
     value: String(item.value),
@@ -59,8 +60,8 @@ watch([keyword, selectedProvider], () => {
 });
 
 const actionItems = computed(() => [
-  { key: 'refresh', label: '刷新列表', icon: RefreshCcw },
-  { key: 'create', label: '新建向量库', icon: Plus },
+  {key: 'refresh', label: $t('vectorStores.actions.refreshList'), icon: RefreshCcw},
+  {key: 'create', label: $t('vectorStores.actions.create'), icon: Plus},
 ]);
 
 const summaryText = computed(() => {
@@ -69,7 +70,7 @@ const summaryText = computed(() => {
     items.value.map((item) => item.provider).filter(Boolean),
   ).size;
   const ready = items.value.filter((item) => Boolean(item.tableName)).length;
-  return `当前共 ${total} 个向量库 · 供应商 ${providers} 类 · 已完成配置 ${ready}`;
+  return $t('vectorStores.list.summary', {providers, ready, total});
 });
 
 async function loadList() {
@@ -107,13 +108,15 @@ async function handleDelete(item: AigcVectorStore) {
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除「${item.name || '未命名向量库'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除向量库',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.name || $t('vectorStores.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('vectorStores.messages.deleteTitle'),
     onPositiveClick: async () => {
       await vectorStoreApi.remove(item.id!);
-      message.success('向量库已删除');
+      message.success($t('vectorStores.messages.deleted'));
       await loadList();
     },
   });
@@ -124,10 +127,10 @@ async function handleSave(payload: Partial<AigcVectorStore>) {
   try {
     if (currentItem.value?.id) {
       await vectorStoreApi.update(currentItem.value.id, payload);
-      message.success('向量库已更新');
+      message.success($t('vectorStores.messages.updated'));
     } else {
       await vectorStoreApi.create(payload);
-      message.success('向量库已创建');
+      message.success($t('vectorStores.messages.created'));
     }
     showEdit.value = false;
     await loadList();
@@ -154,18 +157,18 @@ onMounted(loadList);
         :common-tag-icon="Tag"
         :items="pagedItems"
         :loading="loading"
-        search-placeholder="按名称、供应商、主机地址搜索"
+        :search-placeholder="$t('vectorStores.list.searchPlaceholder')"
         :search-value="keyword"
         :tags="providerTagOptions"
-        empty-description="当前还没有向量库数据。"
+        :empty-description="$t('vectorStores.list.emptyDescription')"
         @update:active-tag="selectedProvider = $event"
         @update:search-value="keyword = $event"
       >
         <template #leading-card>
           <LcActionCard
             :actions="actionItems"
-            description="将操作抽离到独立卡片，便于列表头部保持干净。"
-            title="向量库操作"
+            :description="$t('vectorStores.list.actionsDescription')"
+            :title="$t('vectorStores.list.actionsTitle')"
             @action="handleAction"
           />
         </template>
@@ -177,7 +180,11 @@ onMounted(loadList);
           />
         </template>
         <template #empty-extra>
-          <NButton type="primary" @click="handleCreate">新建向量库</NButton>
+          <NButton type="primary" @click="handleCreate">
+{{
+            $t('vectorStores.actions.create')
+          }}
+</NButton>
         </template>
       </LcListCard>
 

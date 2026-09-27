@@ -13,6 +13,7 @@ import {
   SquarePen,
   Trash2,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
@@ -22,6 +23,9 @@ import {
   resolveDocsStatusLabel,
   resolveDocsStatusType,
 } from '#/views/shared/aigc/docs-status';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
+
+import { formatDocsFileSize } from './shared';
 
 interface Props {
   item: AigcDocs;
@@ -42,29 +46,22 @@ const emit = defineEmits<{
 const knowledgeName = computed(
   () =>
     props.knowledgeOptions.find((item) => item.value === props.item.knowledgeId)
-      ?.label || '未配置',
+      ?.label || $t('common.status.notConfigured'),
 );
 
 const metaItems = computed(() => [
-  { label: '知识库', value: knowledgeName.value },
-  { label: '类型', value: props.item.ext || props.item.type || '--' },
+  { label: $t('docs.card.knowledgeLabel'), value: knowledgeName.value },
+  { label: $t('docs.card.typeLabel'), value: props.item.ext || props.item.type || '--' },
   {
-    label: '大小',
+    label: $t('docs.card.sizeLabel'),
     value:
-      props.item.size > 0 ? `${(props.item.size / 1024).toFixed(1)} KB` : '--',
+      (props.item.size ?? 0) > 0 ? formatDocsFileSize(props.item.size!) : '--',
   },
   {
-    label: '状态',
+    label: $t('docs.card.statusLabel'),
     value: resolveDocsStatusLabel(props.item.embedStatus),
   },
 ]);
-
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -74,7 +71,7 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary"
         >
-          {{ item.name || '未命名文档' }}
+          {{ item.name || $t('docs.card.unnamed') }}
         </div>
       </div>
     </template>
@@ -83,7 +80,10 @@ function formatTime(timestamp?: number) {
       <p class="text-[11px] text-muted-foreground line-clamp-2">
         {{
           item.content ||
-          `归属知识库 ${knowledgeName}，状态 ${resolveDocsStatusLabel(item.embedStatus)}。`
+          $t('docs.card.knowledgeStatus', {
+            knowledge: knowledgeName,
+            status: resolveDocsStatusLabel(item.embedStatus),
+          })
         }}
       </p>
     </template>
@@ -97,14 +97,14 @@ function formatTime(timestamp?: number) {
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'解析预览'"
+          v-tippy="$t('docs.actions.parsePreview')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -114,7 +114,7 @@ function formatTime(timestamp?: number) {
           <FileSearch2 class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'开始向量化'"
+          v-tippy="$t('docs.actions.startVectorize')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -125,7 +125,7 @@ function formatTime(timestamp?: number) {
         </NButton>
         <NButton
           v-if="item.embedStatus === 'failed'"
-          v-tippy="'失败重试'"
+          v-tippy="$t('docs.actions.retryFailed')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary
@@ -136,7 +136,7 @@ function formatTime(timestamp?: number) {
           <RotateCcw class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'状态详情'"
+          v-tippy="$t('docs.actions.statusDetail')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -146,7 +146,7 @@ function formatTime(timestamp?: number) {
           <Activity class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -156,7 +156,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('docs.actions.deleteDoc')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

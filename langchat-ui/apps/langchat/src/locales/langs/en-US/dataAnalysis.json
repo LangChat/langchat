@@ -1,0 +1,34 @@
+{
+  "title": "Data Analysis",
+  "selectedTables": "{count} tables selected",
+  "datasource": "Datasource",
+  "datasourcePlaceholder": "Select a datasource",
+  "retrievalTables": "Retrievable tables",
+  "noRetrievalTables": "No retrievable tables",
+  "emptyTitle": "Ask questions over your authorized data",
+  "placeholder": "Enter your data question",
+  "suggestions": {
+    "statusDistribution": "Count records by status and show the distribution",
+    "timeTrend": "Analyze recent trends over time",
+    "topTen": "Find the top 10 items by count and chart them"
+  },
+  "messages": {
+    "selectDatasourceAndTable": "Select a datasource and tables to retrieve first",
+    "queryCompleted": "Data query completed",
+    "querying": "Querying data",
+    "failed": "Data analysis failed",
+    "apiRequestFailed": "The data analysis request failed",
+    "apiStreamEmpty": "The data analysis response stream is empty"
+  },
+  "result": {
+    "chartTab": "Chart",
+    "tableTab": "Data Table",
+    "rowCount": "{count} rows",
+    "viewSql": "View SQL"
+  },
+  "events": {
+    "queryResult": "Query Result",
+    "chartTitle": "Analysis Chart",
+    "invalidChartConfig": "Invalid chart configuration"
+  }
+}

@@ -11,6 +11,7 @@ import {
   SquarePen,
   Trash2,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
@@ -18,6 +19,7 @@ import { skillApi } from '#/api/aigc/skill';
 import LcCard from '#/components/LcCard/index.vue';
 import LcStatusTag from '#/components/LcStatusTag/index.vue';
 import { parseTagList } from '#/views/shared/aigc/tags';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface Props {
   item: AigcSkill;
@@ -43,14 +45,22 @@ async function handleDownload(item: AigcSkill) {
   URL.revokeObjectURL(url);
 }
 
-const title = computed(() => props.item.title || props.item.name || '未命名技能');
+const title = computed(
+  () => props.item.title || props.item.name || $t('skills.empty.unnamed'),
+);
 const tags = computed(() => parseTagList(props.item.tags));
 
 const metaItems = computed(() => [
-  { label: '版本', value: props.item.version || '--' },
-  { label: '文件数', value: props.item.fileCount ?? '--' },
-  { label: '包大小', value: formatSize(props.item.packageSize) },
-  { label: '标签', value: tags.value.length > 0 ? tags.value.join(' / ') : '--' },
+  { label: $t('skills.card.version'), value: props.item.version || '--' },
+  { label: $t('skills.card.filesCount'), value: props.item.fileCount ?? '--' },
+  {
+    label: $t('skills.card.packageSize'),
+    value: formatSize(props.item.packageSize),
+  },
+  {
+    label: $t('skills.card.tags'),
+    value: tags.value.length > 0 ? tags.value.join(' / ') : '--',
+  },
 ]);
 
 function formatSize(size?: number) {
@@ -64,13 +74,6 @@ function formatSize(size?: number) {
     return `${(size / 1024).toFixed(1)} KB`;
   }
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
-}
-
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
 }
 </script>
 
@@ -95,27 +98,27 @@ function formatTime(timestamp?: number) {
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        {{ item.description || '未填写技能描述' }}
+        {{ item.description || $t('skills.empty.noDescription') }}
       </p>
     </template>
 
     <template #header-extra>
       <LcStatusTag
-        :label="item.enabled ? '已启用' : '已停用'"
+        :label="item.enabled ? $t('skills.card.enabled') : $t('skills.card.disabled')"
         :type="item.enabled ? 'success' : 'default'"
       />
     </template>
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[9px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="2">
         <NButton
-          v-tippy="'编辑文档'"
+          v-tippy="$t('skills.card.editDocs')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -125,7 +128,11 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3" />
         </NButton>
         <NButton
-          v-tippy="item.enabled ? '停用技能' : '启用技能'"
+          v-tippy="
+            item.enabled
+              ? $t('skills.card.toggleDisable')
+              : $t('skills.card.toggleEnable')
+          "
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -136,7 +143,7 @@ function formatTime(timestamp?: number) {
           <Power v-else class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'下载原始包'"
+          v-tippy="$t('skills.card.downloadPackage')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -146,7 +153,7 @@ function formatTime(timestamp?: number) {
           <Download class="size-3" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

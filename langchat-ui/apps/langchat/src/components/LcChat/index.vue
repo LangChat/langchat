@@ -43,11 +43,11 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   assistantIcon: '',
   disabled: false,
-  emptyTitle: '随时可以开始',
+  emptyTitle: undefined,
   initialMessages: () => [],
   loading: false,
-  loadingText: '正在加载消息...',
-  placeholder: '输入你的问题',
+  loadingText: undefined,
+  placeholder: undefined,
   showAttachment: false,
   showModel: true,
   suggestions: () => [],
@@ -199,7 +199,7 @@ defineExpose({
   <div class="chat-layout flex h-full min-h-0 flex-col">
     <!-- 消息区(会话列表 + 空状态):历史消息加载期间用 v-loading 覆盖 -->
     <div
-      v-loading="{ spinning: loading, text: loadingText }"
+      v-loading="{ spinning: loading, text: loadingText ?? $t('chat.message.loadingHistory') }"
       class="flex min-h-0 flex-1 flex-col"
     >
       <!-- 会话态:消息滚动区 -->
@@ -239,7 +239,7 @@ defineExpose({
           class="pointer-events-none sticky bottom-2 flex justify-center"
         >
           <button
-            aria-label="回到底部"
+            :aria-label="$t('chat.message.backToBottom')"
             class="pointer-events-auto flex size-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:text-foreground"
             type="button"
             @click="scrollToBottom()"
@@ -257,7 +257,7 @@ defineExpose({
         <div class="chat-layout-content">
           <slot name="empty-head">
             <div class="text-xl font-semibold text-foreground">
-              {{ emptyTitle }}
+              {{ emptyTitle ?? $t('chat.empty.title') }}
             </div>
           </slot>
         </div>
@@ -270,7 +270,7 @@ defineExpose({
         <LcChatComposer
           v-model="composerText"
           :disabled="disabled"
-          :placeholder="placeholder"
+          :placeholder="placeholder ?? $t('chat.composer.fallback')"
           :show-attachment="showAttachment"
           :show-model="showModel"
           @send="handleSend"

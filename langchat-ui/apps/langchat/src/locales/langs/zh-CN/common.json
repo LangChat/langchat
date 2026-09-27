@@ -1,0 +1,74 @@
+{
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "done": "完成",
+    "add": "添加",
+    "create": "创建",
+    "edit": "编辑",
+    "delete": "删除",
+    "copy": "复制",
+    "copied": "已复制",
+    "refresh": "刷新",
+    "refreshList": "刷新列表",
+    "search": "搜索",
+    "reset": "重置",
+    "back": "返回",
+    "viewDetails": "查看详情",
+    "expandAll": "展开全部",
+    "collapseAll": "收起全部",
+    "expand": "展开",
+    "collapse": "收起",
+    "clearFilter": "清空筛选",
+    "confirmDelete": "确认删除"
+  },
+  "status": {
+    "enabled": "启用",
+    "disabled": "停用",
+    "enabledMessage": "已启用",
+    "disabledMessage": "已停用",
+    "yes": "是",
+    "no": "否",
+    "default": "默认",
+    "unknown": "未知",
+    "justNow": "刚刚",
+    "configured": "已配置",
+    "notConfigured": "未配置"
+  },
+  "labels": {
+    "all": "全部",
+    "none": "无",
+    "optional": "可选",
+    "count": "{count} 个",
+    "keyword": "关键词",
+    "type": "类型",
+    "provider": "供应商",
+    "host": "主机",
+    "port": "端口",
+    "username": "用户名",
+    "password": "密码",
+    "status": "状态",
+    "tags": "标签",
+    "actions": "操作",
+    "model": "模型",
+    "knowledgeBase": "知识库",
+    "skill": "技能",
+    "untitled": "未命名"
+  },
+  "placeholder": {
+    "pleaseSelect": "请选择",
+    "selectTags": "请选择标签"
+  },
+  "empty": {
+    "noData": "暂无数据",
+    "noDescription": "暂无描述"
+  },
+  "messages": {
+    "deleteConfirmContent": "删除后不可恢复，确认删除「{name}」吗？",
+    "copySuccess": "已复制到剪贴板",
+    "copyFailed": "复制失败",
+    "saveFailed": "保存失败：{message}",
+    "quickActionsDescription": "常用操作统一放置在首个卡片位。"
+  }
+}

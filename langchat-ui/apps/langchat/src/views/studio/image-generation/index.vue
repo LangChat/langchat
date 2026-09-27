@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import type {AigcModel} from '#/api/aigc/model';
 
-import {onMounted, ref} from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
-import {Page} from '@vben/common-ui';
-import {Download, ImagePlus, Sparkles} from '@vben/icons';
+import { Page } from '@vben/common-ui';
+import { Download, ImagePlus, Sparkles } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import {NButton, NForm, NFormItem, NInput, NSelect, NSlider, NSpin,} from 'naive-ui';
 
@@ -36,10 +37,10 @@ const ratioOptions = [
   { label: '3 : 4', value: '3:4' },
 ];
 
-const qualityOptions = [
-  { label: '标准', value: 'standard' },
-  { label: '高清', value: 'high' },
-];
+const qualityOptions = computed(() => [
+  { label: $t('studio.imageGeneration.qualityStandard'), value: 'standard' },
+  { label: $t('studio.imageGeneration.qualityHigh'), value: 'high' },
+]);
 
 const sizeOptions = [
   { label: '1024 x 1024', value: '1024x1024' },
@@ -86,7 +87,7 @@ function buildImageUrl() {
 function downloadImage() {
   const url = buildImageUrl();
   if (!url || !generatedUrl.value) {
-    message.warning('请先生成图片');
+    message.warning($t('studio.imageGeneration.generateFirst'));
     return;
   }
   const link = document.createElement('a');
@@ -97,11 +98,11 @@ function downloadImage() {
 
 async function handleGenerate() {
   if (!form.value.modelId) {
-    message.warning('请选择模型');
+    message.warning($t('studio.imageGeneration.selectModel'));
     return;
   }
   if (!form.value.prompt.trim()) {
-    message.warning('请输入提示词');
+    message.warning($t('studio.imageGeneration.promptRequired'));
     return;
   }
   loading.value = true;
@@ -116,12 +117,16 @@ async function handleGenerate() {
     });
     const data = result?.url || result?.base64Data || '';
     if (!data) {
-      message.warning('未返回图片数据');
+      message.warning($t('studio.imageGeneration.noImageData'));
       return;
     }
     generatedUrl.value = data;
   } catch (error) {
-    message.error(`生成失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('studio.imageGeneration.generateFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
   } finally {
     loading.value = false;
   }
@@ -137,9 +142,11 @@ onMounted(loadModels);
         class="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
       >
         <div>
-          <div class="text-lg font-semibold text-foreground">图片生成</div>
+          <div class="text-lg font-semibold text-foreground">
+            {{ $t('studio.imageGeneration.title') }}
+          </div>
           <div class="mt-1 text-sm text-muted-foreground">
-            选择文生图模型，配置提示词与参数，一键生成图片。
+            {{ $t('studio.imageGeneration.description') }}
           </div>
         </div>
       </div>
@@ -151,7 +158,7 @@ onMounted(loadModels);
             class="flex h-full min-h-0 flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-card p-4"
           >
             <NForm :show-label="true" label-placement="top">
-            <NFormItem label="生成模型">
+            <NFormItem :label="$t('studio.imageGeneration.model')">
               <ModelSelector
                 :allowed-types="['TEXT2IMAGE']"
                 :config="{}"
@@ -161,16 +168,16 @@ onMounted(loadModels);
               />
             </NFormItem>
 
-            <NFormItem label="提示词">
+            <NFormItem :label="$t('studio.imageGeneration.prompt')">
               <NInput
                 v-model:value="form.prompt"
                 :autosize="{minRows: 4, maxRows: 8}"
-                placeholder="描述你想要生成的图片，例如：一只在星空下奔跑的白色狐狸，赛博朋克风格"
+                :placeholder="$t('studio.imageGeneration.promptPlaceholder')"
                 type="textarea"
               />
             </NFormItem>
 
-            <NFormItem label="宽高比例">
+            <NFormItem :label="$t('studio.imageGeneration.aspectRatio')">
               <NSelect
                 v-model:value="form.ratio"
                 :options="ratioOptions"
@@ -178,19 +185,19 @@ onMounted(loadModels);
               />
             </NFormItem>
 
-            <NFormItem label="像素分辨率">
+            <NFormItem :label="$t('studio.imageGeneration.resolution')">
               <NSelect
                 v-model:value="form.size"
                 :options="sizeOptions"
-                placeholder="选择图片分辨率"
+                :placeholder="$t('studio.imageGeneration.resolutionPlaceholder')"
               />
             </NFormItem>
 
-            <NFormItem label="图片质量">
+            <NFormItem :label="$t('studio.imageGeneration.quality')">
               <NSelect v-model:value="form.quality" :options="qualityOptions" />
             </NFormItem>
 
-            <NFormItem label="生成数量">
+            <NFormItem :label="$t('studio.imageGeneration.count')">
               <NSlider
                 v-model:value="form.n"
                 :marks="{1: '1', 2: '2', 3: '3', 4: '4'}"
@@ -209,7 +216,7 @@ onMounted(loadModels);
               <template #icon>
                 <Sparkles class="size-4" />
               </template>
-              生成图片
+              {{ $t('studio.imageGeneration.generate') }}
             </NButton>
           </NForm>
           </div>
@@ -226,7 +233,9 @@ onMounted(loadModels);
             class="flex h-full min-h-[420px] flex-col gap-3 rounded-xl border border-border bg-card p-4"
           >
           <div class="flex items-center justify-between">
-            <div class="text-sm font-semibold text-foreground">生成结果</div>
+            <div class="text-sm font-semibold text-foreground">
+              {{ $t('studio.imageGeneration.resultTitle') }}
+            </div>
             <NButton
               v-if="generatedUrl"
               size="small"
@@ -236,7 +245,7 @@ onMounted(loadModels);
               <template #icon>
                 <Download class="size-3.5" />
               </template>
-              下载图片
+              {{ $t('studio.imageGeneration.download') }}
             </NButton>
           </div>
 
@@ -245,7 +254,7 @@ onMounted(loadModels);
               <img
                 v-if="generatedUrl"
                 :src="buildImageUrl()"
-                alt="生成结果"
+                :alt="$t('studio.imageGeneration.resultAlt')"
                 class="max-h-[560px] w-full rounded-lg object-contain"
               />
               <div
@@ -253,7 +262,9 @@ onMounted(loadModels);
                 class="flex flex-col items-center gap-2 p-12 text-muted-foreground"
               >
                 <ImagePlus class="size-12" />
-                <span class="text-sm">生成的图片将展示在这里</span>
+                <span class="text-sm">{{
+                  $t('studio.imageGeneration.emptyResult')
+                }}</span>
               </div>
             </NSpin>
           </div>

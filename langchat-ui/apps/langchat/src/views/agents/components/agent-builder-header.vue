@@ -14,11 +14,13 @@ import {
   Save,
   SlidersHorizontal,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NPopover, NTag } from 'naive-ui';
 
 import LcIconDisplay from '#/components/LcIcon/display.vue';
 import LcStatusTag from '#/components/LcStatusTag/index.vue';
+import { formatDocsTimestamp } from '#/views/shared/aigc/docs-status';
 
 type BuilderTab = 'config' | 'keys' | 'logs' | 'stats';
 
@@ -34,6 +36,7 @@ interface Props {
   modelLabel?: string;
   pageTitle: string;
   saving?: boolean;
+  status?: string;
   statusLabel?: string;
   statusType?: 'error' | 'success' | 'warning';
   summary?: string;
@@ -49,7 +52,8 @@ const props = withDefaults(defineProps<Props>(), {
   creator: '--',
   modelLabel: '--',
   saving: false,
-  statusLabel: '草稿',
+  status: 'DRAFT',
+  statusLabel: undefined,
   statusType: 'warning',
   summary: '',
   updateTime: 0,
@@ -65,19 +69,9 @@ const emit = defineEmits<{
 
 const actionShow = ref(false);
 
-const updateTimeText = computed(() => {
-  if (!props.updateTime) {
-    return '--';
-  }
-  return new Date(props.updateTime).toLocaleString('zh-CN', { hour12: false });
-});
+const updateTimeText = computed(() => formatDocsTimestamp(props.updateTime));
 
-const createTimeText = computed(() => {
-  if (!props.createTime) {
-    return '--';
-  }
-  return new Date(props.createTime).toLocaleString('zh-CN', { hour12: false });
-});
+const createTimeText = computed(() => formatDocsTimestamp(props.createTime));
 
 function resolveTabIcon(tab: BuilderTab) {
   if (tab === 'keys') {
@@ -92,15 +86,16 @@ function resolveTabIcon(tab: BuilderTab) {
   return SlidersHorizontal;
 }
 
+const isPublished = computed(() => props.status === 'PUBLISHED');
 const publishLabel = computed(() =>
-  props.statusLabel === '已发布' ? '取消发布' : '发布应用',
+  isPublished.value
+    ? $t('agents.actions.unpublish')
+    : $t('agents.actions.publish'),
 );
 const publishStatus = computed<'DISABLED' | 'PUBLISHED'>(() =>
-  props.statusLabel === '已发布' ? 'DISABLED' : 'PUBLISHED',
+  isPublished.value ? 'DISABLED' : 'PUBLISHED',
 );
-const publishIcon = computed(() =>
-  props.statusLabel === '已发布' ? Ban : Rocket,
-);
+const publishIcon = computed(() => (isPublished.value ? Ban : Rocket));
 
 function handleSaveDraft() {
   actionShow.value = false;
@@ -118,7 +113,14 @@ function handlePublish() {
     <!-- 顶部行 -->
     <div class="flex items-center justify-between gap-3 px-4 py-2.5">
       <div class="flex min-w-0 items-center gap-3">
-        <NButton circle quaternary size="small" @click="emit('back')">
+        <NButton
+          v-tippy="$t('common.actions.back')"
+          :aria-label="$t('common.actions.back')"
+          circle
+          quaternary
+          size="small"
+          @click="emit('back')"
+        >
           <template #icon>
             <ArrowLeft class="size-4" />
           </template>
@@ -136,21 +138,26 @@ function handlePublish() {
             <div class="truncate text-lg font-semibold text-foreground">
               {{ pageTitle }}
             </div>
-            <LcStatusTag :label="statusLabel" :type="statusType" />
+            <LcStatusTag
+              :label="statusLabel ?? $t('agents.status.draft')"
+              :type="statusType"
+            />
           </div>
           <div
             class="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-4 text-muted-foreground"
           >
-            <span class="max-w-[200px] truncate">{{ summary || '未命名应用' }}</span>
+            <span class="max-w-[200px] truncate">
+              {{ summary || $t('agents.header.untitled') }}
+            </span>
             <span class="size-0.5 shrink-0 rounded-full bg-muted-foreground/40"></span>
             <span class="inline-flex items-center gap-1">
               <Clock3 class="size-3 shrink-0" />
-              更新时间 {{ updateTimeText }}
+              {{ $t('agents.header.updatedAt', { time: updateTimeText }) }}
             </span>
             <span class="size-0.5 shrink-0 rounded-full bg-muted-foreground/40"></span>
             <span class="inline-flex items-center gap-1">
               <BrainCircuit class="size-3 shrink-0" />
-              模型 {{ modelLabel || '--' }}
+              {{ $t('agents.header.modelLabel', { model: modelLabel || '--' }) }}
             </span>
           </div>
         </div>
@@ -168,7 +175,7 @@ function handlePublish() {
               <template #icon>
                 <Save class="size-3.5" />
               </template>
-              保存 / 发布
+              {{ $t('agents.actions.saveAndPublish') }}
               <ChevronDown class="size-3.5" />
             </NButton>
           </template>
@@ -177,25 +184,33 @@ function handlePublish() {
               class="mb-2 flex flex-col gap-1.5 rounded-md bg-muted/30 px-3 py-2.5"
             >
               <div class="flex items-center justify-between">
-                <span class="text-[11px] text-muted-foreground">创建人</span>
+                <span class="text-[11px] text-muted-foreground">
+                  {{ $t('agents.header.createdBy') }}
+                </span>
                 <NTag :bordered="false" round size="small" type="info">
                   {{ creator || '--' }}
                 </NTag>
               </div>
               <div class="flex items-center justify-between">
-                <span class="text-[11px] text-muted-foreground">创建时间</span>
+                <span class="text-[11px] text-muted-foreground">
+                  {{ $t('agents.header.createdAt') }}
+                </span>
                 <NTag :bordered="false" round size="small">
                   {{ createTimeText }}
                 </NTag>
               </div>
               <div class="flex items-center justify-between">
-                <span class="text-[11px] text-muted-foreground">最后修改</span>
+                <span class="text-[11px] text-muted-foreground">
+                  {{ $t('agents.header.lastModified') }}
+                </span>
                 <NTag :bordered="false" round size="small">
                   {{ updateTimeText }}
                 </NTag>
               </div>
               <div class="flex items-center justify-between">
-                <span class="text-[11px] text-muted-foreground">修改人</span>
+                <span class="text-[11px] text-muted-foreground">
+                  {{ $t('agents.header.modifiedBy') }}
+                </span>
                 <NTag :bordered="false" round size="small" type="info">
                   {{ updater || '--' }}
                 </NTag>
@@ -206,7 +221,7 @@ function handlePublish() {
                 <template #icon>
                   <Save class="size-3.5" />
                 </template>
-                保存草稿
+                {{ $t('agents.actions.saveDraft') }}
               </NButton>
               <NButton
                 block
@@ -236,7 +251,7 @@ function handlePublish() {
             ? 'border-primary/50 bg-primary/8 text-primary'
             : 'border-border text-muted-foreground hover:border-primary/40 hover:bg-muted/40 hover:text-foreground'
         "
-        class="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium transition-colors"
+        class="inline-flex cursor-pointer shrink-0 items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium transition-colors"
         type="button"
         @click="emit('update:tab', item.key)"
       >

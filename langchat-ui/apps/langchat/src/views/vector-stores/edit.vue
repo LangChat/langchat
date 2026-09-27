@@ -2,13 +2,15 @@
 import type { AigcVectorStore } from '#/api/aigc/vector-store';
 
 import { computed, watch } from 'vue';
+
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
 import { VECTOR_PROVIDER_OPTIONS } from '#/views/shared/aigc/options';
 
 interface Props {
-  modelValue?: Partial<AigcVectorStore> | null;
+  modelValue?: null | Partial<AigcVectorStore>;
   saving?: boolean;
   show: boolean;
 }
@@ -25,14 +27,14 @@ const emit = defineEmits<{
 }>();
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑向量库' : '新建向量库',
+  props.modelValue?.id ? $t('vectorStores.title.edit') : $t('vectorStores.title.create'),
 );
 
-const formSchema: VbenFormSchema[] = [
+const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '向量库名称',
+    label: $t('vectorStores.form.name'),
     rules: 'required',
   },
   {
@@ -41,41 +43,41 @@ const formSchema: VbenFormSchema[] = [
       options: VECTOR_PROVIDER_OPTIONS,
     },
     fieldName: 'provider',
-    label: '供应商',
+    label: $t('common.labels.provider'),
     rules: 'selectRequired',
   },
   {
     component: 'Input',
     fieldName: 'host',
-    label: '主机地址',
+    label: $t('vectorStores.form.host'),
     rules: 'required',
   },
   {
     component: 'InputNumber',
     componentProps: { min: 1 },
     fieldName: 'port',
-    label: '端口',
+    label: $t('common.labels.port'),
   },
   {
     component: 'Input',
     fieldName: 'databaseName',
-    label: '数据库名',
+    label: $t('vectorStores.form.database'),
   },
   {
     component: 'Input',
     fieldName: 'tableName',
-    label: '表名/集合名',
+    label: $t('vectorStores.form.table'),
   },
   {
     component: 'InputNumber',
     componentProps: { min: 1 },
     fieldName: 'dimension',
-    label: '向量维度',
+    label: $t('vectorStores.form.dimension'),
   },
   {
     component: 'Input',
     fieldName: 'username',
-    label: '用户名',
+    label: $t('common.labels.username'),
   },
   {
     component: 'Input',
@@ -84,16 +86,24 @@ const formSchema: VbenFormSchema[] = [
       type: 'password',
     },
     fieldName: 'password',
-    label: '密码',
+    label: $t('common.labels.password'),
   },
-];
+]);
 
 const [Form, formApi] = useVbenForm({
   layout: 'vertical',
-  schema: formSchema,
+  schema: formSchema.value,
   showDefaultActions: false,
   wrapperClass: 'grid-cols-1 gap-x-4 px-3 sm:grid-cols-2',
 });
+
+watch(
+  () => formSchema.value,
+  (schema) => {
+    formApi.setState({ schema });
+  },
+  { immediate: true },
+);
 
 function emitClose(withCancel: boolean = true) {
   emit('update:show', false);
@@ -112,7 +122,6 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[760px]',
-  confirmText: '保存',
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -120,13 +129,20 @@ const [Drawer, drawerApi] = useVbenDrawer({
       emitClose(true);
     }
   },
-  title: drawerTitle.value,
 });
 
 watch(
   () => props.saving,
   (value) => {
     drawerApi.setState({ confirmLoading: value });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
   },
   { immediate: true },
 );
@@ -153,7 +169,7 @@ watch(
       {
         port: 5432,
         provider: 'PGVECTOR',
-        ...(props.modelValue ?? {}),
+        ...props.modelValue,
       },
       false,
     );

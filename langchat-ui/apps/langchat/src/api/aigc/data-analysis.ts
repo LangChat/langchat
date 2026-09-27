@@ -3,6 +3,8 @@ import type {
   OpenAiChatCompletionChunk,
 } from './chat';
 
+import { $t } from '@vben/locales';
+
 import {
   getRequestClientAuthHeaders,
   requestClient,
@@ -55,10 +57,14 @@ export async function streamDataAnalysis(
     },
   );
   if (!response.ok) {
-    throw new Error((await response.text()) || '智能问数请求失败');
+    throw new Error(
+      (await response.text()) || $t('dataAnalysis.messages.apiRequestFailed'),
+    );
   }
   const reader = response.body?.getReader();
-  if (!reader) throw new Error('智能问数响应流为空');
+  if (!reader) {
+    throw new Error($t('dataAnalysis.messages.apiStreamEmpty'));
+  }
   const decoder = new TextDecoder();
   let buffer = '';
   while (true) {

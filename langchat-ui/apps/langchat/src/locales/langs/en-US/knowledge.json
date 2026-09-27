@@ -1,0 +1,41 @@
+{
+  "title": {
+    "create": "Create Knowledge Base",
+    "edit": "Edit Knowledge Base"
+  },
+  "actions": {
+    "create": "New Knowledge Base"
+  },
+  "form": {
+    "name": "Knowledge Base Name",
+    "icon": "Knowledge Base Icon",
+    "vectorStore": "Vector Store",
+    "vectorModel": "Vector Model",
+    "maxResults": "Recall Count",
+    "minScore": "Minimum Score",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter knowledge base description"
+  },
+  "card": {
+    "unnamed": "Untitled Knowledge Base",
+    "defaultDescription": "Holds document chunks and vector recall configuration.",
+    "vectorModel": "Vector Model",
+    "vectorStore": "Vector Store",
+    "recall": "Recall",
+    "topN": "Top {count}"
+  },
+  "list": {
+    "searchPlaceholder": "Search by name, description or tags"
+  },
+  "quickActions": {
+    "title": "Knowledge Base Actions"
+  },
+  "messages": {
+    "created": "Knowledge base created",
+    "updated": "Knowledge base updated",
+    "deleted": "Knowledge base deleted",
+    "missingId": "This knowledge base is missing an ID",
+    "vectorizeSubmitted": "Batch vectorization task submitted for this knowledge base",
+    "deleteTitle": "Delete Knowledge Base"
+  }
+}

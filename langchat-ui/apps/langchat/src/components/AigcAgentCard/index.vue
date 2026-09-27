@@ -4,13 +4,16 @@ import type { LabelOption } from '#/views/shared/aigc/options';
 
 import { computed } from 'vue';
 
+import { $t } from '@vben/locales';
+
 import LcCard from '#/components/LcCard/index.vue';
 import LcStatusTag from '#/components/LcStatusTag/index.vue';
 import { resolveOptionLabels } from '#/views/shared/aigc/id-list';
 import {
-  AGENT_STATUS_OPTIONS,
+  agentStatusOptions,
   findOptionLabel,
 } from '#/views/shared/aigc/options';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface Props {
   item: AigcAgent;
@@ -33,9 +36,16 @@ const skillLabels = computed(() =>
 );
 
 const description = computed(() => {
-  const kText = knowledgeLabels.value.slice(0, 2).join('、') || '未配置知识库';
-  const sText = skillLabels.value.slice(0, 2).join('、') || '未配置技能';
-  return `知识库 ${kText}，技能 ${sText}。`;
+  const kText =
+    knowledgeLabels.value.slice(0, 2).join('、') ||
+    $t('components.aigcAgentCard.noKnowledge');
+  const sText =
+    skillLabels.value.slice(0, 2).join('、') ||
+    $t('components.aigcAgentCard.noSkills');
+  return $t('components.aigcAgentCard.knowledgeAndSkills', {
+    knowledge: kText,
+    skills: sText,
+  });
 });
 
 const modelName = computed(() => {
@@ -51,24 +61,26 @@ const modelName = computed(() => {
   } catch {
     // noop
   }
-  return props.item.modelConfigJson ? '已配置' : '未配置';
+  return props.item.modelConfigJson
+    ? $t('common.status.configured')
+    : $t('common.status.notConfigured');
 });
 
 const metaItems = computed(() => [
-  { label: '模型', value: modelName.value },
+  { label: $t('common.labels.model'), value: modelName.value },
   {
-    label: '知识库',
+    label: $t('common.labels.knowledgeBase'),
     value:
       knowledgeLabels.value.length > 0
-        ? `${knowledgeLabels.value.length} 个`
-        : '未配置',
+        ? $t('common.labels.count', { count: knowledgeLabels.value.length })
+        : $t('common.status.notConfigured'),
   },
   {
-    label: '技能',
+    label: $t('common.labels.skill'),
     value:
       skillLabels.value.length > 0
-        ? `${skillLabels.value.length} 个`
-        : '未配置',
+        ? $t('common.labels.count', { count: skillLabels.value.length })
+        : $t('common.status.notConfigured'),
   },
 ]);
 
@@ -101,13 +113,6 @@ const statusType = computed(() =>
       ? 'error'
       : 'info',
 );
-
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -123,7 +128,7 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground group-hover:text-primary"
         >
-          {{ item.agentName || '未命名应用' }}
+          {{ item.agentName || $t('components.aigcAgentCard.unnamedApp') }}
         </div>
       </div>
     </template>
@@ -136,7 +141,7 @@ function formatTime(timestamp?: number) {
 
     <template #header-extra>
       <LcStatusTag
-        :label="findOptionLabel(AGENT_STATUS_OPTIONS, item.status)"
+        :label="findOptionLabel(agentStatusOptions(), item.status)"
         :type="statusType"
       />
     </template>
@@ -153,7 +158,7 @@ function formatTime(timestamp?: number) {
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 

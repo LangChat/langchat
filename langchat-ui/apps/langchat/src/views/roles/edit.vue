@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import type { AigcMenuTreeNode } from '#/api/auth/menu';
-import type { AigcRole } from '#/api/auth/role';
 import type { TreeOption } from 'naive-ui';
 
+import type { AigcMenuTreeNode } from '#/api/auth/menu';
+import type { AigcRole } from '#/api/auth/role';
+
 import { computed, ref, watch } from 'vue';
+
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
 import { NButton, NInput, NTree } from 'naive-ui';
 
 import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
@@ -15,7 +19,7 @@ interface RoleFormModel extends Partial<AigcRole> {
 
 interface Props {
   menuTree: AigcMenuTreeNode[];
-  modelValue?: RoleFormModel | null;
+  modelValue?: null | RoleFormModel;
   saving?: boolean;
   show: boolean;
 }
@@ -35,41 +39,41 @@ const menuKeyword = ref('');
 const roleModel = ref<RoleFormModel>({ menuIds: [] });
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑角色' : '新建角色',
+  props.modelValue?.id ? $t('roles.title.edit') : $t('roles.title.create'),
 );
 
 const checkedMenuIds = computed(() => roleModel.value.menuIds ?? []);
 const treeData = computed(() => props.menuTree as unknown as TreeOption[]);
 
-const formSchema: VbenFormSchema[] = [
+const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '角色名称',
+    label: $t('roles.form.name'),
     rules: 'required',
   },
   {
     component: 'Input',
     fieldName: 'code',
-    label: '角色编码',
+    label: $t('roles.form.code'),
     rules: 'required',
   },
   {
     component: 'Input',
     componentProps: {
       autosize: { maxRows: 6, minRows: 3 },
-      placeholder: '请输入角色描述',
+      placeholder: $t('roles.form.descriptionPlaceholder'),
       type: 'textarea',
     },
     fieldName: 'description',
     formItemClass: 'sm:cols-span-2',
-    label: '角色描述',
+    label: $t('roles.form.description'),
   },
-];
+]);
 
 const [Form, formApi] = useVbenForm({
   layout: 'vertical',
-  schema: formSchema,
+  schema: formSchema.value,
   showDefaultActions: false,
   wrapperClass: 'grid-cols-1 px-3',
 });
@@ -90,7 +94,7 @@ function clearAllMenus() {
 }
 
 function handleCheckedKeysChange(keys: Array<number | string>) {
-  roleModel.value.menuIds = keys.map((item) => String(item));
+  roleModel.value.menuIds = keys.map(String);
 }
 
 function collectMenuIds(nodes: AigcMenuTreeNode[]): string[] {
@@ -113,7 +117,7 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[820px]',
-  confirmText: '保存',
+  confirmText: $t('common.actions.save'),
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -141,6 +145,14 @@ watch(
 );
 
 watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
+
+watch(
   () => [props.show, props.modelValue],
   async () => {
     if (!props.show) {
@@ -150,8 +162,8 @@ watch(
 
     menuKeyword.value = '';
     roleModel.value = {
-      menuIds: [...new Set(props.modelValue?.menuIds ?? [])],
-      ...(props.modelValue ?? {}),
+      menuIds: [...new Set(props.modelValue?.menuIds)],
+      ...props.modelValue,
     };
     drawerApi.open();
 
@@ -168,7 +180,9 @@ watch(
       <Form />
 
       <div>
-        <div class="mb-2 text-sm font-medium text-foreground">菜单授权</div>
+        <div class="mb-2 text-sm font-medium text-foreground">
+          {{ $t('roles.form.menuAuth') }}
+        </div>
         <div class="space-y-3">
           <div
             class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
@@ -177,15 +191,15 @@ watch(
               <NInput
                 v-model:value="menuKeyword"
                 clearable
-                placeholder="搜索菜单名称"
+                :placeholder="$t('roles.form.menuSearchPlaceholder')"
               />
             </div>
             <div class="flex items-center gap-2">
               <NButton secondary size="small" @click="toggleAllMenus">
-                全部授权
+                {{ $t('roles.form.grantAll') }}
               </NButton>
               <NButton secondary size="small" @click="clearAllMenus">
-                清空授权
+                {{ $t('roles.form.clearAll') }}
               </NButton>
             </div>
           </div>

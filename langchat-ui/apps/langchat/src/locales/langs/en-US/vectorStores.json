@@ -1,0 +1,39 @@
+{
+  "title": {
+    "create": "New Vector Store",
+    "edit": "Edit Vector Store"
+  },
+  "actions": {
+    "create": "New Vector Store",
+    "refreshList": "Refresh list"
+  },
+  "form": {
+    "name": "Vector Store Name",
+    "host": "Host Address",
+    "database": "Database Name",
+    "table": "Table/Collection",
+    "dimension": "Vector Dimension"
+  },
+  "card": {
+    "unnamed": "Untitled Vector Store",
+    "providerLabel": "Provider",
+    "database": "Database",
+    "dimension": "Dimension",
+    "nodeSummary": "Current node {host}:{port}, hosts the vector data of",
+    "tableSummary": ".",
+    "defaultTable": "the default table"
+  },
+  "list": {
+    "searchPlaceholder": "Search by name, provider or host",
+    "emptyDescription": "No vector store data yet.",
+    "actionsTitle": "Vector Store Actions",
+    "actionsDescription": "Actions are split into a dedicated card to keep the list header clean.",
+    "summary": "{total} vector stores · {providers} providers · {ready} configured"
+  },
+  "messages": {
+    "created": "Vector store created",
+    "updated": "Vector store updated",
+    "deleted": "Vector store deleted",
+    "deleteTitle": "Delete Vector Store"
+  }
+}

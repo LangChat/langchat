@@ -1,0 +1,24 @@
+{
+  "banner": {
+    "description": "The full-stack open source platform for knowledge-augmented and agent-driven apps, unifying models, knowledge bases, agents, skills and MCP capabilities.",
+    "maintainedByPre": "Maintained by",
+    "maintainedByPost": ""
+  },
+  "metrics": {
+    "label": "Metrics",
+    "tokens": "Token Usage",
+    "messages": "Messages",
+    "apps": "Apps",
+    "users": "Users"
+  },
+  "charts": {
+    "messageTrend": "Message Trend (last 7 days)",
+    "tokenTrend": "Token Usage Trend (last 7 days)",
+    "userTrend": "User Trend (last 7 days)"
+  },
+  "hints": {
+    "prefix": "vs previous 7 days",
+    "flat": "Flat",
+    "published": "{count} published"
+  }
+}

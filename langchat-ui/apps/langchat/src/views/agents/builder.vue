@@ -15,6 +15,7 @@ import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 
 import {Page} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 import {preferences} from '@vben/preferences';
 import {useUserStore} from '@vben/stores';
 
@@ -41,7 +42,7 @@ import AgentMessageLogPanel from '#/views/agents/components/agent-message-log-pa
 import AgentMessageStatsPanel from '#/views/agents/components/agent-message-stats-panel.vue';
 import {parseIdList, stringifyIdList} from '#/views/shared/aigc/id-list';
 import {useAigcLookups} from '#/views/shared/aigc/lookups';
-import {AGENT_STATUS_OPTIONS, findOptionLabel,} from '#/views/shared/aigc/options';
+import {agentStatusOptions, findOptionLabel,} from '#/views/shared/aigc/options';
 
 type BuilderTab = 'config' | 'keys' | 'logs' | 'stats';
 
@@ -54,12 +55,12 @@ interface AgentFormModel extends Partial<AigcAgent> {
   skillIdsList: string[];
 }
 
-const DEFAULT_WELCOME = '欢迎使用当前应用，先从一个问题开始。';
-const DEFAULT_SUGGESTIONS = [
-  '介绍这个应用能做什么',
-  '给我一个快速上手示例',
-  '推荐下一步操作',
-];
+const DEFAULT_WELCOME = computed(() => $t('agents.configView.welcomeFallback'));
+const DEFAULT_SUGGESTIONS = computed(() => [
+  $t('agents.configView.suggestionDefaults.first'),
+  $t('agents.configView.suggestionDefaults.second'),
+  $t('agents.configView.suggestionDefaults.third'),
+]);
 const META_KEYS = new Set([
   'defaultSuggestions',
   'enableAutoSuggestion',
@@ -103,19 +104,21 @@ const agentId = computed(() => String(route.params.id || ''));
 const isCreateMode = computed(() => !agentId.value || agentId.value === 'new');
 const pageTitle = computed(() =>
   isCreateMode.value
-    ? '新建 Agent 应用'
-    : formModel.value.agentName || 'Agent 应用详情',
+    ? $t('agents.title.builderNew')
+    : formModel.value.agentName || $t('agents.title.builderDetail'),
 );
 const statusLabel = computed(() =>
-  findOptionLabel(AGENT_STATUS_OPTIONS, formModel.value.status || 'DRAFT'),
+  findOptionLabel(agentStatusOptions(), formModel.value.status || 'DRAFT'),
 );
-const formSummary = computed(() => formModel.value.agentName || '未命名应用');
+const formSummary = computed(() =>
+  formModel.value.agentName || $t('agents.header.untitled'),
+);
 const modelLabel = computed(
   () =>
     lookups.value.models.find(
       (item) =>
         String(item.value) === String(formModel.value.reasoningModelId || ''),
-    )?.label || '未配置',
+    )?.label || $t('common.status.notConfigured'),
 );
 const userAvatar = computed(
   () => userStore.userInfo?.avatar || preferences.app.defaultAvatar,
@@ -130,14 +133,14 @@ const statusType = computed(() => {
   return 'warning';
 });
 const builderTabs = computed(() => [
-  { key: 'config' as BuilderTab, label: '配置页' },
-  { key: 'keys' as BuilderTab, label: 'API 接入' },
-  { key: 'logs' as BuilderTab, label: '消息日志' },
-  { key: 'stats' as BuilderTab, label: '统计报表' },
+  { key: 'config' as BuilderTab, label: $t('agents.builder.tabs.config') },
+  { key: 'keys' as BuilderTab, label: $t('agents.builder.tabs.apiKeys') },
+  { key: 'logs' as BuilderTab, label: $t('agents.builder.tabs.logs') },
+  { key: 'stats' as BuilderTab, label: $t('agents.builder.tabs.stats') },
 ]);
 const normalizedDefaultSuggestions = computed(() => {
   const values = parseSuggestions(formModel.value.defaultSuggestionsList);
-  return values.length > 0 ? values : DEFAULT_SUGGESTIONS;
+  return values.length > 0 ? values : DEFAULT_SUGGESTIONS.value;
 });
 
 const knowledgeRelationOptions = computed(() =>
@@ -150,14 +153,20 @@ const knowledgeRelationOptions = computed(() =>
       return {
         description:
           item.description ||
-          `补充 ${item.name || '当前知识库'} 的业务知识上下文。`,
-        label: item.name || '未命名知识库',
+          $t('agents.builder.knowledgeCard.description', {
+            name: item.name || $t('agents.builder.knowledgeCard.untitled'),
+          }),
+        label: item.name || $t('agents.builder.knowledgeCard.untitled'),
         metrics: [
-          `向量模型 ${vectorModelLabel}`,
-          `TopK ${item.maxResults ?? '--'}`,
-          '文档 --',
+          $t('agents.builder.knowledgeCard.vectorModel', {
+            name: vectorModelLabel,
+          }),
+          $t('agents.builder.knowledgeCard.topK', {
+            count: item.maxResults ?? '--',
+          }),
+          $t('agents.builder.knowledgeCard.docsCount', { count: '--' }),
         ],
-        tags: ['知识库'],
+        tags: [$t('common.labels.knowledgeBase')],
         value: String(item.id || ''),
       };
     })
@@ -167,13 +176,22 @@ const knowledgeRelationOptions = computed(() =>
 const skillRelationOptions = computed(() =>
   skillEntities.value
     .map((item) => ({
-      description: item.description || '该技能暂未填写描述。',
-      label: item.title || item.name || '未命名技能',
+      description:
+        item.description || $t('agents.builder.skillCard.descriptionFallback'),
+      label: item.title || item.name || $t('agents.builder.skillCard.untitled'),
       metrics: [
-        `版本 ${item.version || '--'}`,
-        `文件数 ${item.fileCount ?? '--'}`,
+        $t('agents.builder.skillCard.version', {
+          version: item.version || '--',
+        }),
+        $t('agents.builder.skillCard.filesCount', {
+          count: item.fileCount ?? '--',
+        }),
       ],
-      tags: [item.enabled ? '启用' : '停用'],
+      tags: [
+        item.enabled
+          ? $t('common.status.enabled')
+          : $t('common.status.disabled'),
+      ],
       value: String(item.id || ''),
     }))
     .filter((item) => item.value),
@@ -182,10 +200,20 @@ const skillRelationOptions = computed(() =>
 const mcpRelationOptions = computed(() =>
   mcpEntities.value
     .map((item) => ({
-      description: item.description || '该 MCP 服务暂无描述信息。',
-      label: item.name || '未命名 MCP 服务',
-      metrics: [`协议 ${item.transport || '--'}`],
-      tags: [item.authorized ? '已授权' : '待授权', 'MCP'],
+      description:
+        item.description || $t('agents.builder.mcpCard.descriptionFallback'),
+      label: item.name || $t('agents.builder.mcpCard.untitled'),
+      metrics: [
+        $t('agents.builder.mcpCard.protocol', {
+          value: item.transport || '--',
+        }),
+      ],
+      tags: [
+        item.authorized
+          ? $t('agents.builder.authorized')
+          : $t('agents.builder.pendingAuthorized'),
+        'MCP',
+      ],
       value: String(item.id || ''),
     }))
     .filter((item) => item.value),
@@ -207,7 +235,7 @@ function buildDefaultModel(source: Partial<AigcAgent> = {}): AgentFormModel {
     defaultSuggestionsList:
       defaultSuggestions.length > 0
         ? defaultSuggestions
-        : [...DEFAULT_SUGGESTIONS],
+        : [...DEFAULT_SUGGESTIONS.value],
     enableAutoSuggestion:
       source.enableAutoSuggestion ?? Boolean(meta.enableAutoSuggestion),
     knowledgeIdsList: parseIdList(source.knowledgeIds),
@@ -218,7 +246,8 @@ function buildDefaultModel(source: Partial<AigcAgent> = {}): AgentFormModel {
     status: source.status || 'DRAFT',
     icon: source.icon || String(meta.icon || ''),
     welcomeMessage:
-      source.welcomeMessage || String(meta.welcomeMessage || DEFAULT_WELCOME),
+      source.welcomeMessage ||
+      String(meta.welcomeMessage || DEFAULT_WELCOME.value),
   };
 }
 
@@ -229,7 +258,7 @@ function buildMetaJson() {
     enableAutoSuggestion: Boolean(formModel.value.enableAutoSuggestion),
     icon: String(formModel.value.icon || ''),
     modelType: 'REASONING',
-    welcomeMessage: (formModel.value.welcomeMessage || DEFAULT_WELCOME).trim(),
+    welcomeMessage: (formModel.value.welcomeMessage || DEFAULT_WELCOME.value).trim(),
   };
   return JSON.stringify(merged);
 }
@@ -327,20 +356,20 @@ async function handleSave(nextStatus?: 'DISABLED' | 'PUBLISHED') {
       status: targetStatus,
       systemPrompt: (systemPrompt || '').trim(),
       welcomeMessage: (
-        formModel.value.welcomeMessage || DEFAULT_WELCOME
+        formModel.value.welcomeMessage || DEFAULT_WELCOME.value
       ).trim(),
     };
 
     if (isCreateMode.value) {
       await agentApi.create(payload);
-      message.success('Agent 应用已创建');
+      message.success($t('agents.builder.messages.created'));
       void router.push('/agents');
       return;
     }
 
     await agentApi.update(agentId.value, payload);
     formModel.value.status = targetStatus;
-    message.success('Agent 应用已保存');
+    message.success($t('agents.builder.messages.saved'));
   } finally {
     saving.value = false;
   }
@@ -349,7 +378,7 @@ async function handleSave(nextStatus?: 'DISABLED' | 'PUBLISHED') {
 async function handleChatSubmit(payload: LcChatSendPayload) {
   const content = payload.text;
   if (isCreateMode.value || !agentId.value) {
-    message.warning('请先保存当前 Agent，再进行聊天调试');
+    message.warning($t('agents.builder.messages.saveBeforeDebug'));
     return;
   }
 
@@ -400,7 +429,9 @@ async function handleChatSubmit(payload: LcChatSendPayload) {
       return;
     }
     const descriptionText =
-      error instanceof Error ? error.message : '聊天请求失败';
+      error instanceof Error
+        ? error.message
+        : $t('agents.builder.messages.chatRequestFailed');
     chat.failTurn(assistantId, descriptionText);
     message.error(descriptionText);
   } finally {
@@ -424,7 +455,10 @@ function applyChatStreamEvent(
     }
     case CHAT_STREAM_EVENT.ERROR: {
       const nested = extractNestedEvent(event);
-      chat.failTurn(assistantId, String(nested?.message || '对话生成失败。'));
+      chat.failTurn(
+        assistantId,
+        String(nested?.message || $t('agents.builder.messages.generationFailed')),
+      );
       break;
     }
     case CHAT_STREAM_EVENT.MESSAGE_DELTA: {
@@ -439,21 +473,26 @@ function applyChatStreamEvent(
       break;
     }
     case CHAT_STREAM_EVENT.TIMEOUT: {
-      chat.failTurn(assistantId, '对话超时，请稍后重试。');
+      chat.failTurn(assistantId, $t('agents.builder.messages.chatTimeout'));
       break;
     }
     case CHAT_STREAM_EVENT.TOOL_BEFORE: {
       const nested = extractNestedEvent(event);
       chat.setTurnMeta(
         assistantId,
-        nested?.tool_name ? `正在调用技能 ${nested.tool_name}` : '正在调用技能',
+        nested?.tool_name
+          ? $t('agents.builder.runtime.callingSkill', { name: nested.tool_name })
+          : $t('agents.builder.runtime.callingSkillGeneric'),
       );
       break;
     }
     case CHAT_STREAM_EVENT.TOOL_EXECUTED: {
       const nested = extractNestedEvent(event);
       const failed = Boolean(nested?.failed || nested?.status === 'failed');
-      chat.setTurnMeta(assistantId, failed ? '技能执行失败' : '');
+      chat.setTurnMeta(
+        assistantId,
+        failed ? $t('agents.builder.runtime.skillFailed') : '',
+      );
       break;
     }
     default: {
@@ -500,6 +539,7 @@ onBeforeUnmount(() => {
         :model-label="modelLabel"
         :page-title="pageTitle"
         :saving="saving"
+        :status="formModel.status"
         :status-label="statusLabel"
         :status-type="statusType"
         :summary="formSummary"
@@ -549,7 +589,7 @@ onBeforeUnmount(() => {
         v-else
         class="rounded-xl border border-dashed border-border bg-card px-6 py-16"
       >
-        <NEmpty description="正在加载 Agent 应用详情..." />
+        <NEmpty :description="$t('agents.builder.loadingDetail')" />
       </div>
     </div>
   </Page>

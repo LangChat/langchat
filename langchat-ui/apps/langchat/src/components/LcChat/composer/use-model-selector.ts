@@ -4,6 +4,8 @@ import type { AigcModel } from '#/api/aigc/model';
 
 import { computed, ref, watch } from 'vue';
 
+import { $t } from '@vben/locales';
+
 import { modelApi } from '#/api/aigc/model';
 
 /** LcChat 输入框可选择的模型类型(与系统 ModelSelector 的默认范围保持一致)。 */
@@ -28,9 +30,9 @@ export function useModelSelector(modelId: Ref<string>) {
   const currentLabel = computed(() => {
     const current = currentModel.value;
     if (!current) {
-      return '选择模型';
+      return $t('components.modelSelector.placeholder');
     }
-    return current.name || current.model || '未命名模型';
+    return current.name || current.model || $t('models.card.unnamed');
   });
 
   async function loadModels() {

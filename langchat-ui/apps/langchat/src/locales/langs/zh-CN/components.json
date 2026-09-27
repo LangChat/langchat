@@ -1,0 +1,49 @@
+{
+  "relationPicker": {
+    "add": "添加关联",
+    "title": "关联配置",
+    "selectPrefix": "选择{title}",
+    "selectedCount": "已关联 {count} 项",
+    "remove": "移除",
+    "empty": "暂无关联",
+    "searchPlaceholder": "搜索名称、描述或标签",
+    "noDescription": "暂无描述信息。",
+    "noOptions": "未找到可选项"
+  },
+  "fileTree": {
+    "empty": "暂无文件"
+  },
+  "actionCard": {
+    "title": "快捷操作"
+  },
+  "listCard": {
+    "searchPlaceholder": "请输入关键字搜索"
+  },
+  "iconPicker": {
+    "builtinTab": "系统图标",
+    "svgTab": "SVG代码",
+    "urlTab": "图片URL",
+    "searchPlaceholder": "搜索图标，如 bot / database / file"
+  },
+  "modelSelector": {
+    "placeholder": "请选择模型",
+    "label": "模型",
+    "preset": "预设",
+    "loadingPreset": "加载预设",
+    "paramsTitle": "模型参数配置",
+    "temperature": "温度 {value}",
+    "topP": "Top P {value}",
+    "maxOutput": "最大输出 {value}",
+    "creative": "创意",
+    "balanced": "平衡",
+    "precise": "精确",
+    "noMatch": "未找到匹配模型",
+    "searchPlaceholder": "搜索模型"
+  },
+  "aigcAgentCard": {
+    "knowledgeAndSkills": "知识库 {knowledge}，技能 {skills}。",
+    "noKnowledge": "未配置知识库",
+    "noSkills": "未配置技能",
+    "unnamedApp": "未命名应用"
+  }
+}

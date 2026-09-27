@@ -3,6 +3,7 @@ import type { AigcModel } from '#/api/aigc/model';
 
 import { computed, ref } from 'vue';
 import { Check, ChevronDown, Search, Settings, X } from '@vben/icons';
+import { $t } from '@vben/locales';
 import {
   ScrollArea,
   Select,
@@ -53,12 +54,20 @@ const selectedPreset = ref('balanced');
 
 const CONFIG_PRESETS = [
   {
-    label: '创意',
+    labelKey: 'components.modelSelector.creative',
     value: 'creative',
     config: { temperature: 1.1, topP: 0.95 },
   },
-  { label: '平衡', value: 'balanced', config: { temperature: 0.7, topP: 0.9 } },
-  { label: '精确', value: 'precise', config: { temperature: 0.2, topP: 0.6 } },
+  {
+    labelKey: 'components.modelSelector.balanced',
+    value: 'balanced',
+    config: { temperature: 0.7, topP: 0.9 },
+  },
+  {
+    labelKey: 'components.modelSelector.precise',
+    value: 'precise',
+    config: { temperature: 0.2, topP: 0.6 },
+  },
 ];
 
 const filteredModelEntities = computed(() => {
@@ -114,13 +123,13 @@ const selectedModelEntity = computed(() =>
 
 const selectedModelLabel = computed(() => {
   if (!props.modelId) {
-    return '请选择模型';
+    return $t('components.modelSelector.placeholder');
   }
   const selected = selectedModelEntity.value;
   if (!selected) {
-    return '请选择模型';
+    return $t('components.modelSelector.placeholder');
   }
-  return selected.name || selected.model || '未命名模型';
+  return selected.name || selected.model || $t('models.card.unnamed');
 });
 
 function updateConfig(patch: Partial<ModelConfig>) {
@@ -206,9 +215,9 @@ function applyPreset(value: string) {
           <Settings class="text-muted-foreground size-3.5 shrink-0" />
         </template>
         <template v-else>
-          <span class="text-muted-foreground flex-1 text-left text-xs"
-            >请选择模型</span
-          >
+          <span class="text-muted-foreground flex-1 text-left text-xs">{{
+            $t('components.modelSelector.placeholder')
+          }}</span>
         </template>
         <ChevronDown class="text-muted-foreground size-3.5 shrink-0" />
       </button>
@@ -217,7 +226,9 @@ function applyPreset(value: string) {
     <div class="relative flex h-[380px] flex-col">
       <div class="border-border/40 space-y-2 border-b px-3 pb-3 pt-3">
         <div class="flex items-center justify-between">
-          <span class="text-foreground text-xs font-medium">模型</span>
+          <span class="text-foreground text-xs font-medium">{{
+            $t('components.modelSelector.label')
+          }}</span>
           <button
             :class="
               showConfigPanel
@@ -225,7 +236,7 @@ function applyPreset(value: string) {
                 : 'hover:bg-accent text-muted-foreground'
             "
             class="flex size-6 items-center justify-center rounded-md transition-colors"
-            title="模型参数配置"
+            :title="$t('components.modelSelector.paramsTitle')"
             type="button"
             @click="showConfigPanel = !showConfigPanel"
           >
@@ -240,7 +251,7 @@ function applyPreset(value: string) {
           <input
             v-model="searchKeyword"
             class="text-foreground placeholder:text-muted-foreground h-full flex-1 border-none bg-transparent text-xs outline-none"
-            placeholder="搜索模型"
+            :placeholder="$t('components.modelSelector.searchPlaceholder')"
             type="text"
           />
         </div>
@@ -250,7 +261,7 @@ function applyPreset(value: string) {
         <div class="p-2">
           <template v-if="filteredProviderGroups.length === 0">
             <div class="text-muted-foreground py-8 text-center text-xs">
-              未找到匹配模型
+              {{ $t('components.modelSelector.noMatch') }}
             </div>
           </template>
           <template v-else>
@@ -301,7 +312,7 @@ function applyPreset(value: string) {
                   class="size-3.5 shrink-0"
                 />
                 <span class="text-foreground flex-1 truncate text-xs">
-                  {{ item.name || item.model || '未命名模型' }}
+                  {{ item.name || item.model || $t('models.card.unnamed') }}
                 </span>
                 <Check
                   v-if="String(modelId || '') === String(item.id || '')"
@@ -330,7 +341,9 @@ function applyPreset(value: string) {
         <div
           class="flex items-center justify-between border-b border-border/70 px-4 py-3"
         >
-          <span class="text-foreground text-sm font-medium">模型参数配置</span>
+          <span class="text-foreground text-sm font-medium">{{
+            $t('components.modelSelector.paramsTitle')
+          }}</span>
           <button
             class="hover:bg-accent text-muted-foreground flex size-6 items-center justify-center rounded-md transition-colors"
             type="button"
@@ -342,7 +355,9 @@ function applyPreset(value: string) {
 
         <div class="flex-1 space-y-3 overflow-y-auto px-4 py-3">
           <div class="flex items-center justify-between">
-            <span class="text-foreground text-xs font-medium">预设</span>
+            <span class="text-foreground text-xs font-medium">{{
+              $t('components.modelSelector.preset')
+            }}</span>
             <Select
               :model-value="selectedPreset"
               @update:model-value="applyPreset(String($event || 'balanced'))"
@@ -350,7 +365,7 @@ function applyPreset(value: string) {
               <SelectTrigger
                 class="bg-muted h-[30px] w-24 border border-border text-xs"
               >
-                <SelectValue placeholder="加载预设" />
+                <SelectValue :placeholder="$t('components.modelSelector.loadingPreset')" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem
@@ -359,7 +374,7 @@ function applyPreset(value: string) {
                   :value="preset.value"
                   class="text-xs"
                 >
-                  {{ preset.label }}
+                  {{ $t(preset.labelKey) }}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -367,7 +382,7 @@ function applyPreset(value: string) {
 
           <div class="rounded-lg border border-border bg-background px-3 py-2">
             <div class="mb-2 text-xs text-muted-foreground">
-              温度 {{ (config.temperature ?? 0.7).toFixed(2) }}
+              {{ $t('components.modelSelector.temperature', { value: (config.temperature ?? 0.7).toFixed(2) }) }}
             </div>
             <input
               :value="toTemperatureRange(config.temperature)"
@@ -385,7 +400,7 @@ function applyPreset(value: string) {
           </div>
           <div class="rounded-lg border border-border bg-background px-3 py-2">
             <div class="mb-2 text-xs text-muted-foreground">
-              Top P {{ (config.topP ?? 0.9).toFixed(2) }}
+              {{ $t('components.modelSelector.topP', { value: (config.topP ?? 0.9).toFixed(2) }) }}
             </div>
             <input
               :value="toTopPRange(config.topP)"
@@ -401,7 +416,7 @@ function applyPreset(value: string) {
           </div>
           <div class="rounded-lg border border-border bg-background px-3 py-2">
             <div class="mb-2 text-xs text-muted-foreground">
-              最大输出 {{ config.maxOutputTokens ?? 2048 }}
+              {{ $t('components.modelSelector.maxOutput', { value: config.maxOutputTokens ?? 2048 }) }}
             </div>
             <input
               :value="toTokenRange(config.maxOutputTokens)"

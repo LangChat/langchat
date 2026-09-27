@@ -1,0 +1,90 @@
+{
+  "type": {
+    "TEXT2TEXT": {
+      "label": "Text Generation",
+      "description": "General chat, reasoning, code generation"
+    },
+    "EMBEDDINGS": {
+      "label": "Embedding",
+      "description": "Vector search, recall, clustering"
+    },
+    "IMAGE2TEXT": {
+      "label": "Image Understanding",
+      "description": "Image understanding, multimodal Q&A"
+    },
+    "OCR": {
+      "label": "OCR",
+      "description": "Image-to-text recognition, structured extraction"
+    },
+    "SPEECH2TEXT": {
+      "label": "Speech Recognition",
+      "description": "Speech recognition, live dictation"
+    },
+    "TEXT2IMAGE": {
+      "label": "Text to Image",
+      "description": "Text-to-image, stylized generation"
+    },
+    "TEXT2SPEECH": {
+      "label": "Text to Speech",
+      "description": "Speech broadcast, voice cloning"
+    },
+    "TEXT2VIDEO": {
+      "label": "Text to Video",
+      "description": "Text-to-video, shot composition"
+    }
+  },
+  "provider": {
+    "DASHSCOPE": "Tongyi Qianwen",
+    "ZHIPU": "Zhipu AI",
+    "VOLCENGINE": "Volcano Engine",
+    "CUSTOM": "Custom Provider"
+  },
+  "card": {
+    "unnamed": "Untitled Model",
+    "unnamedModelId": "No model ID configured",
+    "maxToken": "Max Tokens",
+    "baseUrl": "Endpoint"
+  },
+  "list": {
+    "title": "Model Center",
+    "allProviders": "All Providers",
+    "allTypes": "All Types",
+    "allTypesDescription": "Show models of every type",
+    "breadcrumbAll": "All Providers / All Types",
+    "breadcrumbBoth": "{provider} / {type}",
+    "breadcrumbProvider": "{provider} / All Types",
+    "breadcrumbType": "All Providers / {type}",
+    "searchPlaceholder": "Search by model name, ID or provider",
+    "total": "{count} model configs",
+    "recommended": "Recommended Models",
+    "noRecommended": "No recommended models for this mapping yet",
+    "suggestedConfig": "Suggested Config",
+    "empty": "No models match the current filters."
+  },
+  "form": {
+    "createTitle": "New Model",
+    "editTitle": "Edit Model",
+    "alias": "Model Alias",
+    "provider": "Provider",
+    "type": "Model Type",
+    "namePlaceholderByPreset": "e.g. {list}",
+    "namePlaceholder": "Enter the model name",
+    "name": "Model Name",
+    "apiKeyPlaceholder": "Enter the model API key",
+    "baseUrlPlaceholder": "e.g. https://api.openai.com/v1",
+    "timeout": "Timeout (s)"
+  },
+  "messages": {
+    "created": "Model created",
+    "updated": "Model updated",
+    "deleted": "Model deleted",
+    "deleteTitle": "Delete Model"
+  },
+  "typeOptions": {
+    "chat": "Chat Model",
+    "reasoning": "Reasoning Model",
+    "embedding": "Embedding Model",
+    "vision": "Vision Model",
+    "speech": "Speech Model"
+  }
+}

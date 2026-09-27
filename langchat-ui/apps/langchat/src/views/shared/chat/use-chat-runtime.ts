@@ -17,7 +17,9 @@ import type {
   LcChatSidebarItem,
 } from '#/components/LcChat/types';
 
-import { computed, ref } from 'vue';
+import { computed, ref, unref } from 'vue';
+
+import { $t, i18n } from '@vben/locales';
 
 import { message as messageApi } from '#/adapter/naive';
 import { agentApi } from '#/api/aigc/agent';
@@ -30,9 +32,15 @@ import {
 } from '#/api/aigc/chat';
 import { resolveOptionLabels } from '#/views/shared/aigc/id-list';
 import { useAigcLookups } from '#/views/shared/aigc/lookups';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface UseChatRuntimeOptions {
   enableHistory?: boolean;
+}
+
+/** 当前界面语言(时间格式化等需要 locale 感知的场景)。 */
+function currentLocale() {
+  return unref(i18n.global.locale) || 'zh-CN';
 }
 
 export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
@@ -76,21 +84,21 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
 
   const agentSidebarItems = computed<LcChatSidebarItem[]>(() =>
     filteredAgents.value.map((item) => ({
-      description: item.description || '当前未配置智能体描述。',
+      description: item.description || $t('chat.runtime.agentDescriptionFallback'),
       id: item.id ?? '',
       subtitle: item.status || 'DRAFT',
-      title: item.agentName || '未命名智能体',
+      title: item.agentName || $t('agents.card.unnamed'),
     })),
   );
 
   const conversationSidebarItems = computed<LcChatSidebarItem[]>(() =>
     conversations.value.map((item) => ({
       id: item.id ?? '',
-      meta: item.updateTime
-        ? new Date(item.updateTime).toLocaleString('zh-CN', { hour12: false })
-        : '',
-      subtitle: item.shareId ? `分享标识 ${item.shareId}` : '普通会话',
-      title: item.title || '未命名会话',
+      meta: item.updateTime ? formatRelativeTime(item.updateTime) : '',
+      subtitle: item.shareId
+        ? $t('chat.runtime.subtitleShare', { id: item.shareId })
+        : $t('chat.runtime.subtitleNormal'),
+      title: item.title || $t('chat.conversation.untitled'),
     })),
   );
 
@@ -98,9 +106,7 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
     messageRecords.value.map((item) => ({
       content: item.message || '',
       id: item.id ?? '',
-      meta: item.createTime
-        ? new Date(item.createTime).toLocaleString('zh-CN', { hour12: false })
-        : '',
+      meta: item.createTime ? formatRelativeTime(item.createTime) : '',
       role: normalizeRole(item.role),
     })),
   );
@@ -133,40 +139,50 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
       {
         items: [
           {
-            label: '推理模型',
+            label: $t('agents.form.reasoningModel'),
             value:
               lookups.value.models.find(
                 (item) => item.value === selectedAgent.value?.reasoningModelId,
-              )?.label || '未配置',
+              )?.label || $t('common.status.notConfigured'),
           },
         ],
-        title: '模型配置',
+        title: $t('chat.runtime.modelConfig'),
       },
       {
-        emptyText: '当前未配置知识库',
+        emptyText: $t('chat.runtime.knowledgeEmpty'),
         tags: knowledgeLabels,
-        title: '关联知识库',
+        title: $t('chat.runtime.knowledgeSection'),
         tone: 'info',
       },
       {
-        emptyText: '当前未配置技能',
+        emptyText: $t('chat.runtime.skillsEmpty'),
         tags: skillLabels,
-        title: '关联技能',
+        title: $t('chat.runtime.skillsSection'),
         tone: 'success',
       },
       {
-        emptyText: '当前未配置系统提示词',
+        emptyText: $t('chat.runtime.systemPromptEmpty'),
         items: selectedAgent.value.systemPrompt
-          ? [{ label: '系统提示词', value: selectedAgent.value.systemPrompt }]
+          ? [
+              {
+                label: $t('chat.runtime.systemPrompt'),
+                value: selectedAgent.value.systemPrompt,
+              },
+            ]
           : [],
-        title: '系统提示词',
+        title: $t('chat.runtime.systemPrompt'),
       },
       {
-        emptyText: '当前未配置模型参数',
+        emptyText: $t('chat.runtime.paramsEmpty'),
         items: selectedAgent.value.modelConfigJson
-          ? [{ label: '模型参数 JSON', value: modelConfigText }]
+          ? [
+              {
+                label: $t('chat.runtime.paramsLabel'),
+                value: modelConfigText,
+              },
+            ]
           : [],
-        title: '参数覆盖',
+        title: $t('chat.runtime.paramsOverride'),
       },
     ];
   });
@@ -177,8 +193,10 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
 
   const conversationSubtitle = computed(() =>
     selectedAgent.value
-      ? `${selectedAgent.value.agentName || '未命名智能体'} 的对话上下文`
-      : '请选择一个智能体开始对话',
+      ? $t('chat.runtime.contextTitle', {
+          name: selectedAgent.value.agentName || $t('agents.card.unnamed'),
+        })
+      : $t('chat.runtime.selectAgentPrompt'),
   );
 
   async function loadAgents() {
@@ -347,17 +365,19 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
       await syncMessagesAfterStream(agentId);
     } catch (error) {
       const description =
-        error instanceof Error ? error.message : '聊天请求失败';
+        error instanceof Error
+          ? error.message
+          : $t('chat.runtime.errors.requestFailed');
       pushRuntimeEvent({
         description,
         id: `event-error-${Date.now()}`,
-        title: '对话请求失败',
+        title: $t('chat.runtime.errors.notifyTitle'),
       });
       updateLocalAssistantMessage(
         assistantMessageId,
-        `请求失败：${description}`,
+        $t('chat.runtime.errors.notifyDescription', { message: description }),
       );
-      messageApi.error('发送消息失败');
+      messageApi.error($t('chat.runtime.errors.sendFailed'));
     } finally {
       sending.value = false;
       streamAbortController.value = null;
@@ -403,10 +423,10 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
     switch (event.eventType) {
       case CHAT_STREAM_EVENT.MESSAGE_START: {
         pushRuntimeEvent({
-          description: '模型已开始生成回复内容。',
+          description: $t('chat.runtime.events.startDescription'),
           id: event.id || `event-start-${Date.now()}`,
           meta: formatEventTime(event.created),
-          title: '开始回复',
+          title: $t('chat.runtime.events.startTitle'),
         });
         break;
       }
@@ -425,20 +445,24 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
           (event.payload as { items?: KnowledgeReferenceItem[] })?.items ||
           []
         ).filter((item) => item.docsName || item.knowledgeName);
+        const hitNames = items
+          .slice(0, 3)
+          .map(
+            (item) =>
+              item.docsName ||
+              item.knowledgeName ||
+              $t('agents.messageLog.untitledSegment'),
+          );
         pushRuntimeEvent({
           description:
-            items.length > 0
-              ? items
-                  .slice(0, 3)
-                  .map(
-                    (item) =>
-                      item.docsName || item.knowledgeName || '未命名片段',
-                  )
-                  .join('、')
-              : '本次未返回可展示的检索命中。',
+            hitNames.length > 0
+              ? hitNames.join($t('chat.runtime.events.listSeparator'))
+              : $t('chat.runtime.events.retrievalNoHits'),
           id: event.id || `event-rag-${Date.now()}`,
-          meta: `命中 ${items.length} 条`,
-          title: '知识库检索完成',
+          meta: $t('chat.runtime.events.retrievalMeta', {
+            count: items.length,
+          }),
+          title: $t('chat.runtime.events.retrievalTitle'),
         });
         break;
       }
@@ -457,10 +481,11 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
               } as ToolExecutionPayload)
             : (event.payload as ToolExecutionPayload | undefined);
         pushRuntimeEvent({
-          description: payload?.arguments || '当前技能未返回入参内容。',
+          description:
+            payload?.arguments || $t('chat.runtime.events.skillStartFallback'),
           id: event.id || `event-tool-before-${Date.now()}`,
-          meta: payload?.toolName || '未命名技能',
-          title: '开始调用技能',
+          meta: payload?.toolName || $t('skills.empty.unnamed'),
+          title: $t('chat.runtime.events.skillStartTitle'),
         });
         break;
       }
@@ -483,10 +508,13 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
               } as ToolExecutionPayload)
             : (event.payload as ToolExecutionPayload | undefined);
         pushRuntimeEvent({
-          description: payload?.result || '当前技能未返回执行结果。',
+          description:
+            payload?.result || $t('chat.runtime.events.skillEndFallback'),
           id: event.id || `event-tool-after-${Date.now()}`,
-          meta: payload?.toolName || '未命名技能',
-          title: payload?.failed ? '技能执行失败' : '技能执行完成',
+          meta: payload?.toolName || $t('skills.empty.unnamed'),
+          title: payload?.failed
+            ? $t('chat.runtime.events.skillFailedTitle')
+            : $t('chat.runtime.events.skillSuccessTitle'),
         });
         break;
       }
@@ -496,10 +524,12 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
           break;
         }
         pushRuntimeEvent({
-          description: String(payload.message || '收到执行日志事件。'),
+          description: String(
+            payload.message || $t('chat.runtime.events.logFallback'),
+          ),
           id: event.id || `event-log-${Date.now()}`,
           meta: String(payload.phase || ''),
-          title: '链路日志',
+          title: $t('chat.runtime.events.logTitle'),
         });
         break;
       }
@@ -518,35 +548,38 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
             | undefined) || payload?.usage;
         pushRuntimeEvent({
           description: finishReason
-            ? `完成原因：${finishReason}`
-            : '模型响应已完成。',
+            ? $t('chat.runtime.events.finishReason', { reason: finishReason })
+            : $t('chat.runtime.events.finishDone'),
           id: event.id || `event-completed-${Date.now()}`,
           meta: usage
-            ? `输入 ${usage.prompt_tokens || usage.promptTokens || 0} / 输出 ${usage.completion_tokens || usage.completionTokens || 0}`
+            ? $t('chat.runtime.events.finishUsage', {
+                input: usage.prompt_tokens || usage.promptTokens || 0,
+                output: usage.completion_tokens || usage.completionTokens || 0,
+              })
             : formatEventTime(event.created),
-          title: '回复已落库',
+          title: $t('chat.runtime.events.finishStoredTitle'),
         });
         break;
       }
       case CHAT_STREAM_EVENT.MESSAGE_STOP: {
         pushRuntimeEvent({
-          description: '本次流式输出已结束。',
+          description: $t('chat.runtime.events.streamEndDescription'),
           id: event.id || `event-stop-${Date.now()}`,
           meta: formatEventTime(event.created),
-          title: '流式输出结束',
+          title: $t('chat.runtime.events.streamEndTitle'),
         });
         break;
       }
       case CHAT_STREAM_EVENT.TIMEOUT: {
         pushRuntimeEvent({
-          description: '服务端流式响应超时。',
+          description: $t('chat.runtime.events.timeoutDescription'),
           id: event.id || `event-timeout-${Date.now()}`,
           meta: formatEventTime(event.created),
-          title: '对话超时',
+          title: $t('chat.runtime.events.timeoutTitle'),
         });
         updateLocalAssistantMessage(
           assistantMessageId,
-          '对话超时，请稍后重试。',
+          $t('chat.runtime.events.timeoutMessage'),
         );
         break;
       }
@@ -557,23 +590,23 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
             ? { message: String(deltaEvent.message || '') }
             : (event.payload as { message?: string } | undefined);
         pushRuntimeEvent({
-          description: payload?.message || '服务端返回了异常事件。',
+          description: payload?.message || $t('chat.runtime.events.errorFallback'),
           id: event.id || `event-runtime-error-${Date.now()}`,
           meta: formatEventTime(event.created),
-          title: '运行时异常',
+          title: $t('chat.runtime.events.errorTitle'),
         });
         updateLocalAssistantMessage(
           assistantMessageId,
-          payload?.message || '对话生成失败。',
+          payload?.message || $t('chat.runtime.events.failFallback'),
         );
         break;
       }
       case CHAT_STREAM_EVENT.DONE: {
         pushRuntimeEvent({
-          description: '已收到本次事件流结束标记。',
+          description: $t('chat.runtime.events.doneDescription'),
           id: event.id || `event-done-${Date.now()}`,
           meta: formatEventTime(event.created),
-          title: '事件流完成',
+          title: $t('chat.runtime.events.doneTitle'),
         });
         break;
       }
@@ -651,7 +684,7 @@ export function useChatRuntime(options: UseChatRuntimeOptions = {}) {
     if (!timestamp) {
       return '';
     }
-    return new Date(timestamp * 1000).toLocaleString('zh-CN', {
+    return new Date(timestamp * 1000).toLocaleString(currentLocale(), {
       hour12: false,
     });
   }

@@ -1,0 +1,69 @@
+{
+  "empty": {
+    "unnamed": "Untitled skill",
+    "noDescription": "No skill description yet"
+  },
+  "card": {
+    "version": "Version",
+    "filesCount": "Files",
+    "packageSize": "Package Size",
+    "tags": "Tags",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "editDocs": "Edit docs",
+    "toggleEnable": "Enable skill",
+    "toggleDisable": "Disable skill",
+    "downloadPackage": "Download package"
+  },
+  "list": {
+    "upload": "Upload Skill",
+    "startUpload": "Start upload",
+    "searchPlaceholder": "Search by skill name, description or tags",
+    "actionsTitle": "Skill Actions",
+    "actionsDescription": "Skills are managed as standard skill packages: upload a zip or a folder whose root must contain SKILL.md.",
+    "formatTitle": "Standard Skill Package Format",
+    "formatFirstPre": "1. The package root must contain ",
+    "formatFirstPost": ": use YAML frontmatter to declare ",
+    "formatFirstNameHint": "(skill identifier, required), ",
+    "formatFirstDescHint": "(skill description), ",
+    "formatFirstVersionHint": " etc. The body is the standardized skill instruction document.",
+    "formatSecondPre": "2. Optional directories: ",
+    "formatSecondScriptsHint": "(scripts), ",
+    "formatSecondRefsHint": "(reference docs), ",
+    "formatSecondAssetsHint": " (asset files).",
+    "formatThird": "3. Accepts a .zip archive or a whole folder (directory structure parsed automatically); max 500MB per package.",
+    "formatFourth": "4. The original package is archived to OSS and an extracted copy is kept in the server workspace; the runtime reads local skill docs directly.",
+    "zipMode": "Zip archive",
+    "folderMode": "Folder",
+    "zipDropTitle": "Click or drop the zip skill package here",
+    "zipDropHint": "A single .zip file whose root contains SKILL.md",
+    "folderDropTitle": "Click or drop the whole skill folder here",
+    "folderDropHint": "Uploaded with the directory structure preserved; the root must contain SKILL.md",
+    "selectedFiles": "{count} files selected"
+  },
+  "messages": {
+    "uploaded": "Skill package installed: {name}",
+    "zipRequired": "Select a skill package zip file first",
+    "folderRequired": "Select a skill folder first",
+    "enableTitle": "Enable Skill",
+    "enableConfirm": "Enable skill \"{name}\"? Agents will be able to invoke it once enabled.",
+    "disableTitle": "Disable Skill",
+    "disableConfirm": "Disable skill \"{name}\"? Agents will no longer be able to invoke it.",
+    "enabled": "Skill enabled",
+    "disabled": "Skill disabled",
+    "deleteTitle": "Delete Skill",
+    "deleteConfirm": "Deleting also removes the OSS package and the local workspace, and cannot be undone. Delete \"{name}\"?",
+    "deleted": "Skill deleted"
+  },
+  "edit": {
+    "title": "Edit Skill Docs",
+    "saveDocs": "Save",
+    "docsSaved": "Document saved; frontmatter metadata synced",
+    "readFailed": "Failed to read file: {message}",
+    "files": "Skill Package Files",
+    "noFileSelected": "No file selected",
+    "binaryNotEditable": "Binary files cannot be edited online",
+    "contentPlaceholder": "Enter file content...",
+    "pickFileHint": "Pick a file on the left to edit"
+  }
+}

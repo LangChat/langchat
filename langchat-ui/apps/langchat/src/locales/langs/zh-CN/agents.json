@@ -1,0 +1,274 @@
+{
+  "title": {
+    "create": "新建智能体",
+    "edit": "编辑智能体",
+    "builderNew": "新建 Agent 应用",
+    "builderDetail": "Agent 应用详情"
+  },
+  "actions": {
+    "create": "新建智能体",
+    "refreshList": "刷新列表",
+    "saveAndPublish": "保存 / 发布",
+    "saveDraft": "保存草稿",
+    "publish": "发布应用",
+    "unpublish": "取消发布",
+    "maximize": "全屏",
+    "restore": "还原"
+  },
+  "status": {
+    "draft": "草稿",
+    "published": "已发布",
+    "disabled": "停用"
+  },
+  "memory": {
+    "window": "窗口记忆",
+    "summary": "摘要记忆",
+    "longTerm": "长期记忆"
+  },
+  "scope": {
+    "general": "通用",
+    "production": "生产",
+    "testing": "测试",
+    "internal": "内部",
+    "external": "外部",
+    "core": "核心"
+  },
+  "form": {
+    "name": "智能体名称",
+    "appIcon": "应用图标",
+    "status": "状态",
+    "reasoningModel": "推理模型",
+    "description": "描述",
+    "descriptionPlaceholder": "请输入智能体描述",
+    "appName": "应用名称",
+    "appNamePlaceholder": "请输入应用名称",
+    "appDescription": "应用描述",
+    "appDescriptionPlaceholder": "请输入应用描述",
+    "selectModel": "选择模型"
+  },
+  "card": {
+    "unnamed": "未命名智能体"
+  },
+  "list": {
+    "searchPlaceholder": "按智能体名称、状态搜索",
+    "baseConfigTitle": "应用基础配置"
+  },
+  "quickActions": {
+    "title": "智能体操作"
+  },
+  "messages": {
+    "created": "智能体已创建",
+    "updated": "智能体已更新",
+    "deleted": "智能体已删除",
+    "baseConfigUpdated": "基础配置已更新",
+    "deleteTitle": "删除智能体"
+  },
+  "builder": {
+    "tabs": {
+      "config": "配置页",
+      "apiKeys": "API 接入",
+      "logs": "消息日志",
+      "stats": "统计报表"
+    },
+    "knowledgeCard": {
+      "description": "补充 {name} 的业务知识上下文。",
+      "vectorModel": "向量模型 {name}",
+      "docsCount": "文档 {count}",
+      "topK": "TopK {count}",
+      "untitled": "未命名知识库"
+    },
+    "skillCard": {
+      "descriptionFallback": "该技能暂未填写描述。",
+      "version": "版本 {version}",
+      "filesCount": "文件数 {count}",
+      "untitled": "未命名技能"
+    },
+    "mcpCard": {
+      "descriptionFallback": "该 MCP 服务暂无描述信息。",
+      "untitled": "未命名 MCP 服务",
+      "protocol": "协议 {value}"
+    },
+    "authorized": "已授权",
+    "pendingAuthorized": "待授权",
+    "messages": {
+      "created": "Agent 应用已创建",
+      "saved": "Agent 应用已保存",
+      "saveBeforeDebug": "请先保存当前 Agent，再进行聊天调试",
+      "chatRequestFailed": "聊天请求失败",
+      "generationFailed": "对话生成失败",
+      "chatTimeout": "对话超时，请稍后重试"
+    },
+    "runtime": {
+      "callingSkill": "正在调用技能 {name}",
+      "callingSkillGeneric": "正在调用技能",
+      "skillFailed": "技能执行失败"
+    },
+    "loadingDetail": "正在加载 Agent 应用详情..."
+  },
+  "configPanel": {
+    "modelInfo": "模型信息配置",
+    "knowledge": {
+      "title": "知识库关联",
+      "add": "添加知识库",
+      "selectTitle": "选择知识库",
+      "placeholder": "请选择关联知识库"
+    },
+    "skills": {
+      "title": "技能关联",
+      "add": "添加技能",
+      "selectTitle": "选择技能",
+      "placeholder": "请选择关联技能"
+    },
+    "mcp": {
+      "title": "MCP 关联",
+      "add": "添加 MCP 服务",
+      "selectTitle": "选择 MCP 服务",
+      "placeholder": "请选择关联 MCP 服务"
+    }
+  },
+  "configView": {
+    "appConfig": "应用配置",
+    "promptGroup": "提示词与欢迎语配置",
+    "systemPrompt": "系统提示词",
+    "systemPromptPlaceholder": "请输入系统提示词",
+    "welcome": "欢迎语",
+    "welcomePlaceholder": "当聊天为空时展示的欢迎语",
+    "autoSuggest": "自动建议",
+    "autoSuggestHint": "开启后，每次 AI 回复后会显示推荐追问卡片",
+    "defaultSuggestions": "默认建议问题",
+    "suggestionPlaceholder": "建议问题 {index}",
+    "welcomeFallback": "欢迎使用当前应用，先从一个问题开始。",
+    "suggestionDefaults": {
+      "first": "介绍这个应用能做什么",
+      "second": "给我一个快速上手示例",
+      "third": "推荐下一步操作"
+    },
+    "chatDebug": "聊天调试",
+    "debugPlaceholder": "输入调试消息并回车发送"
+  },
+  "header": {
+    "untitled": "未命名应用",
+    "updatedAt": "更新时间 {time}",
+    "modelLabel": "模型 {model}",
+    "createdBy": "创建人",
+    "createdAt": "创建时间",
+    "lastModified": "最后修改",
+    "modifiedBy": "修改人"
+  },
+  "apiKey": {
+    "title": "API 接入",
+    "description": "为当前 Agent 创建可撤销的访问凭证，通过标准接口接入外部系统，并查看每个密钥的调用状态。",
+    "createButton": "新建 API Key",
+    "createTitle": "创建 API Key",
+    "saveFirstTitle": "先保存 Agent，再配置 API 接入",
+    "saveFirstDescription": "保存后即可创建密钥并开始对外提供服务。",
+    "guideTitle": "接入说明",
+    "guideDescription": "使用标准 OpenAI Chat Completions 协议",
+    "endpointTitle": "OpenAI 兼容接口",
+    "copyExample": "复制调用示例",
+    "exampleCopied": "调用示例已复制",
+    "exampleContent": "你好",
+    "quickStart": "快速开始",
+    "steps": {
+      "first": "创建一个 API Key，并为它填写清晰的用途名称。",
+      "second": "将密钥放入服务端环境变量，不要写入前端代码或公开仓库。",
+      "thirdBefore": "请求地址使用上方路径，认证头携带",
+      "thirdAfter": "密钥。"
+    },
+    "authHeader": "Authorization: Bearer <密钥>",
+    "keysTitle": "访问密钥",
+    "keysDescription": "密钥只用于调用当前 Agent，可随时停用或删除。",
+    "count": "{count} 个密钥",
+    "loading": "正在加载密钥列表...",
+    "empty": "还没有创建 API Key",
+    "createFirst": "创建第一个密钥",
+    "unnamed": "未命名密钥",
+    "logTitleFallback": "API Key",
+    "logTitle": "调用日志 · {name}",
+    "copyKey": "复制完整密钥",
+    "keyCopied": "API Key 已复制",
+    "logs": "调用日志",
+    "enabledLabel": "启用",
+    "deleteKey": "删除密钥",
+    "deleteTitle": "删除 API Key",
+    "stats": {
+      "calls": "调用次数",
+      "inputTokens": "输入 Tokens",
+      "outputTokens": "输出 Tokens",
+      "lastCall": "最后调用"
+    },
+    "modal": {
+      "title": "为当前 Agent 创建访问凭证",
+      "description": "名称用于团队内部识别，创建后可在列表中单独停用、删除和查看调用日志。",
+      "name": "密钥名称",
+      "namePlaceholder": "例如：客服系统对接",
+      "remark": "备注",
+      "remarkPlaceholder": "记录使用场景、负责人或环境，例如：生产环境 · 客服系统",
+      "warningBefore": "创建后请立即保存完整密钥。外部系统使用",
+      "warningAfter": "调用接口，系统不会在列表中再次展示完整内容。"
+    },
+    "messages": {
+      "created": "API Key 已创建",
+      "deleted": "API Key 已删除",
+      "copyFailed": "复制失败，请手动复制",
+      "nameRequired": "请填写密钥名称",
+      "deleteConfirmContent": "删除后使用该密钥的外部调用将立即失效，确认删除「{name}」吗？"
+    },
+    "logsLoading": "正在加载调用日志...",
+    "logsEmpty": "当前密钥还没有调用记录。"
+  },
+  "messageLog": {
+    "title": "消息日志",
+    "description": "全量展示消息明细，点击操作列查看消息链路详情。",
+    "searchPlaceholder": "搜索内容 / 模型 / 会话",
+    "roleAll": "全部角色",
+    "roleUser": "用户",
+    "roleAssistant": "助手",
+    "roleSystem": "系统",
+    "roleTool": "工具",
+    "untitledTool": "未命名工具",
+    "untitledConversation": "未命名会话",
+    "untitledSegment": "未命名片段",
+    "detailTitle": "链路详情",
+    "columns": {
+      "conversation": "会话",
+      "role": "角色",
+      "content": "消息内容",
+      "duration": "耗时(ms)",
+      "time": "时间"
+    },
+    "timeLabel": "时间 {time}",
+    "noEvents": "当前消息还没有事件数据"
+  },
+  "messageStats": {
+    "title": "消息统计报表",
+    "totalMessages": "消息 {count}",
+    "totalInputTokens": "输入Token {count}",
+    "totalOutputTokens": "输出Token {count}",
+    "refresh": "刷新统计",
+    "messageTrend": "消息趋势",
+    "roleDistribution": "角色分布",
+    "tokenTrend": "Token 消耗趋势",
+    "inputTokens": "输入Token",
+    "outputTokens": "输出Token"
+  },
+  "runtimePanel": {
+    "title": "运行时概览",
+    "description": "查看当前智能体模型、知识库、技能与提示词摘要。",
+    "buildDebug": "构建调试",
+    "currentAgent": "当前智能体",
+    "agentPlaceholder": "请选择智能体",
+    "unnamed": "未命名智能体",
+    "modelConfig": "模型配置",
+    "reasoningModel": "推理模型",
+    "boundKnowledge": "绑定知识库",
+    "knowledgeEmpty": "当前未配置知识库",
+    "boundSkills": "绑定技能",
+    "skillsEmpty": "当前未配置技能",
+    "systemPrompt": "系统提示词",
+    "systemPromptEmpty": "当前未配置系统提示词。",
+    "paramsOverride": "参数覆盖 JSON",
+    "paramsEmpty": "当前未配置模型参数覆盖。",
+    "empty": "当前还没有智能体数据。"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "relationPicker": {
+    "add": "Add relation",
+    "title": "Relation Config",
+    "selectPrefix": "Select {title}",
+    "selectedCount": "{count} selected",
+    "remove": "Remove",
+    "empty": "No relations yet",
+    "searchPlaceholder": "Search by name, description or tag",
+    "noDescription": "No description yet.",
+    "noOptions": "No matching options"
+  },
+  "fileTree": {
+    "empty": "No files"
+  },
+  "actionCard": {
+    "title": "Quick Actions"
+  },
+  "listCard": {
+    "searchPlaceholder": "Enter keywords to search"
+  },
+  "iconPicker": {
+    "builtinTab": "Built-in Icons",
+    "svgTab": "SVG Code",
+    "urlTab": "Image URL",
+    "searchPlaceholder": "Search icons, e.g. bot / database / file"
+  },
+  "modelSelector": {
+    "placeholder": "Select a model",
+    "label": "Model",
+    "preset": "Preset",
+    "loadingPreset": "Loading preset",
+    "paramsTitle": "Model Parameters",
+    "temperature": "Temperature {value}",
+    "topP": "Top P {value}",
+    "maxOutput": "Max output {value}",
+    "creative": "Creative",
+    "balanced": "Balanced",
+    "precise": "Precise",
+    "noMatch": "No matching models",
+    "searchPlaceholder": "Search models"
+  },
+  "aigcAgentCard": {
+    "knowledgeAndSkills": "Knowledge bases {knowledge}, skills {skills}.",
+    "noKnowledge": "No knowledge base",
+    "noSkills": "No skills",
+    "unnamedApp": "Untitled app"
+  }
+}

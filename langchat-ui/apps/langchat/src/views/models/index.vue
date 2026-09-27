@@ -17,6 +17,7 @@ import {
   Search,
   Shapes,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import {NButton, NEmpty, NInput, NPagination, NSpin} from 'naive-ui';
 
@@ -68,7 +69,7 @@ const typeOptions = computed(() => {
 const providerFilterOptions = computed(() =>
   [
     {
-      label: '全部供应商',
+      label: $t('models.list.allProviders'),
       value: '',
     },
     ...providerOptions,
@@ -101,9 +102,9 @@ const typeFilterOptions = computed(() => {
   });
   return [
     {
-      label: '全部',
+      label: $t('common.labels.all'),
       value: '',
-      description: '展示所有类型的模型',
+      description: $t('models.list.allTypesDescription'),
       icon: Shapes,
     },
     ...sorted.map((option) => ({
@@ -144,15 +145,18 @@ const pageDescription = computed(() => {
     (item) => item.value === selectedType.value,
   )?.label;
   if (selectedProvider.value && selectedType.value) {
-    return `${providerLabel} / ${typeLabel}`;
+    return $t('models.list.breadcrumbBoth', {
+      provider: providerLabel,
+      type: typeLabel,
+    });
   }
   if (selectedProvider.value) {
-    return `${providerLabel} / 全部类型`;
+    return $t('models.list.breadcrumbProvider', { provider: providerLabel });
   }
   if (selectedType.value) {
-    return `全部供应商 / ${typeLabel}`;
+    return $t('models.list.breadcrumbType', { type: typeLabel });
   }
-  return '全部供应商 / 全部类型';
+  return $t('models.list.breadcrumbAll');
 });
 
 const activeProviderMeta = computed(() => {
@@ -163,7 +167,7 @@ const activeProviderMeta = computed(() => {
     icon: selectedProvider.value
       ? getProviderIcon(selectedProvider.value)
       : Building2,
-    label: selected?.label || '全部供应商',
+    label: selected?.label || $t('models.list.allProviders'),
   };
 });
 
@@ -173,7 +177,7 @@ const activeTypeMeta = computed(() => {
   );
   return {
     icon: selectedType.value ? getModelTypeIcon(selectedType.value) : Shapes,
-    label: selected?.label || '全部类型',
+    label: selected?.label || $t('models.list.allTypes'),
   };
 });
 
@@ -234,13 +238,15 @@ async function handleDelete(item: AigcModel) {
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除「${item.name || item.model || '未命名模型'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除模型',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.name || item.model || $t('models.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('models.messages.deleteTitle'),
     onPositiveClick: async () => {
       await modelApi.remove(item.id!);
-      message.success('模型已删除');
+      message.success($t('models.messages.deleted'));
       await loadList();
     },
   });
@@ -251,10 +257,10 @@ async function handleSave(payload: Partial<AigcModel>) {
   try {
     if (currentItem.value?.id) {
       await modelApi.update(currentItem.value.id, payload);
-      message.success('模型已更新');
+      message.success($t('models.messages.updated'));
     } else {
       await modelApi.create(payload);
-      message.success('模型已创建');
+      message.success($t('models.messages.created'));
     }
     showEdit.value = false;
     await loadList();
@@ -283,7 +289,7 @@ onMounted(loadList);
             class="flex items-center gap-2 px-2 pb-2.5 text-sm font-semibold text-foreground"
           >
             <Factory class="size-4 text-primary" />
-            供应商
+            {{ $t('common.labels.provider') }}
           </div>
 
           <div class="space-y-1.5">
@@ -356,7 +362,7 @@ onMounted(loadList);
                       class="flex items-center gap-2 text-sm font-semibold text-foreground"
                     >
                       <Bot class="size-5 text-primary" />
-                      模型中心
+                      {{ $t('models.list.title') }}
                     </div>
                     <div
                       class="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] leading-4 text-muted-foreground"
@@ -394,7 +400,7 @@ onMounted(loadList);
                       <NInput
                         v-model:value="keyword"
                         clearable
-                        placeholder="搜索模型名称、标识或供应商"
+                        :placeholder="$t('models.list.searchPlaceholder')"
                       >
                         <template #prefix>
                           <Search class="size-4 text-muted-foreground" />
@@ -405,19 +411,19 @@ onMounted(loadList);
                       <template #icon>
                         <RotateCcw class="size-4" />
                       </template>
-                      重置
+                      {{ $t('common.actions.reset') }}
                     </NButton>
                     <NButton secondary @click="loadList">
                       <template #icon>
                         <RefreshCcw class="size-4" />
                       </template>
-                      刷新
+                      {{ $t('common.actions.refresh') }}
                     </NButton>
                     <NButton type="primary" @click="handleCreate">
                       <template #icon>
                         <Plus class="size-4" />
                       </template>
-                      新建模型
+                      {{ $t('models.form.createTitle') }}
                     </NButton>
                   </div>
                 </div>
@@ -449,7 +455,7 @@ onMounted(loadList);
                     class="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"
                   >
                     <ListFilter class="size-3.5" />
-                    共 {{ filteredItems.length }} 条模型配置
+                    {{ $t('models.list.total', { count: filteredItems.length }) }}
                   </div>
                 </div>
 
@@ -467,7 +473,7 @@ onMounted(loadList);
                         :is="activeProviderMeta.icon"
                         class="size-3.5"
                       />
-                      推荐模型
+                      {{ $t('models.list.recommended') }}
                     </div>
                     <div class="flex flex-wrap gap-1">
                       <span
@@ -481,7 +487,7 @@ onMounted(loadList);
                         v-if="recommendedModels.length === 0"
                         class="text-[10px] text-muted-foreground"
                       >
-                        当前映射暂无推荐模型
+                        {{ $t('models.list.noRecommended') }}
                       </span>
                     </div>
                   </div>
@@ -492,7 +498,7 @@ onMounted(loadList);
                       class="mb-1 flex items-center gap-1.5 text-[10px] text-muted-foreground"
                     >
                       <component :is="activeTypeMeta.icon" class="size-3.5" />
-                      建议配置项
+                      {{ $t('models.list.suggestedConfig') }}
                     </div>
                     <div class="flex flex-wrap gap-1">
                       <span
@@ -525,7 +531,7 @@ onMounted(loadList);
                 v-else
                 class="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-border bg-card p-5"
               >
-                <NEmpty description="当前筛选条件下没有模型数据。">
+                <NEmpty :description="$t('models.list.empty')">
                   <template #icon>
                     <BotOff class="mx-auto size-8 text-muted-foreground" />
                   </template>
@@ -534,7 +540,7 @@ onMounted(loadList);
                       <template #icon>
                         <Eraser class="size-4" />
                       </template>
-                      清空筛选
+                      {{ $t('common.actions.clearFilter') }}
                     </NButton>
                   </template>
                 </NEmpty>

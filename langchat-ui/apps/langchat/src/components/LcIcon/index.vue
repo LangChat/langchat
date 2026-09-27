@@ -165,12 +165,12 @@ watch(keyword, () => {
 
     <div class="w-[440px] max-w-[440px] p-1">
       <NTabs type="line" animated>
-        <NTabPane name="builtin" tab="系统图标">
+        <NTabPane name="builtin" :tab="$t('components.iconPicker.builtinTab')">
           <div class="mb-2">
             <NInput
               v-model:value="keyword"
               clearable
-              placeholder="搜索图标，如 bot / database / file"
+              :placeholder="$t('components.iconPicker.searchPlaceholder')"
             />
           </div>
           <div class="grid max-h-[240px] grid-cols-9 gap-1.5 overflow-y-auto pr-1">
@@ -201,7 +201,7 @@ watch(keyword, () => {
             />
           </div>
         </NTabPane>
-        <NTabPane v-if="showSvgTab" name="svg" tab="SVG代码">
+        <NTabPane v-if="showSvgTab" name="svg" :tab="$t('components.iconPicker.svgTab')">
           <NInput
             v-model:value="iconValue"
             :autosize="{ minRows: 8, maxRows: 14 }"
@@ -209,7 +209,7 @@ watch(keyword, () => {
             type="textarea"
           />
         </NTabPane>
-        <NTabPane v-if="showUrlTab" name="url" tab="图片URL">
+        <NTabPane v-if="showUrlTab" name="url" :tab="$t('components.iconPicker.urlTab')">
           <NInput
             v-model:value="iconValue"
             placeholder="https://example.com/icon.png"

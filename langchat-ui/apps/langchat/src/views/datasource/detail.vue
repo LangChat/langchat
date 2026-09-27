@@ -19,6 +19,7 @@ import {
   Save,
   Trash2,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NEmpty, NInput, NSpin, NSwitch, NTag } from 'naive-ui';
 
@@ -78,8 +79,9 @@ const enabledTableCount = computed(
 );
 const pendingImportCount = computed(
   () =>
-    structure.value.filter((table) => !importedTableMap.value.has(table.tableName))
-      .length,
+    structure.value.filter(
+      (table) => !importedTableMap.value.has(table.tableName),
+    ).length,
 );
 const sourceTables = computed<TableStructure[]>(() =>
   activeTab.value === 'custom' ? customStructure.value : structure.value,
@@ -96,11 +98,18 @@ const selectedManagedTable = computed(() =>
 );
 const selectedLabel = computed(() => {
   if (!selectedTable.value || selectedTable.value === '__all__') {
-    return activeTab.value === 'custom' ? '全部已导入表' : '全部原始表';
+    return activeTab.value === 'custom'
+      ? $t('datasource.detail.allImportedTables')
+      : $t('datasource.detail.allOriginalTables');
   }
   return selectedColumn.value
-    ? `${selectedTable.value} · ${selectedColumn.value}`
-    : `${selectedTable.value} · 全部字段`;
+    ? $t('datasource.detail.selectedLabelWithColumn', {
+        column: selectedColumn.value,
+        table: selectedTable.value,
+      })
+    : $t('datasource.detail.selectedLabelAllFields', {
+        table: selectedTable.value,
+      });
 });
 const currentRows = computed<ColumnRow[]>(() => {
   const tables =
@@ -110,11 +119,12 @@ const currentRows = computed<ColumnRow[]>(() => {
           (table) => table.tableName === selectedTable.value,
         );
   const rows = tables.flatMap((table) =>
-    table.columns.map((column) =>
-      Object.assign(column, {
-        rowKey: `${table.tableName}.${column.name}`,
-        tableName: table.tableName,
-      }) as ColumnRow,
+    table.columns.map(
+      (column) =>
+        Object.assign(column, {
+          rowKey: `${table.tableName}.${column.name}`,
+          tableName: table.tableName,
+        }) as ColumnRow,
     ),
   );
   return selectedColumn.value
@@ -126,59 +136,88 @@ const currentRows = computed<ColumnRow[]>(() => {
     : rows;
 });
 
-const originalColumns: VxeGridPropTypes.Columns<ColumnRow> = [
-  { field: 'tableName', title: '表名', minWidth: 180 },
-  { field: 'name', title: '原始字段名', minWidth: 180 },
-  { field: 'type', title: '原始类型', width: 140 },
+const originalColumns = computed<VxeGridPropTypes.Columns<ColumnRow>>(() => [
+  {
+    field: 'tableName',
+    title: $t('datasource.detail.columns.tableName'),
+    minWidth: 180,
+  },
+  {
+    field: 'name',
+    title: $t('datasource.detail.columns.originalName'),
+    minWidth: 180,
+  },
+  {
+    field: 'type',
+    title: $t('datasource.detail.columns.originalType'),
+    width: 140,
+  },
   {
     field: 'size',
-    title: '长度',
+    title: $t('datasource.detail.columns.length'),
     width: 90,
     formatter: ({ cellValue }) => cellValue ?? '--',
   },
   {
     field: 'primaryKey',
-    title: '主键',
+    title: $t('datasource.detail.columns.primaryKey'),
     width: 80,
-    formatter: ({ cellValue }) => (cellValue ? '是' : '否'),
+    formatter: ({ cellValue }) =>
+      cellValue ? $t('common.status.yes') : $t('common.status.no'),
   },
   {
     field: 'nullable',
-    title: '可空',
+    title: $t('datasource.detail.columns.nullable'),
     width: 80,
-    formatter: ({ cellValue }) => (cellValue ? '是' : '否'),
+    formatter: ({ cellValue }) =>
+      cellValue ? $t('common.status.yes') : $t('common.status.no'),
   },
   {
     field: 'comment',
-    title: '数据库备注',
+    title: $t('datasource.detail.columns.comment'),
     minWidth: 220,
     formatter: ({ cellValue }) => cellValue || '--',
   },
-];
-const customColumns: VxeGridPropTypes.Columns<ColumnRow> = [
-  { field: 'tableName', title: '导入表', minWidth: 160 },
-  { field: 'name', title: 'AI 字段名称', minWidth: 190, slots: { default: 'customName' } },
-  { field: 'type', title: 'AI 字段类型', minWidth: 160, slots: { default: 'customType' } },
+]);
+const customColumns = computed<VxeGridPropTypes.Columns<ColumnRow>>(() => [
+  {
+    field: 'tableName',
+    title: $t('datasource.detail.columns.importedTable'),
+    minWidth: 160,
+  },
+  {
+    field: 'name',
+    title: $t('datasource.detail.columns.aiName'),
+    minWidth: 190,
+    slots: { default: 'customName' },
+  },
+  {
+    field: 'type',
+    title: $t('datasource.detail.columns.aiType'),
+    minWidth: 160,
+    slots: { default: 'customType' },
+  },
   {
     field: 'primaryKey',
-    title: '主键',
+    title: $t('datasource.detail.columns.primaryKey'),
     width: 80,
-    formatter: ({ cellValue }) => (cellValue ? '是' : '否'),
+    formatter: ({ cellValue }) =>
+      cellValue ? $t('common.status.yes') : $t('common.status.no'),
   },
   {
     field: 'comment',
-    title: '字段含义 / 中文解释',
+    title: $t('datasource.detail.columns.aiComment'),
     minWidth: 300,
     slots: { default: 'customComment' },
   },
-];
+]);
 
 const [Grid, gridApi] = useVbenVxeGrid<ColumnRow>({
   class: 'bg-transparent shadow-none',
   gridClass: 'px-0 pb-0',
   gridOptions: {
     border: false,
-    columns: originalColumns,
+    columns: originalColumns.value,
     data: [],
     minHeight: 260,
     rowConfig: { keyField: 'rowKey' },
@@ -194,10 +233,20 @@ const gridDataKey = computed(() =>
 );
 
 watch(
-  [selectedTable, selectedColumn, activeTab, gridDataKey],
+  [
+    selectedTable,
+    selectedColumn,
+    activeTab,
+    gridDataKey,
+    originalColumns,
+    customColumns,
+  ],
   () => {
     gridApi.setGridOptions({
-      columns: activeTab.value === 'custom' ? customColumns : originalColumns,
+      columns:
+        activeTab.value === 'custom'
+          ? customColumns.value
+          : originalColumns.value,
       data: currentRows.value,
     });
   },
@@ -215,8 +264,7 @@ function normalizeCustomTables(tables: TableStructure[]): ManagedTable[] {
         (table as ManagedTable).sourceTableName || table.tableName,
       columns: table.columns.map((column) => ({
         ...column,
-        originalName:
-          (column as ManagedColumn).originalName || column.name,
+        originalName: (column as ManagedColumn).originalName || column.name,
       })),
     }));
 }
@@ -287,7 +335,9 @@ function importTable(table: TableStructure) {
   customStructure.value.push(imported);
   switchTab('custom');
   selectTable(imported.tableName);
-  message.success(`已导入表「${table.tableName}」，AI 现在可以配置它的检索字段`);
+  message.success(
+    $t('datasource.messages.tableImported', { table: table.tableName }),
+  );
 }
 
 function removeImportedTable(table: TableStructure) {
@@ -295,7 +345,9 @@ function removeImportedTable(table: TableStructure) {
     (item) => item !== table,
   );
   ensureSelection();
-  message.success(`已移除表「${table.tableName}」的 AI 检索配置`);
+  message.success(
+    $t('datasource.messages.tableRemoved', { table: table.tableName }),
+  );
 }
 
 function toggleSelectedTableEnabled(enabled: boolean) {
@@ -316,7 +368,11 @@ async function loadDatasource() {
   try {
     datasource.value = await getDataSource(datasourceId.value);
   } catch (error) {
-    message.error(`数据源加载失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('datasource.messages.datasourceLoadFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
     loading.value = false;
     return;
   }
@@ -324,7 +380,11 @@ async function loadDatasource() {
     structure.value =
       (await introspectDataSource(datasourceId.value))?.tables || [];
   } catch (error) {
-    message.error(`表结构加载失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('datasource.messages.structureLoadFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
   }
   try {
     const saved = await getDataSourceStructure(datasourceId.value);
@@ -335,7 +395,11 @@ async function loadDatasource() {
       );
     }
   } catch (error) {
-    message.error(`自定义结构加载失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('datasource.messages.customStructureLoadFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
   } finally {
     ensureSelection();
     loading.value = false;
@@ -350,9 +414,13 @@ async function handleSaveStructure() {
       datasourceId.value,
       JSON.stringify({ tables: customStructure.value }),
     );
-    message.success('AI 检索表结构已保存');
+    message.success($t('datasource.messages.structureSaved'));
   } catch (error) {
-    message.error(`保存失败：${(error as Error)?.message || '未知错误'}`);
+    message.error(
+      $t('common.messages.saveFailed', {
+        message: (error as Error)?.message || $t('errors.unknown'),
+      }),
+    );
   } finally {
     savingStructure.value = false;
   }
@@ -368,20 +436,48 @@ onMounted(loadDatasource);
 <template>
   <Page>
     <div class="flex h-full min-h-0 flex-col gap-2">
-      <div class="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+      <div
+        class="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
+      >
         <div class="flex items-center gap-3">
-          <NButton circle quaternary size="small" @click="goBack">
+          <NButton
+            circle
+            quaternary
+            size="small"
+            :aria-label="$t('common.actions.back')"
+            @click="goBack"
+          >
             <template #icon><ArrowLeft class="size-4" /></template>
           </NButton>
-          <div class="flex size-10 items-center justify-center rounded-lg border border-border bg-white p-1.5">
-            <img :alt="`${datasourceTypeMeta.label} logo`" class="size-full object-contain" :src="datasourceTypeMeta.icon" />
+          <div
+            class="flex size-10 items-center justify-center rounded-lg border border-border bg-white p-1.5"
+          >
+            <img
+              :alt="`${datasourceTypeMeta.label} logo`"
+              class="size-full object-contain"
+              :src="datasourceTypeMeta.icon"
+            />
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-2">
-              <div class="truncate text-lg font-semibold text-foreground">{{ datasource?.name || '数据源详情' }}</div>
-              <NTag :bordered="false" :type="datasource?.enabled ? 'success' : 'default'" round>{{ datasource?.enabled ? '启用' : '停用' }}</NTag>
+              <div class="truncate text-lg font-semibold text-foreground">
+                {{ datasource?.name || $t('datasource.detail.fallbackTitle') }}
+              </div>
+              <NTag
+                :bordered="false"
+                :type="datasource?.enabled ? 'success' : 'default'"
+                round
+                >{{
+                  datasource?.enabled
+                    ? $t('common.status.enabled')
+                    : $t('common.status.disabled')
+                }}</NTag
+              >
             </div>
-            <div class="mt-0.5 text-[11px] text-muted-foreground">{{ datasourceTypeMeta.label }} · {{ datasource?.host || '--' }} · {{ datasource?.databaseName || '--' }}</div>
+            <div class="mt-0.5 text-[11px] text-muted-foreground">
+              {{ datasourceTypeMeta.label }} · {{ datasource?.host || '--' }} ·
+              {{ datasource?.databaseName || '--' }}
+            </div>
           </div>
         </div>
       </div>
@@ -390,19 +486,84 @@ onMounted(loadDatasource);
         class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card p-4"
       >
         <div class="mb-4 grid gap-2 border-b border-border pb-3 md:grid-cols-2">
-          <button class="rounded-lg border p-3 text-left transition-colors" :class="activeTab === 'original' ? 'border-primary/40 bg-primary/5' : 'border-transparent bg-muted/30 hover:bg-muted/60'" type="button" @click="switchTab('original')">
-            <div class="flex items-center justify-between gap-2"><span class="text-sm font-semibold">数据库发现</span><span class="flex items-center gap-1.5"><NTag size="small">{{ structure.length }} 张表</NTag><NTag v-if="pendingImportCount > 0" size="small" type="warning">{{ pendingImportCount }} 张待导入</NTag></span></div>
-            <div class="mt-1 text-[11px] text-muted-foreground">实时内省结果，选择后导入到 AI 检索配置</div>
+          <button
+            class="rounded-lg border p-3 text-left transition-colors"
+            :class="
+              activeTab === 'original'
+                ? 'border-primary/40 bg-primary/5'
+                : 'border-transparent bg-muted/30 hover:bg-muted/60'
+            "
+            type="button"
+            @click="switchTab('original')"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-semibold">{{
+                $t('datasource.detail.discoveryTitle')
+              }}</span
+              ><span class="flex items-center gap-1.5"
+                ><NTag size="small">{{
+                  $t('datasource.detail.tablesCount', {
+                    count: structure.length,
+                  })
+                }}</NTag
+                ><NTag
+                  v-if="pendingImportCount > 0"
+                  size="small"
+                  type="warning"
+                  >{{
+                    $t('datasource.detail.pendingImport', {
+                      count: pendingImportCount,
+                    })
+                  }}</NTag
+                ></span
+              >
+            </div>
+            <div class="mt-1 text-[11px] text-muted-foreground">
+              {{ $t('datasource.detail.discoveryHint') }}
+            </div>
           </button>
-          <button class="rounded-lg border p-3 text-left transition-colors" :class="activeTab === 'custom' ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-transparent bg-muted/30 hover:bg-muted/60'" type="button" @click="switchTab('custom')">
-            <div class="flex items-center justify-between gap-2"><span class="text-sm font-semibold">AI 检索配置</span><span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600"><Check class="size-3.5" />{{ enabledTableCount }} 张可检索</span></div>
-            <div class="mt-1 text-[11px] text-muted-foreground">只有已导入且启用的表，才会提供给 AI 查询</div>
+          <button
+            class="rounded-lg border p-3 text-left transition-colors"
+            :class="
+              activeTab === 'custom'
+                ? 'border-emerald-500/50 bg-emerald-500/5'
+                : 'border-transparent bg-muted/30 hover:bg-muted/60'
+            "
+            type="button"
+            @click="switchTab('custom')"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-semibold">{{
+                $t('datasource.detail.aiConfigTitle')
+              }}</span
+              ><span
+                class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600"
+                ><Check class="size-3.5" />{{
+                  $t('datasource.detail.retrievalCount', {
+                    count: enabledTableCount,
+                  })
+                }}</span
+              >
+            </div>
+            <div class="mt-1 text-[11px] text-muted-foreground">
+              {{ $t('datasource.detail.aiConfigHint') }}
+            </div>
           </button>
         </div>
 
-        <div v-if="activeTab === 'custom'" class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-          <span>绿色标记 = 已导入；开关开启 = 允许 AI 检索。</span>
-          <NButton :loading="savingStructure" size="small" type="primary" @click="handleSaveStructure"><template #icon><Save class="size-3.5" /></template>保存检索配置</NButton>
+        <div
+          v-if="activeTab === 'custom'"
+          class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300"
+        >
+          <span>{{ $t('datasource.detail.legend') }}</span>
+          <NButton
+            :loading="savingStructure"
+            size="small"
+            type="primary"
+            @click="handleSaveStructure"
+            ><template #icon><Save class="size-3.5" /></template
+            >{{ $t('datasource.detail.saveConfig') }}</NButton
+          >
         </div>
 
         <NSpin
@@ -410,27 +571,229 @@ onMounted(loadDatasource);
           class="min-h-0 flex-1"
           content-class="h-full overflow-y-auto"
         >
-          <div v-if="sourceTables.length > 0" class="grid min-h-[420px] gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div
+            v-if="sourceTables.length > 0"
+            class="grid min-h-[420px] gap-4 lg:grid-cols-[280px_minmax(0,1fr)]"
+          >
             <aside class="rounded-lg border border-border/80 bg-muted/15 p-2">
-              <div class="mb-2 flex items-center justify-between px-2 py-1"><span class="text-xs font-semibold text-foreground">{{ activeTab === 'custom' ? '已导入表' : '数据库原始表' }}</span><NButton quaternary size="tiny" @click="expandAllTables">展开全部</NButton></div>
-              <button class="mb-1 flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors" :class="selectedTable === '__all__' ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground hover:bg-muted/60'" type="button" @click="selectTable('__all__')"><Database class="size-3.5" /><span>{{ activeTab === 'custom' ? '全部已导入表' : '全部原始表' }}</span><span class="ml-auto text-[10px] opacity-60">{{ sourceTables.length }}</span></button>
-              <div v-for="table in sourceTables" :key="table.tableName" class="mb-0.5">
-                <div class="grid grid-cols-[28px_minmax(0,1fr)_72px_28px] items-center rounded-md pr-3" :class="selectedTable === table.tableName && !selectedColumn ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/60'">
-                  <button class="flex size-7 shrink-0 items-center justify-center text-muted-foreground" type="button" @click="toggleTable(table.tableName)"><ChevronDown v-if="expandedTables[table.tableName]" class="size-3.5" /><ChevronRight v-else class="size-3.5" /></button>
-                  <button class="min-w-0 flex-1 truncate py-2 text-left text-xs font-medium" type="button" @click="selectTable(table.tableName)">{{ table.tableName }}</button>
+              <div class="mb-2 flex items-center justify-between px-2 py-1">
+                <span class="text-xs font-semibold text-foreground">{{
+                  activeTab === 'custom'
+                    ? $t('datasource.detail.importedTables')
+                    : $t('datasource.detail.originalTables')
+                }}</span
+                ><NButton quaternary size="tiny" @click="expandAllTables">{{
+                  $t('common.actions.expandAll')
+                }}</NButton>
+              </div>
+              <button
+                class="mb-1 flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors"
+                :class="
+                  selectedTable === '__all__'
+                    ? 'bg-primary/10 font-semibold text-primary'
+                    : 'text-muted-foreground hover:bg-muted/60'
+                "
+                type="button"
+                @click="selectTable('__all__')"
+              >
+                <Database class="size-3.5" /><span>{{
+                  activeTab === 'custom'
+                    ? $t('datasource.detail.allImportedTables')
+                    : $t('datasource.detail.allOriginalTables')
+                }}</span
+                ><span class="ml-auto text-[10px] opacity-60">{{
+                  sourceTables.length
+                }}</span>
+              </button>
+              <div
+                v-for="table in sourceTables"
+                :key="table.tableName"
+                class="mb-0.5"
+              >
+                <div
+                  class="grid grid-cols-[28px_minmax(0,1fr)_72px_28px] items-center rounded-md pr-3"
+                  :class="
+                    selectedTable === table.tableName && !selectedColumn
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground hover:bg-muted/60'
+                  "
+                >
+                  <button
+                    class="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
+                    type="button"
+                    :aria-label="
+                      expandedTables[table.tableName]
+                        ? $t('common.actions.collapse')
+                        : $t('common.actions.expand')
+                    "
+                    @click="toggleTable(table.tableName)"
+                  >
+                    <ChevronDown
+                      v-if="expandedTables[table.tableName]"
+                      class="size-3.5"
+                    /><ChevronRight v-else class="size-3.5" />
+                  </button>
+                  <button
+                    class="min-w-0 flex-1 truncate py-2 text-left text-xs font-medium"
+                    type="button"
+                    @click="selectTable(table.tableName)"
+                  >
+                    {{ table.tableName }}
+                  </button>
                   <div class="flex w-[72px] justify-end">
-                    <NTag v-if="activeTab === 'original' && importedTableMap.has(table.tableName)" :bordered="false" size="small" type="success">已导入</NTag>
-                    <NButton v-if="activeTab === 'original' && !importedTableMap.has(table.tableName)" class="w-[62px]" secondary size="tiny" @click="importTable(table)"><template #icon><Download class="size-3" /></template>导入</NButton>
-                    <NTag v-if="activeTab === 'custom'" :bordered="false" size="small" :type="table.enabled === false ? 'default' : 'success'">{{ table.enabled === false ? '已停用' : '可检索' }}</NTag>
+                    <NTag
+                      v-if="
+                        activeTab === 'original' &&
+                        importedTableMap.has(table.tableName)
+                      "
+                      :bordered="false"
+                      size="small"
+                      type="success"
+                      >{{ $t('datasource.detail.imported') }}</NTag
+                    >
+                    <NButton
+                      v-if="
+                        activeTab === 'original' &&
+                        !importedTableMap.has(table.tableName)
+                      "
+                      class="w-[62px]"
+                      secondary
+                      size="tiny"
+                      @click="importTable(table)"
+                      ><template #icon><Download class="size-3" /></template
+                      >{{ $t('datasource.detail.import') }}</NButton
+                    >
+                    <NTag
+                      v-if="activeTab === 'custom'"
+                      :bordered="false"
+                      size="small"
+                      :type="table.enabled === false ? 'default' : 'success'"
+                      >{{
+                        table.enabled === false
+                          ? $t('datasource.detail.retrievalDisabled')
+                          : $t('datasource.detail.retrievalEnabled')
+                      }}</NTag
+                    >
                   </div>
-                  <span class="text-right text-[10px] text-muted-foreground">{{ table.columns.length }}</span>
+                  <span class="text-right text-[10px] text-muted-foreground">{{
+                    table.columns.length
+                  }}</span>
                 </div>
-                <div v-if="expandedTables[table.tableName]" class="ml-7 border-l border-border/70 pl-2"><button class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-[11px] text-muted-foreground hover:bg-muted/60" :class="selectedTable === table.tableName && !selectedColumn ? 'text-primary' : ''" type="button" @click="selectTable(table.tableName)">全部字段</button><button v-for="column in table.columns" :key="column.name" class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-[11px] text-muted-foreground hover:bg-muted/60" :class="selectedTable === table.tableName && (selectedColumn === column.name || selectedColumn === column.originalName) ? 'bg-primary/10 text-primary' : ''" type="button" @click="selectTable(table.tableName, column.name)"><span class="truncate">{{ column.name }}</span><span class="ml-auto pl-2 text-[10px] opacity-60">{{ column.type }}</span></button></div>
+                <div
+                  v-if="expandedTables[table.tableName]"
+                  class="ml-7 border-l border-border/70 pl-2"
+                >
+                  <button
+                    class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-[11px] text-muted-foreground hover:bg-muted/60"
+                    :class="
+                      selectedTable === table.tableName && !selectedColumn
+                        ? 'text-primary'
+                        : ''
+                    "
+                    type="button"
+                    @click="selectTable(table.tableName)"
+                  >
+                    {{ $t('datasource.detail.allFields') }}</button
+                  ><button
+                    v-for="column in table.columns"
+                    :key="column.name"
+                    class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-[11px] text-muted-foreground hover:bg-muted/60"
+                    :class="
+                      selectedTable === table.tableName &&
+                      (selectedColumn === column.name ||
+                        selectedColumn === column.originalName)
+                        ? 'bg-primary/10 text-primary'
+                        : ''
+                    "
+                    type="button"
+                    @click="selectTable(table.tableName, column.name)"
+                  >
+                    <span class="truncate">{{ column.name }}</span
+                    ><span class="ml-auto pl-2 text-[10px] opacity-60">{{
+                      column.type
+                    }}</span>
+                  </button>
+                </div>
               </div>
             </aside>
-            <section class="min-w-0"><div class="mb-3 flex items-center justify-between gap-3"><div><div class="text-sm font-semibold text-foreground">{{ selectedLabel }}</div><div class="mt-0.5 text-[11px] text-muted-foreground">{{ currentRows.length }} 个字段</div></div><div class="flex items-center gap-3"><NTag v-if="activeTab === 'custom'" :bordered="false" type="info">字段名称、类型、含义均可编辑</NTag><div v-if="selectedManagedTable" class="flex items-center gap-2 rounded-md border border-border bg-muted/20 px-2.5 py-1.5"><span class="text-xs text-muted-foreground">允许 AI 检索</span><NSwitch :value="selectedManagedTable.enabled !== false" size="small" @update:value="toggleSelectedTableEnabled" /><NButton v-tippy="'移除导入表'" circle quaternary size="tiny" type="error" @click="removeSelectedTable"><Trash2 class="size-3.5" /></NButton></div></div></div><Grid><template #customName="{ row }"><NInput v-model:value="row.name" size="small" placeholder="AI 看到的字段名" /></template><template #customType="{ row }"><NInput v-model:value="row.type" size="small" placeholder="例如 VARCHAR(255)" /></template><template #customComment="{ row }"><NInput v-model:value="row.comment" size="small" placeholder="填写字段含义 / 中文解释" /></template></Grid></section>
+            <section class="min-w-0">
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div class="text-sm font-semibold text-foreground">
+                    {{ selectedLabel }}
+                  </div>
+                  <div class="mt-0.5 text-[11px] text-muted-foreground">
+                    {{
+                      $t('datasource.detail.fieldsCount', {
+                        count: currentRows.length,
+                      })
+                    }}
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <NTag
+                    v-if="activeTab === 'custom'"
+                    :bordered="false"
+                    type="info"
+                    >{{ $t('datasource.detail.fieldsEditable') }}</NTag
+                  >
+                  <div
+                    v-if="selectedManagedTable"
+                    class="flex items-center gap-2 rounded-md border border-border bg-muted/20 px-2.5 py-1.5"
+                  >
+                    <span class="text-xs text-muted-foreground">{{
+                      $t('datasource.detail.allowAiRetrieval')
+                    }}</span
+                    ><NSwitch
+                      :value="selectedManagedTable.enabled !== false"
+                      size="small"
+                      @update:value="toggleSelectedTableEnabled"
+                    /><NButton
+                      v-tippy="$t('datasource.detail.removeImportedTable')"
+                      circle
+                      quaternary
+                      size="tiny"
+                      type="error"
+                      :aria-label="$t('datasource.detail.removeImportedTable')"
+                      @click="removeSelectedTable"
+                      ><Trash2 class="size-3.5"
+                    /></NButton>
+                  </div>
+                </div>
+              </div>
+              <Grid
+                ><template #customName="{ row }"
+                  ><NInput
+                    v-model:value="row.name"
+                    size="small"
+                    :placeholder="
+                      $t('datasource.detail.aiFieldNamePlaceholder')
+                    " /></template
+                ><template #customType="{ row }"
+                  ><NInput
+                    v-model:value="row.type"
+                    size="small"
+                    :placeholder="
+                      $t('datasource.detail.aiFieldTypePlaceholder')
+                    " /></template
+                ><template #customComment="{ row }"
+                  ><NInput
+                    v-model:value="row.comment"
+                    size="small"
+                    :placeholder="
+                      $t('datasource.detail.aiFieldCommentPlaceholder')
+                    " /></template
+              ></Grid>
+            </section>
           </div>
-          <NEmpty v-else :description="activeTab === 'custom' ? '还没有导入任何表' : '未能内省到表结构'" />
+          <NEmpty
+            v-else
+            :description="
+              activeTab === 'custom'
+                ? $t('datasource.detail.noImportedTables')
+                : $t('datasource.detail.noIntrospectedTables')
+            "
+          />
         </NSpin>
       </div>
     </div>

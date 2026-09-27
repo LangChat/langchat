@@ -5,6 +5,7 @@ import {computed, onMounted, ref, watch} from 'vue';
 
 import {Page} from '@vben/common-ui';
 import {Plus, RefreshCcw} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {NButton, NPagination} from 'naive-ui';
 
@@ -12,7 +13,7 @@ import {dialog, message} from '#/adapter/naive';
 import {mcpApi} from '#/api/aigc/mcp';
 import LcActionCard from '#/components/LcActionCard/index.vue';
 import LcListCard from '#/components/LcListCard/index.vue';
-import {AIGC_COMMON_TAG_OPTIONS} from '#/views/shared/aigc/options';
+import {aigcCommonTagOptions} from '#/views/shared/aigc/options';
 import {parseTagList} from '#/views/shared/aigc/tags';
 
 import McpCard from './card.vue';
@@ -28,8 +29,8 @@ const pageSize = ref(9);
 const items = ref<AigcMcp[]>([]);
 const currentItem = ref<null | Partial<AigcMcp>>(null);
 const tagFilterOptions = computed(() => [
-  { label: '全部', value: 'ALL' },
-  ...AIGC_COMMON_TAG_OPTIONS.map((item) => ({
+  {label: $t('common.labels.all'), value: 'ALL'},
+  ...aigcCommonTagOptions().map((item) => ({
     label: item.label,
     value: String(item.value),
   })),
@@ -59,8 +60,8 @@ watch([keyword, selectedTag], () => {
   currentPage.value = 1;
 });
 const actionItems = computed(() => [
-  { key: 'refresh', label: '刷新列表', icon: RefreshCcw },
-  { key: 'create', label: '新建 MCP 服务', icon: Plus },
+  {key: 'refresh', label: $t('mcp.actions.refreshList'), icon: RefreshCcw},
+  {key: 'create', label: $t('mcp.actions.create'), icon: Plus},
 ]);
 
 async function loadList() {
@@ -98,13 +99,15 @@ async function handleDelete(item: AigcMcp) {
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除「${item.name || '未命名服务'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除 MCP 服务',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.name || $t('mcp.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('mcp.messages.deleteTitle'),
     onPositiveClick: async () => {
       await mcpApi.remove(item.id!);
-      message.success('MCP 服务已删除');
+      message.success($t('mcp.messages.deleted'));
       await loadList();
     },
   });
@@ -115,10 +118,10 @@ async function handleSave(payload: Partial<AigcMcp>) {
   try {
     if (currentItem.value?.id) {
       await mcpApi.update(currentItem.value.id, payload);
-      message.success('MCP 服务已更新');
+      message.success($t('mcp.messages.updated'));
     } else {
       await mcpApi.create(payload);
-      message.success('MCP 服务已创建');
+      message.success($t('mcp.messages.created'));
     }
     showEdit.value = false;
     await loadList();
@@ -137,7 +140,7 @@ onMounted(loadList);
         :active-tag="selectedTag"
         :items="pagedItems"
         :loading="loading"
-        search-placeholder="按服务名称、唯一标识、协议类型搜索"
+        :search-placeholder="$t('mcp.list.searchPlaceholder')"
         :search-value="keyword"
         :tags="tagFilterOptions"
         @update:active-tag="selectedTag = $event"
@@ -146,8 +149,8 @@ onMounted(loadList);
         <template #leading-card>
           <LcActionCard
             :actions="actionItems"
-            description="常用操作统一放置在首个卡片位。"
-            title="MCP 操作"
+            :description="$t('common.messages.quickActionsDescription')"
+            :title="$t('mcp.list.actionsTitle')"
             @action="handleAction"
           />
         </template>
@@ -155,7 +158,11 @@ onMounted(loadList);
           <McpCard :item="item" @delete="handleDelete" @edit="handleEdit" />
         </template>
         <template #empty-extra>
-          <NButton type="primary" @click="handleCreate">新建 MCP 服务</NButton>
+          <NButton type="primary" @click="handleCreate">
+{{
+            $t('mcp.actions.create')
+          }}
+</NButton>
         </template>
       </LcListCard>
 

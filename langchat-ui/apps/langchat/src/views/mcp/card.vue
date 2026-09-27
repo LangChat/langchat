@@ -4,6 +4,7 @@ import type { AigcMcp } from '#/api/aigc/mcp';
 import { computed } from 'vue';
 
 import { PlugZap, SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
@@ -13,6 +14,7 @@ import {
   findOptionLabel,
   MCP_TRANSPORT_OPTIONS,
 } from '#/views/shared/aigc/options';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface Props {
   item: AigcMcp;
@@ -27,22 +29,18 @@ const emit = defineEmits<{
 
 const metaItems = computed(() => [
   {
-    label: '传输协议',
+    label: $t('mcp.card.transportLabel'),
     value: findOptionLabel(MCP_TRANSPORT_OPTIONS, props.item.transport),
   },
-  { label: '站点', value: props.item.siteUrl || '--' },
-  { label: '唯一标识', value: props.item.uuid || '--' },
+  {label: $t('mcp.card.site'), value: props.item.siteUrl || '--'},
+  {label: $t('mcp.card.uuid'), value: props.item.uuid || '--'},
   {
-    label: '超时',
-    value: props.item.timeout ? `${props.item.timeout}s` : '默认',
+    label: $t('mcp.card.timeout'),
+    value: props.item.timeout
+      ? $t('mcp.card.timeoutValue', {value: props.item.timeout})
+      : $t('common.status.default'),
   },
 ]);
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -52,36 +50,39 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary"
         >
-          {{ item.name || '未命名服务' }}
+          {{ item.name || $t('mcp.card.unnamed') }}
         </div>
       </div>
     </template>
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        当前传输协议
-        {{ findOptionLabel(MCP_TRANSPORT_OPTIONS, item.transport) }}，站点
-        {{ item.siteUrl || '--' }}。
+        {{
+          $t('mcp.card.transportSummary', {
+            transport: findOptionLabel(MCP_TRANSPORT_OPTIONS, item.transport),
+            siteUrl: item.siteUrl || '--',
+          })
+        }}
       </p>
     </template>
 
     <template #header-extra>
       <LcStatusTag
-        :label="item.authorized ? '已授权' : '待授权'"
+        :label="item.authorized ? $t('mcp.card.authorized') : $t('mcp.card.pendingAuthorized')"
         :type="item.authorized ? 'success' : 'warning'"
       />
     </template>
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -91,7 +92,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

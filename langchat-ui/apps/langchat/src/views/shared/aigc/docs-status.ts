@@ -1,18 +1,26 @@
+import { $t, i18n } from '@vben/locales';
+import { unref } from 'vue';
+
 /**
  * 解析文档向量化状态标签。
  */
 export function resolveDocsStatusLabel(status?: null | string) {
   switch (status) {
-    case 'completed':
-      return '已完成';
-    case 'failed':
-      return '失败';
-    case 'running':
-      return '执行中';
-    case 'pending':
-      return '待处理';
-    default:
-      return '未知';
+    case 'completed': {
+      return $t('docs.status.completed');
+    }
+    case 'failed': {
+      return $t('docs.status.failed');
+    }
+    case 'running': {
+      return $t('docs.status.running');
+    }
+    case 'pending': {
+      return $t('docs.status.pending');
+    }
+    default: {
+      return $t('common.status.unknown');
+    }
   }
 }
 
@@ -21,16 +29,21 @@ export function resolveDocsStatusLabel(status?: null | string) {
  */
 export function resolveDocsStatusType(status?: null | string) {
   switch (status) {
-    case 'completed':
+    case 'completed': {
       return 'success';
-    case 'failed':
+    }
+    case 'failed': {
       return 'error';
-    case 'running':
+    }
+    case 'running': {
       return 'warning';
-    case 'pending':
+    }
+    case 'pending': {
       return 'info';
-    default:
+    }
+    default: {
       return 'default';
+    }
   }
 }
 
@@ -54,5 +67,6 @@ export function formatDocsTimestamp(timestamp?: null | number) {
   if (!timestamp) {
     return '--';
   }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
+  const locale = unref(i18n.global.locale) || 'zh-CN';
+  return new Date(timestamp).toLocaleString(locale, { hour12: false });
 }

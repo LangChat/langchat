@@ -1,0 +1,51 @@
+{
+  "title": {
+    "create": "New Role",
+    "edit": "Edit Role"
+  },
+  "actions": {
+    "create": "New Role"
+  },
+  "form": {
+    "name": "Role Name",
+    "code": "Role Code",
+    "description": "Role Description",
+    "descriptionPlaceholder": "Enter role description",
+    "menuAuth": "Menu Authorization",
+    "menuSearchPlaceholder": "Search menu names",
+    "grantAll": "Grant all",
+    "clearAll": "Clear all"
+  },
+  "card": {
+    "unnamed": "Untitled Role",
+    "notAssigned": "Not assigned",
+    "code": "Code",
+    "menuAuth": "Menu Permissions",
+    "menuCount": "{count}",
+    "defaultDescription": "This role manages menu permission assignment."
+  },
+  "columns": {
+    "seq": "#",
+    "name": "Role Name",
+    "code": "Role Code",
+    "description": "Description",
+    "menuAuth": "Menu Authorization",
+    "updateTime": "Updated At"
+  },
+  "list": {
+    "tableTitle": "Role Management",
+    "keywordPlaceholder": "Role name / code / description",
+    "editRole": "Edit role",
+    "deleteRole": "Delete role",
+    "builtinRoleEditTip": "Built-in role cannot be edited",
+    "builtinRoleDeleteTip": "Built-in role cannot be deleted",
+    "unauthorizedMenus": "No menus granted",
+    "moreMenus": "{count} more"
+  },
+  "messages": {
+    "created": "Role created",
+    "updated": "Role updated",
+    "deleted": "Role deleted",
+    "deleteTitle": "Delete Role"
+  }
+}

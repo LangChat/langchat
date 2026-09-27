@@ -3,6 +3,7 @@ import type {AigcMessage} from '#/api/aigc/chat';
 
 import {computed, onMounted, ref, watch} from 'vue';
 
+import {$t, i18n} from '@vben/locales';
 import {EchartsUI, useEcharts} from '@vben/plugins/echarts';
 
 import {NButton, NSpin, NTag} from 'naive-ui';
@@ -26,6 +27,10 @@ const { renderEcharts: renderTrendChart } = useEcharts(trendChartRef);
 const { renderEcharts: renderRoleChart } = useEcharts(roleChartRef);
 const { renderEcharts: renderTokenChart } = useEcharts(tokenChartRef);
 
+const currentLocale = computed(
+  () => i18n.global.locale.value || 'zh-CN',
+);
+
 const totalMessages = computed(() => messageRows.value.length);
 const totalInputTokens = computed(() =>
   messageRows.value.reduce(
@@ -44,12 +49,14 @@ const dayPoints = computed(() => {
   const map = new Map<string, number>();
   messageRows.value.forEach((item) => {
     const ts = item.createTime ? new Date(item.createTime) : null;
-    const key = ts ? ts.toLocaleDateString('zh-CN') : '未知';
+    const key = ts
+      ? ts.toLocaleDateString(currentLocale.value)
+      : $t('common.status.unknown');
     map.set(key, (map.get(key) || 0) + 1);
   });
   return [...map.entries()]
     .map(([date, value]) => ({ date, value }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .toSorted((a, b) => a.date.localeCompare(b.date));
 });
 
 const rolePoints = computed(() => {
@@ -65,7 +72,9 @@ const tokenPoints = computed(() => {
   const map = new Map<string, { in: number; out: number }>();
   messageRows.value.forEach((item) => {
     const ts = item.createTime ? new Date(item.createTime) : null;
-    const key = ts ? ts.toLocaleDateString('zh-CN') : '未知';
+    const key = ts
+      ? ts.toLocaleDateString(currentLocale.value)
+      : $t('common.status.unknown');
     const current = map.get(key) || { in: 0, out: 0 };
     current.in += Number(item.inputToken || 0);
     current.out += Number(item.outputToken || 0);
@@ -77,13 +86,13 @@ const tokenPoints = computed(() => {
       input: value.in,
       output: value.out,
     }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .toSorted((a, b) => a.date.localeCompare(b.date));
 });
 
 const chartDayPoints = computed(() =>
   dayPoints.value.length > 0
     ? dayPoints.value
-    : [{ date: '暂无数据', value: 0 }],
+    : [{ date: $t('common.empty.noData'), value: 0 }],
 );
 const chartRolePoints = computed(() =>
   rolePoints.value.length > 0
@@ -96,7 +105,13 @@ const chartRolePoints = computed(() =>
 const chartTokenPoints = computed(() =>
   tokenPoints.value.length > 0
     ? tokenPoints.value
-    : [{ date: '暂无数据', input: 0, output: 0 }],
+    : [
+        {
+          date: $t('common.empty.noData'),
+          input: 0,
+          output: 0,
+        },
+      ],
 );
 
 async function loadRows() {
@@ -208,7 +223,7 @@ async function renderCharts() {
       },
       series: [
         {
-          name: '输入Token',
+          name: $t('agents.messageStats.inputTokens'),
           type: 'bar',
           data: chartTokenPoints.value.map((item) => item.input),
           itemStyle: {
@@ -227,7 +242,7 @@ async function renderCharts() {
           barMaxWidth: 26,
         },
         {
-          name: '输出Token',
+          name: $t('agents.messageStats.outputTokens'),
           type: 'bar',
           data: chartTokenPoints.value.map((item) => item.output),
           itemStyle: {
@@ -291,18 +306,30 @@ onMounted(async () => {
     class="overflow-y-auto rounded-xl border border-border bg-card p-3"
   >
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <div class="text-sm font-semibold text-foreground">消息统计报表</div>
+      <div class="text-sm font-semibold text-foreground">
+        {{ $t('agents.messageStats.title') }}
+      </div>
       <div class="flex items-center gap-2">
         <NTag :bordered="false" round type="info">
-消息 {{ totalMessages }}
-</NTag>
+          {{ $t('agents.messageStats.totalMessages', { count: totalMessages }) }}
+        </NTag>
         <NTag :bordered="false" round type="success">
-输入Token {{ totalInputTokens }}
-</NTag>
-        <NTag :bordered="false" round>输出Token {{ totalOutputTokens }}</NTag>
+          {{
+            $t('agents.messageStats.totalInputTokens', {
+              count: totalInputTokens,
+            })
+          }}
+        </NTag>
+        <NTag :bordered="false" round>
+          {{
+            $t('agents.messageStats.totalOutputTokens', {
+              count: totalOutputTokens,
+            })
+          }}
+        </NTag>
         <NButton :loading="loading" secondary size="small" @click="loadRows">
-刷新统计
-</NButton>
+          {{ $t('agents.messageStats.refresh') }}
+        </NButton>
       </div>
     </div>
 
@@ -310,13 +337,13 @@ onMounted(async () => {
       <div class="grid gap-3 xl:grid-cols-2">
         <div class="rounded-lg border border-border/80 bg-background p-3">
           <div class="mb-2 text-xs font-medium text-muted-foreground">
-            消息趋势
+            {{ $t('agents.messageStats.messageTrend') }}
           </div>
           <EchartsUI ref="trendChartRef" height="280px" />
         </div>
         <div class="rounded-lg border border-border/80 bg-background p-3">
           <div class="mb-2 text-xs font-medium text-muted-foreground">
-            角色分布
+            {{ $t('agents.messageStats.roleDistribution') }}
           </div>
           <EchartsUI ref="roleChartRef" height="280px" />
         </div>
@@ -324,7 +351,7 @@ onMounted(async () => {
 
       <div class="mt-3 rounded-lg border border-border/80 bg-background p-3">
         <div class="mb-2 text-xs font-medium text-muted-foreground">
-          Token 消耗趋势
+          {{ $t('agents.messageStats.tokenTrend') }}
         </div>
         <EchartsUI ref="tokenChartRef" height="300px" />
       </div>

@@ -2,14 +2,16 @@
 import type { AigcMenu, AigcMenuTreeNode } from '#/api/auth/menu';
 
 import { computed, watch } from 'vue';
+
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
-import { MENU_TYPE_OPTIONS } from '#/views/shared/auth/options';
+import { menuTypeOptions } from '#/views/shared/auth/options';
 
 interface Props {
   menuTree: AigcMenuTreeNode[];
-  modelValue?: Partial<AigcMenu> | null;
+  modelValue?: null | Partial<AigcMenu>;
   saving?: boolean;
   show: boolean;
 }
@@ -26,23 +28,23 @@ const emit = defineEmits<{
 }>();
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑菜单' : '新建菜单',
+  props.modelValue?.id ? $t('menus.title.edit') : $t('menus.title.create'),
 );
 
 const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '菜单名称',
+    label: $t('menus.form.name'),
     rules: 'required',
   },
   {
     component: 'Select',
     componentProps: {
-      options: MENU_TYPE_OPTIONS,
+      options: menuTypeOptions(),
     },
     fieldName: 'type',
-    label: '菜单类型',
+    label: $t('menus.form.type'),
     rules: 'selectRequired',
   },
   {
@@ -54,10 +56,10 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       keyField: 'id',
       labelField: 'name',
       options: props.menuTree,
-      placeholder: '请选择上级菜单',
+      placeholder: $t('menus.form.parentPlaceholder'),
     },
     fieldName: 'parentId',
-    label: '上级菜单',
+    label: $t('menus.form.parent'),
   },
   {
     component: 'InputNumber',
@@ -65,47 +67,47 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       min: 0,
     },
     fieldName: 'orderNo',
-    label: '排序号',
+    label: $t('menus.form.orderNo'),
   },
   {
     component: 'Input',
     fieldName: 'path',
-    label: '路由路径',
+    label: $t('menus.form.path'),
   },
   {
     component: 'Input',
     fieldName: 'perms',
-    label: '权限标识',
+    label: $t('menus.form.perms'),
   },
   {
     component: 'Input',
     fieldName: 'icon',
-    label: '图标',
+    label: $t('menus.form.icon'),
   },
   {
     component: 'Input',
     fieldName: 'component',
-    label: '组件路径',
+    label: $t('menus.form.component'),
   },
   {
     component: 'Switch',
     fieldName: 'isShow',
-    label: '是否显示',
+    label: $t('menus.form.isShow'),
   },
   {
     component: 'Switch',
     fieldName: 'isKeepalive',
-    label: '是否缓存',
+    label: $t('menus.form.isKeepalive'),
   },
   {
     component: 'Switch',
     fieldName: 'isExt',
-    label: '是否外链',
+    label: $t('menus.form.isExternal'),
   },
   {
     component: 'Switch',
     fieldName: 'isDisabled',
-    label: '是否禁用',
+    label: $t('menus.form.isDisabled'),
   },
 ]);
 
@@ -141,7 +143,7 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[860px]',
-  confirmText: '保存',
+  confirmText: $t('common.actions.save'),
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -169,6 +171,14 @@ watch(
 );
 
 watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
+
+watch(
   () => [props.show, props.modelValue],
   async () => {
     if (!props.show) {
@@ -186,7 +196,7 @@ watch(
         isShow: true,
         orderNo: 1,
         type: 'MENU',
-        ...(props.modelValue ?? {}),
+        ...props.modelValue,
       },
       false,
     );

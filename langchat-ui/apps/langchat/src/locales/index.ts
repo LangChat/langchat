@@ -4,6 +4,7 @@ import type { LocaleSetupOptions, SupportedLanguagesType } from '@vben/locales';
 
 import {
   $t,
+  $te,
   setupI18n as coreSetup,
   loadLocalesMapFromDir,
 } from '@vben/locales';
@@ -35,4 +36,4 @@ async function setupI18n(app: App, options: LocaleSetupOptions = {}) {
   });
 }
 
-export { $t, setupI18n };
+export { $t, $te, setupI18n };

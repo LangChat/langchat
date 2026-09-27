@@ -2,12 +2,14 @@
 import type { AigcUser } from '#/api/auth/user';
 
 import { computed, watch } from 'vue';
+
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
 import {
-  USER_SEX_OPTIONS,
-  USER_STATUS_OPTIONS,
+  userSexOptions,
+  userStatusOptions,
 } from '#/views/shared/auth/options';
 
 interface UserFormModel extends Partial<AigcUser> {
@@ -15,7 +17,7 @@ interface UserFormModel extends Partial<AigcUser> {
 }
 
 interface Props {
-  modelValue?: UserFormModel | null;
+  modelValue?: null | UserFormModel;
   roleOptions: Array<{ label: string; value: string }>;
   saving?: boolean;
   show: boolean;
@@ -33,68 +35,68 @@ const emit = defineEmits<{
 }>();
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑用户' : '新建用户',
+  props.modelValue?.id ? $t('users.title.edit') : $t('users.title.create'),
 );
 
 const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'username',
-    label: '用户名',
+    label: $t('users.form.username'),
     rules: 'required',
   },
   {
     component: 'Input',
     fieldName: 'realName',
-    label: '姓名',
+    label: $t('users.form.realName'),
     rules: 'required',
   },
   {
     component: 'Input',
     componentProps: {
-      placeholder: '编辑时留空则保持原密码',
+      placeholder: $t('users.form.passwordPlaceholder'),
       type: 'password',
     },
     fieldName: 'password',
-    label: '登录密码',
+    label: $t('users.form.password'),
   },
   {
     component: 'Select',
     componentProps: {
-      options: USER_STATUS_OPTIONS,
+      options: userStatusOptions(),
     },
     fieldName: 'status',
-    label: '用户状态',
+    label: $t('users.form.status'),
     rules: 'selectRequired',
   },
   {
     component: 'Select',
     componentProps: {
-      options: USER_SEX_OPTIONS,
+      options: userSexOptions(),
     },
     fieldName: 'sex',
-    label: '性别',
+    label: $t('users.form.gender'),
   },
   {
     component: 'Input',
     fieldName: 'phone',
-    label: '手机号',
+    label: $t('users.form.phone'),
   },
   {
     component: 'Input',
     fieldName: 'email',
-    label: '邮箱',
+    label: $t('users.form.email'),
   },
   {
     component: 'Input',
     fieldName: 'deptId',
-    label: '部门 ID',
+    label: $t('users.form.deptId'),
   },
   {
     component: 'Input',
     fieldName: 'avatar',
     formItemClass: 'sm:cols-span-2',
-    label: '头像地址',
+    label: $t('users.form.avatar'),
   },
   {
     component: 'Select',
@@ -104,11 +106,11 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       maxTagCount: 4,
       multiple: true,
       options: props.roleOptions,
-      placeholder: '请选择角色',
+      placeholder: $t('users.form.rolesPlaceholder'),
     },
     fieldName: 'roleIds',
     formItemClass: 'sm:cols-span-2',
-    label: '角色分配',
+    label: $t('users.form.roles'),
   },
 ]);
 
@@ -144,7 +146,7 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[820px]',
-  confirmText: '保存',
+  confirmText: $t('common.actions.save'),
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -172,6 +174,14 @@ watch(
 );
 
 watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
+
+watch(
   () => [props.show, props.modelValue],
   async () => {
     if (!props.show) {
@@ -186,7 +196,7 @@ watch(
         roleIds: [],
         sex: 'UNKNOWN',
         status: 1,
-        ...(props.modelValue ?? {}),
+        ...props.modelValue,
       },
       false,
     );

@@ -10,6 +10,7 @@ import {useRoute, useRouter} from 'vue-router';
 
 import {Page} from '@vben/common-ui';
 import {ArrowLeft, ChevronsUpDown, FileText, RefreshCcw} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {NButton, NTag} from 'naive-ui';
 
@@ -57,7 +58,7 @@ const docsId = computed(() => normalizeRouteParam(route.params.docsId));
 const knowledgeLabel = computed(
   () =>
     lookups.value.knowledges.find((item) => item.value === knowledgeId.value)
-      ?.label || '未命名知识库',
+      ?.label || $t('knowledge.card.unnamed'),
 );
 
 const visibleSectionCount = computed(
@@ -100,7 +101,7 @@ async function bootstrapPage() {
   selectedDoc.value = docs.find((item) => item.id === docsId.value) ?? null;
 
   if (!selectedDoc.value) {
-    message.warning('未找到当前文档，已返回文档列表');
+    message.warning($t('docs.messages.docNotFound'));
     void router.replace(buildKnowledgeDocsRouteLocation(knowledgeId.value));
     return;
   }
@@ -164,13 +165,13 @@ function toggleAllSections() {
 
 async function submitCurrentIndex() {
   if (!knowledgeId.value || !docsId.value) {
-    message.error('当前文档缺少必要参数');
+    message.error($t('docs.messages.missingKnowledgeOrDocId'));
     return;
   }
   await indexKnowledgeApi(knowledgeId.value, {
     docsIds: [docsId.value],
   });
-  message.success('已提交当前文档向量化任务');
+  message.success($t('docs.messages.vectorizeSubmittedCurrent'));
   await loadStatusDetail();
 }
 </script>
@@ -188,21 +189,22 @@ async function submitCurrentIndex() {
               @click="router.push(buildKnowledgeDocsRouteLocation(knowledgeId))"
             >
               <ArrowLeft class="size-4" />
-              返回
+              {{ $t('common.actions.back') }}
             </NButton>
             <div class="min-w-0">
               <div class="flex items-center gap-2">
                 <FileText class="size-5 text-primary" />
                 <div class="truncate text-lg font-semibold text-foreground">
-                  {{ selectedDoc?.name || '分段预览' }}
+                  {{ selectedDoc?.name || $t('docs.title.preview') }}
                 </div>
               </div>
               <div class="mt-2 text-sm leading-6 text-muted-foreground">
-                当前知识库「{{ knowledgeLabel }}」下共展示
                 {{
-                  visibleSectionCount
+                  $t('docs.preview.description', {
+                    knowledge: knowledgeLabel,
+                    total: visibleSectionCount,
+                  })
                 }}
-                条分段，默认折叠到两行文本，可按需展开查看全文。
               </div>
             </div>
           </div>
@@ -210,7 +212,7 @@ async function submitCurrentIndex() {
           <div class="flex flex-wrap items-center gap-2">
             <NButton secondary @click="loadPreview">
               <RefreshCcw class="size-4" />
-              刷新预览
+              {{ $t('docs.actions.refreshPreview') }}
             </NButton>
           </div>
         </div>
@@ -218,10 +220,16 @@ async function submitCurrentIndex() {
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
           <div class="min-w-0">
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div class="text-sm font-semibold text-foreground">文本分段</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('docs.preview.sections') }}
+              </div>
               <NButton bordered size="small" @click="toggleAllSections">
                 <ChevronsUpDown class="size-4" />
-                {{ allExpanded ? '收起全部' : '展开全部' }}
+                {{
+                  allExpanded
+                    ? $t('common.actions.collapseAll')
+                    : $t('common.actions.expandAll')
+                }}
               </NButton>
             </div>
 
@@ -229,7 +237,7 @@ async function submitCurrentIndex() {
               v-if="previewLoading"
               class="rounded-lg border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground"
             >
-              正在生成分段预览...
+              {{ $t('docs.preview.generating') }}
             </div>
 
             <div
@@ -244,16 +252,22 @@ async function submitCurrentIndex() {
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex items-center gap-2">
                     <NTag :bordered="false" round size="small" type="info">
-                      分段 {{ index + 1 }}
+                      {{ $t('docs.preview.segment', { index: index + 1 }) }}
                     </NTag>
-                    <span class="text-xs text-muted-foreground">{{ section.length }} 字符</span>
+                    <span class="text-xs text-muted-foreground">
+                      {{ $t('docs.preview.charCount', { count: section.length }) }}
+                    </span>
                   </div>
                   <button
                     class="text-xs font-medium text-primary transition-opacity hover:opacity-80"
                     type="button"
                     @click="toggleSection(index)"
                   >
-                    {{ isExpanded(index) ? '收起' : '展开' }}
+                    {{
+                      isExpanded(index)
+                        ? $t('common.actions.collapse')
+                        : $t('common.actions.expand')
+                    }}
                   </button>
                 </div>
 
@@ -271,7 +285,7 @@ async function submitCurrentIndex() {
               v-else
               class="rounded-lg border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground"
             >
-              当前文档暂无可展示的分段内容。
+              {{ $t('docs.preview.empty') }}
             </div>
           </div>
 
@@ -283,20 +297,44 @@ async function submitCurrentIndex() {
                 <div
                   class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
                 >
-                  文档元数据
+                  {{ $t('docs.preview.metadata') }}
                 </div>
                 <div
                   class="mt-3 space-y-2 text-xs leading-6 text-muted-foreground"
                 >
-                  <div>知识库：{{ knowledgeLabel }}</div>
-                  <div>文档名称：{{ selectedDoc?.name || '--' }}</div>
-                  <div>文档 ID：{{ selectedDoc?.id || '--' }}</div>
-                  <div>文件后缀：{{ selectedDoc?.ext || '--' }}</div>
                   <div>
-                    文件大小：{{ formatDocsFileSize(selectedDoc?.size) }}
+                    {{ $t('docs.search.knowledgeName', { name: knowledgeLabel }) }}
                   </div>
                   <div>
-                    更新时间：{{ formatDocsTimestamp(selectedDoc?.updateTime) }}
+                    {{
+                      $t('docs.search.docName', {
+                        name: selectedDoc?.name || '--',
+                      })
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      $t('docs.search.docId', { id: selectedDoc?.id || '--' })
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      $t('docs.search.ext', { ext: selectedDoc?.ext || '--' })
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      $t('docs.search.size', {
+                        size: formatDocsFileSize(selectedDoc?.size),
+                      })
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      $t('docs.search.updateTime', {
+                        time: formatDocsTimestamp(selectedDoc?.updateTime),
+                      })
+                    }}
                   </div>
                 </div>
               </div>
@@ -305,15 +343,39 @@ async function submitCurrentIndex() {
                 <div
                   class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
                 >
-                  解析信息
+                  {{ $t('docs.preview.parserInfo') }}
                 </div>
                 <div
                   class="mt-3 space-y-2 text-xs leading-6 text-muted-foreground"
                 >
-                  <div>解析器：{{ previewItem?.parserName || '--' }}</div>
-                  <div>分段数：{{ previewItem?.sectionCount || 0 }}</div>
-                  <div>切片数：{{ previewItem?.chunkCount || 0 }}</div>
-                  <div>内容长度：{{ previewItem?.contentLength || 0 }}</div>
+                  <div>
+                    {{
+                      $t('docs.preview.parserName', {
+                        name: previewItem?.parserName || '--',
+                      })
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      $t('docs.preview.sectionCount', {
+                        count: previewItem?.sectionCount || 0,
+                      })
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      $t('docs.preview.chunkCount', {
+                        count: previewItem?.chunkCount || 0,
+                      })
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      $t('docs.preview.contentLength', {
+                        count: previewItem?.contentLength || 0,
+                      })
+                    }}
+                  </div>
                 </div>
               </div>
 
@@ -321,7 +383,7 @@ async function submitCurrentIndex() {
                 <div
                   class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
                 >
-                  向量化状态
+                  {{ $t('docs.preview.vectorStatus') }}
                 </div>
                 <div class="mt-3 flex items-center gap-2">
                   <NTag
@@ -339,20 +401,32 @@ async function submitCurrentIndex() {
                   class="mt-3 space-y-2 text-xs leading-6 text-muted-foreground"
                 >
                   <div>
-                    开始时间：{{
-                      formatDocsTimestamp(statusDetail?.embedStartTime)
+                    {{
+                      $t('docs.preview.startTime', {
+                        time: formatDocsTimestamp(statusDetail?.embedStartTime),
+                      })
                     }}
                   </div>
                   <div>
-                    结束时间：{{
-                      formatDocsTimestamp(statusDetail?.embedEndTime)
+                    {{
+                      $t('docs.preview.endTime', {
+                        time: formatDocsTimestamp(statusDetail?.embedEndTime),
+                      })
                     }}
                   </div>
                   <div>
-                    耗时：{{ formatDocsDuration(statusDetail?.costMs) }}
+                    {{
+                      $t('docs.preview.duration', {
+                        time: formatDocsDuration(statusDetail?.costMs),
+                      })
+                    }}
                   </div>
                   <div>
-                    索引标记：{{ statusDetail?.indexingStatus ?? '--' }}
+                    {{
+                      $t('docs.preview.indexStatus', {
+                        status: statusDetail?.indexingStatus ?? '--',
+                      })
+                    }}
                   </div>
                 </div>
                 <div
@@ -369,7 +443,7 @@ async function submitCurrentIndex() {
                     type="error"
                     @click="submitCurrentIndex"
                   >
-                    重试当前文档
+                    {{ $t('docs.actions.retryCurrent') }}
                   </NButton>
                 </div>
               </div>

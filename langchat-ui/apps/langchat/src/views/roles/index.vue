@@ -1,18 +1,24 @@
 <script setup lang="ts">
+import type { VxeGridPropTypes } from '#/adapter/vxe-table';
 import type { AigcMenuTreeNode } from '#/api/auth/menu';
 import type { AigcRole, AigcRoleMenu } from '#/api/auth/role';
 
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+
 import { Page } from '@vben/common-ui';
 import { SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
+
 import { NButton, NInput, NTag } from 'naive-ui';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { dialog, message } from '#/adapter/naive';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { menuApi } from '#/api/auth/menu';
 import { roleApi, roleMenuApi } from '#/api/auth/role';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 import ManageCard from '#/views/shared/auth/manage-card.vue';
 import { buildMenuNameMap } from '#/views/shared/auth/menu-tree';
+
 import RoleEdit from './edit.vue';
 
 interface RoleFormPayload extends Partial<AigcRole> {
@@ -23,7 +29,7 @@ const menuTree = ref<AigcMenuTreeNode[]>([]);
 const roleMenus = ref<AigcRoleMenu[]>([]);
 const saving = ref(false);
 const showEdit = ref(false);
-const currentItem = ref<RoleFormPayload | null>(null);
+const currentItem = ref<null | RoleFormPayload>(null);
 
 // 搜索条件：draft 为输入框草稿值，applied 为已生效值（工具栏刷新时沿用生效值）
 const draftKeyword = ref('');
@@ -92,36 +98,48 @@ async function queryRoles(params: {
   };
 }
 
+const gridColumns = computed<VxeGridPropTypes.Columns<AigcRole>>(() => [
+  { type: 'seq', title: $t('roles.columns.seq'), width: 60 },
+  {
+    field: 'name',
+    title: $t('roles.columns.name'),
+    minWidth: 160,
+  },
+  {
+    field: 'code',
+    title: $t('roles.columns.code'),
+    minWidth: 140,
+  },
+  {
+    field: 'description',
+    title: $t('roles.columns.description'),
+    minWidth: 220,
+  },
+  {
+    field: 'menuIds',
+    title: $t('roles.columns.menuAuth'),
+    minWidth: 260,
+    slots: { default: 'menuColumn' },
+  },
+  {
+    field: 'updateTime',
+    title: $t('roles.columns.updateTime'),
+    minWidth: 180,
+    formatter: ({ cellValue }: { cellValue: number }) =>
+      cellValue ? formatRelativeTime(cellValue) : '--',
+  },
+  {
+    field: 'actions',
+    fixed: 'right',
+    slots: { default: 'actionColumn' },
+    title: $t('common.labels.actions'),
+    width: 110,
+  },
+]);
+
 const [Grid, gridApi] = useVbenVxeGrid<AigcRole>({
   gridOptions: {
-    columns: [
-      { type: 'seq', title: '序号', width: 60 },
-      { field: 'name', title: '角色名称', minWidth: 160 },
-      { field: 'code', title: '角色编码', minWidth: 140 },
-      { field: 'description', title: '描述', minWidth: 220 },
-      {
-        field: 'menuIds',
-        title: '菜单授权',
-        minWidth: 260,
-        slots: { default: 'menuColumn' },
-      },
-      {
-        field: 'updateTime',
-        title: '更新时间',
-        minWidth: 180,
-        formatter: ({ cellValue }: { cellValue: number }) =>
-          cellValue
-            ? new Date(cellValue).toLocaleString('zh-CN', { hour12: false })
-            : '--',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'actionColumn' },
-        title: '操作',
-        width: 110,
-      },
-    ],
+    columns: gridColumns.value,
     height: 'auto',
     pagerConfig: {
       pageSize: 10,
@@ -137,8 +155,24 @@ const [Grid, gridApi] = useVbenVxeGrid<AigcRole>({
       zoom: true,
     },
   },
-  tableTitle: '角色管理',
+  tableTitle: $t('roles.list.tableTitle'),
 });
+
+watch(
+  gridColumns,
+  (columns) => {
+    gridApi.setGridOptions({ columns });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('roles.list.tableTitle'),
+  (value) => {
+    gridApi.setState({ tableTitle: value });
+  },
+  { immediate: true },
+);
 
 function openCreate() {
   currentItem.value = null;
@@ -160,13 +194,15 @@ async function handleDelete(item: AigcRole) {
   const roleId = item.id;
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除角色「${item.name || item.code || '未命名角色'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除角色',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.name || item.code || $t('roles.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('roles.messages.deleteTitle'),
     onPositiveClick: async () => {
       await roleApi.remove(roleId);
-      message.success('角色已删除');
+      message.success($t('roles.messages.deleted'));
       await gridApi.reload();
     },
   });
@@ -175,20 +211,20 @@ async function handleDelete(item: AigcRole) {
 async function handleSave(payload: RoleFormPayload) {
   saving.value = true;
   try {
-    const nextMenuIds = [...new Set(payload.menuIds ?? [])];
+    const nextMenuIds = [...new Set(payload.menuIds)];
     const rolePayload: Partial<AigcRole> = { ...payload };
     delete (rolePayload as RoleFormPayload).menuIds;
 
     let targetRoleId = currentItem.value?.id ?? '';
     if (currentItem.value?.id) {
       await roleApi.update(currentItem.value.id, rolePayload);
-      message.success('角色已更新');
+      message.success($t('roles.messages.updated'));
     } else {
       await roleApi.create(rolePayload);
       const roles = await roleApi.list();
       targetRoleId =
         roles.find((item) => item.code === rolePayload.code)?.id ?? '';
-      message.success('角色已创建');
+      message.success($t('roles.messages.created'));
     }
 
     if (targetRoleId) {
@@ -236,24 +272,32 @@ async function syncRoleMenus(roleId: string, nextMenuIds: string[]) {
     <ManageCard>
       <template #search>
         <div class="flex items-center gap-2">
-          <span class="shrink-0 text-sm text-muted-foreground">关键词</span>
+          <span class="shrink-0 text-sm text-muted-foreground">{{
+            $t('common.labels.keyword')
+          }}</span>
           <NInput
             v-model:value="draftKeyword"
             clearable
-            placeholder="角色名称 / 编码 / 描述"
+            :placeholder="$t('roles.list.keywordPlaceholder')"
             style="width: 240px"
             @keyup.enter="handleSearch"
           />
         </div>
         <div class="ml-auto flex items-center gap-2">
-          <NButton @click="handleReset">重置</NButton>
-          <NButton type="primary" @click="handleSearch">搜索</NButton>
+          <NButton @click="handleReset">{{ $t('common.actions.reset') }}</NButton>
+          <NButton type="primary" @click="handleSearch">
+{{
+            $t('common.actions.search')
+          }}
+</NButton>
         </div>
       </template>
 
       <Grid class="min-h-0 flex-1" grid-class="px-4 pb-4 pt-3">
         <template #toolbar-tools>
-          <NButton type="primary" @click="openCreate"> 新建角色 </NButton>
+          <NButton type="primary" @click="openCreate">
+            {{ $t('roles.actions.create') }}
+          </NButton>
         </template>
 
         <template #menuColumn="{ row }">
@@ -272,13 +316,17 @@ async function syncRoleMenus(roleId: string, nextMenuIds: string[]) {
               v-if="resolveMenuLabels(row.id).length === 0"
               class="text-xs text-muted-foreground"
             >
-              未授权菜单
+              {{ $t('roles.list.unauthorizedMenus') }}
             </span>
             <span
               v-else-if="resolveMenuLabels(row.id).length > 6"
               class="text-xs text-muted-foreground"
             >
-              另有 {{ resolveMenuLabels(row.id).length - 6 }} 项
+              {{
+                $t('roles.list.moreMenus', {
+                  count: resolveMenuLabels(row.id).length - 6,
+                })
+              }}
             </span>
           </div>
         </template>
@@ -286,7 +334,11 @@ async function syncRoleMenus(roleId: string, nextMenuIds: string[]) {
         <template #actionColumn="{ row }">
           <div class="flex items-center justify-center gap-1">
             <NButton
-              v-tippy="isBuiltinRole(row) ? '系统内置角色，不可编辑' : '编辑角色'"
+              v-tippy="
+                isBuiltinRole(row)
+                  ? $t('roles.list.builtinRoleEditTip')
+                  : $t('roles.list.editRole')
+              "
               :disabled="isBuiltinRole(row)"
               circle
               quaternary
@@ -299,7 +351,11 @@ async function syncRoleMenus(roleId: string, nextMenuIds: string[]) {
               </template>
             </NButton>
             <NButton
-              v-tippy="isBuiltinRole(row) ? '系统内置角色，不可删除' : '删除角色'"
+              v-tippy="
+                isBuiltinRole(row)
+                  ? $t('roles.list.builtinRoleDeleteTip')
+                  : $t('roles.list.deleteRole')
+              "
               :disabled="isBuiltinRole(row)"
               circle
               quaternary

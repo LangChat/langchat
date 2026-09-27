@@ -1,0 +1,32 @@
+{
+  "login": "登录",
+  "overview": "概览",
+  "market": "应用市场",
+  "about": "关于",
+  "agentBuilder": "Agent 构建",
+  "docsList": "文档列表",
+  "docsUpload": "文档上传",
+  "docsPreview": "文档预览",
+  "marketChat": "Agent 会话",
+  "dynamic": {
+    "ai": "智能应用",
+    "agents": "Agent 管理",
+    "knowledges": "知识库",
+    "data_analysis": "智能问数",
+    "studio": "图片创作",
+    "studio_image": "图片生成",
+    "studio_ocr": "图片识别",
+    "model": "模型与能力",
+    "models": "模型管理",
+    "vector_stores": "向量存储",
+    "skills": "技能管理",
+    "mcp": "MCP 管理",
+    "datasources": "数据源",
+    "model_monitor": "模型监控",
+    "datasource_detail": "数据源详情",
+    "permissions": "系统管理",
+    "users": "用户管理",
+    "roles": "角色管理",
+    "permission_menus": "菜单管理"
+  }
+}

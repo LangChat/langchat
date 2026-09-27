@@ -3,6 +3,7 @@ import type { AigcModel } from '#/api/aigc/model';
 
 import { computed, nextTick, ref, watch } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { type VbenFormSchema, useVbenForm } from '#/adapter/form';
 import {
@@ -34,7 +35,9 @@ const emit = defineEmits<{
 }>();
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑模型' : '新建模型',
+  props.modelValue?.id
+    ? $t('models.form.editTitle')
+    : $t('models.form.createTitle'),
 );
 
 const ALL_CONFIG_FIELD_NAMES = [
@@ -51,74 +54,76 @@ const configFieldNameSet = new Set<string>(ALL_CONFIG_FIELD_NAMES);
 
 const CONNECTION_FIELD_NAMES = ['apiKey', 'baseUrl'] as const;
 
-const configFieldSchemaMap: Record<ConfigFieldName, VbenFormSchema> = {
-  apiKey: {
-    component: 'Input',
-    componentProps: {
-      placeholder: '输入模型 API Key',
+function getConfigFieldSchemaMap(): Record<ConfigFieldName, VbenFormSchema> {
+  return {
+    apiKey: {
+      component: 'Input',
+      componentProps: {
+        placeholder: $t('models.form.apiKeyPlaceholder'),
+      },
+      fieldName: 'apiKey',
+      label: 'API Key',
     },
-    fieldName: 'apiKey',
-    label: 'API Key',
-  },
-  baseUrl: {
-    component: 'Input',
-    componentProps: {
-      placeholder: '例如：https://api.openai.com/v1',
+    baseUrl: {
+      component: 'Input',
+      componentProps: {
+        placeholder: $t('models.form.baseUrlPlaceholder'),
+      },
+      fieldName: 'baseUrl',
+      label: 'Base URL',
     },
-    fieldName: 'baseUrl',
-    label: 'Base URL',
-  },
-  dimension: {
-    component: 'Slider',
-    componentProps: {
-      max: 4096,
-      min: 1,
-      step: 1,
+    dimension: {
+      component: 'Slider',
+      componentProps: {
+        max: 4096,
+        min: 1,
+        step: 1,
+      },
+      fieldName: 'dimension',
+      label: 'dimension',
     },
-    fieldName: 'dimension',
-    label: 'dimension',
-  },
-  maxToken: {
-    component: 'Slider',
-    componentProps: {
-      max: 32_768,
-      min: 1,
-      step: 1,
+    maxToken: {
+      component: 'Slider',
+      componentProps: {
+        max: 32_768,
+        min: 1,
+        step: 1,
+      },
+      fieldName: 'maxToken',
+      label: 'maxToken',
     },
-    fieldName: 'maxToken',
-    label: 'maxToken',
-  },
-  temperature: {
-    component: 'Slider',
-    componentProps: {
-      max: 2,
-      min: 0,
-      step: 0.1,
+    temperature: {
+      component: 'Slider',
+      componentProps: {
+        max: 2,
+        min: 0,
+        step: 0.1,
+      },
+      fieldName: 'temperature',
+      label: 'temperature',
     },
-    fieldName: 'temperature',
-    label: 'temperature',
-  },
-  timeout: {
-    component: 'Slider',
-    componentProps: {
-      max: 600,
-      min: 1,
-      step: 1,
+    timeout: {
+      component: 'Slider',
+      componentProps: {
+        max: 600,
+        min: 1,
+        step: 1,
+      },
+      fieldName: 'timeout',
+      label: $t('models.form.timeout'),
     },
-    fieldName: 'timeout',
-    label: 'timeout（秒）',
-  },
-  topP: {
-    component: 'Slider',
-    componentProps: {
-      max: 1,
-      min: 0,
-      step: 0.1,
+    topP: {
+      component: 'Slider',
+      componentProps: {
+        max: 1,
+        min: 0,
+        step: 0.1,
+      },
+      fieldName: 'topP',
+      label: 'topP',
     },
-    fieldName: 'topP',
-    label: 'topP',
-  },
-};
+  };
+}
 
 const providerOptions = computed(() => getModelProviderOptions());
 const currentProvider = ref<string>('OPENAI');
@@ -149,6 +154,7 @@ const configFieldNames = computed(() =>
 );
 
 const connectionFieldSchema = computed<VbenFormSchema[]>(() => {
+  const configFieldSchemaMap = getConfigFieldSchemaMap();
   const activeFieldNames = new Set(configFieldNames.value);
   return CONNECTION_FIELD_NAMES.filter((fieldName) =>
     activeFieldNames.has(fieldName),
@@ -156,6 +162,7 @@ const connectionFieldSchema = computed<VbenFormSchema[]>(() => {
 });
 
 const tailConfigFieldSchema = computed<VbenFormSchema[]>(() => {
+  const configFieldSchemaMap = getConfigFieldSchemaMap();
   const connectionFieldSet = new Set<string>(CONNECTION_FIELD_NAMES);
   return configFieldNames.value
     .filter((fieldName) => !connectionFieldSet.has(fieldName))
@@ -229,7 +236,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '模型别名',
+    label: $t('models.form.alias'),
     rules: 'required',
   },
   {
@@ -238,7 +245,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       options: providerOptions.value,
     },
     fieldName: 'provider',
-    label: '供应商',
+    label: $t('models.form.provider'),
     rules: 'selectRequired',
   },
   {
@@ -247,21 +254,23 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       options: typeOptions.value,
     },
     fieldName: 'type',
-    label: '模型类型',
+    label: $t('models.form.type'),
     rules: 'selectRequired',
   },
   {
     component: 'Input',
     componentProps: {
       placeholder: presetModelOptions.value.length
-        ? `例如：${presetModelOptions.value
-            .slice(0, 3)
-            .map((item) => item.label)
-            .join(' / ')}`
-        : '输入模型名称',
+        ? $t('models.form.namePlaceholderByPreset', {
+            list: presetModelOptions.value
+              .slice(0, 3)
+              .map((item) => item.label)
+              .join(' / '),
+          })
+        : $t('models.form.namePlaceholder'),
     },
     fieldName: 'model',
-    label: '模型名称',
+    label: $t('models.form.name'),
     rules: 'required',
   },
   ...connectionFieldSchema.value,
@@ -308,7 +317,7 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[860px]',
-  confirmText: '保存',
+  confirmText: $t('common.actions.save'),
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -318,6 +327,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   title: drawerTitle.value,
 });
+
+watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
 
 watch(
   () => props.saving,

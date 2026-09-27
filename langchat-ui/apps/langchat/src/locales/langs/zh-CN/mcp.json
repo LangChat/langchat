@@ -1,0 +1,47 @@
+{
+  "title": {
+    "create": "新建 MCP 服务",
+    "edit": "编辑 MCP 服务"
+  },
+  "actions": {
+    "create": "新建 MCP 服务",
+    "refreshList": "刷新列表"
+  },
+  "form": {
+    "name": "服务名称",
+    "uuid": "唯一标识",
+    "transport": "协议类型",
+    "timeout": "超时时间",
+    "authorized": "是否授权",
+    "coverUrl": "封面地址",
+    "siteUrl": "站点地址",
+    "sseUrl": "SSE 服务地址",
+    "dockerImage": "Docker 镜像",
+    "dockerHost": "Docker 主机",
+    "requestHeaders": "请求头 JSON",
+    "stdioConfig": "MCP 配置 JSON",
+    "stdioPlaceholder": "请输入 Stdio 协议 JSON 配置",
+    "description": "描述"
+  },
+  "card": {
+    "unnamed": "未命名服务",
+    "transportLabel": "传输协议",
+    "site": "站点",
+    "uuid": "唯一标识",
+    "timeout": "超时",
+    "timeoutValue": "{value}s",
+    "transportSummary": "当前传输协议 {transport}，站点 {siteUrl}。",
+    "authorized": "已授权",
+    "pendingAuthorized": "待授权"
+  },
+  "list": {
+    "searchPlaceholder": "按服务名称、唯一标识、协议类型搜索",
+    "actionsTitle": "MCP 操作"
+  },
+  "messages": {
+    "created": "MCP 服务已创建",
+    "updated": "MCP 服务已更新",
+    "deleted": "MCP 服务已删除",
+    "deleteTitle": "删除 MCP 服务"
+  }
+}

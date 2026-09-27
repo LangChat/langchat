@@ -1,5 +1,7 @@
 import type { BaseEntity } from './_shared';
 
+import { $t } from '@vben/locales';
+
 import {
   getRequestClientAuthHeaders,
   requestClient,
@@ -324,12 +326,15 @@ export async function createChatCompletionStreamApi(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || `聊天请求失败，状态码 ${response.status}`);
+    throw new Error(
+      errorText ||
+        $t('chat.runtime.errors.apiRequestFailed', { status: response.status }),
+    );
   }
 
   const reader = response.body?.getReader();
   if (!reader) {
-    throw new Error('聊天响应流为空');
+    throw new Error($t('chat.runtime.errors.apiStreamEmpty'));
   }
 
   const decoder = new TextDecoder();

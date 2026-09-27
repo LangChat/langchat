@@ -2,6 +2,8 @@ import type { AttachmentItem } from './types';
 
 import { ref } from 'vue';
 
+import { $t } from '@vben/locales';
+
 import { uploadChatAttachmentApi } from '#/api/aigc/oss';
 
 let seed = 0;
@@ -34,7 +36,7 @@ export function useAttachments() {
       item.progress = 100;
       item.status = 'uploaded';
     } catch (error) {
-      item.error = error instanceof Error ? error.message : '上传失败';
+      item.error = error instanceof Error ? error.message : $t('chat.composer.uploadFailed');
       item.status = 'error';
     }
   }
@@ -48,7 +50,7 @@ export function useAttachments() {
         file,
         id: `att-${Date.now()}-${seed}`,
         isImage,
-        name: file.name || '未命名文件',
+        name: file.name || $t('chat.composer.unnamedFile'),
         progress: 0,
         size: file.size || 0,
         status: 'uploading',

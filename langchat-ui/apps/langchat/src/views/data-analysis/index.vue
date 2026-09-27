@@ -23,6 +23,7 @@ import {
   Sparkles,
   TrendingUp,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import {
   NCheckbox,
@@ -71,11 +72,20 @@ const partiallySelected = computed(
   () => selectedTables.value.length > 0 && !allSelected.value,
 );
 
-const suggestionItems: LcChatSuggestion[] = [
-  { icon: BarChart3 as Component, label: '统计各状态的数据量并展示占比' },
-  { icon: TrendingUp as Component, label: '按时间分析最近的数据变化趋势' },
-  { icon: ListOrdered as Component, label: '找出数量最多的前十项并生成图表' },
-];
+const suggestionItems = computed<LcChatSuggestion[]>(() => [
+  {
+    icon: BarChart3 as Component,
+    label: $t('dataAnalysis.suggestions.statusDistribution'),
+  },
+  {
+    icon: TrendingUp as Component,
+    label: $t('dataAnalysis.suggestions.timeTrend'),
+  },
+  {
+    icon: ListOrdered as Component,
+    label: $t('dataAnalysis.suggestions.topTen'),
+  },
+]);
 
 function asChart(value: unknown): AnalysisChartResult | undefined {
   return value as AnalysisChartResult | undefined;
@@ -110,7 +120,7 @@ function toggleAll(checked: boolean) {
 async function handleSend(payload: LcChatSendPayload) {
   if (asking.value) return;
   if (!datasourceId.value || selectedTables.value.length === 0) {
-    message.warning('请先选择数据源和要检索的表');
+    message.warning($t('dataAnalysis.messages.selectDatasourceAndTable'));
     return;
   }
   const layout = chatRef.value;
@@ -140,12 +150,14 @@ async function handleSend(payload: LcChatSendPayload) {
         if (event.type === 'tool') {
           layout.setTurnMeta(
             turnId,
-            event.status === 'completed' ? '数据查询完成' : '正在查询数据',
+            event.status === 'completed'
+              ? $t('dataAnalysis.messages.queryCompleted')
+              : $t('dataAnalysis.messages.querying'),
           );
         }
         if (event.type === 'error') {
           layout.failTurn(turnId, event.message);
-          message.error('智能问数执行失败');
+          message.error($t('dataAnalysis.messages.failed'));
         }
         if (event.type === 'done') {
           layout.completeTurn(turnId);
@@ -156,9 +168,9 @@ async function handleSend(payload: LcChatSendPayload) {
   } catch (error) {
     layout.failTurn(
       turnId,
-      (error as Error)?.message || '智能问数执行失败',
+      (error as Error)?.message || $t('dataAnalysis.messages.failed'),
     );
-    message.error('智能问数执行失败');
+    message.error($t('dataAnalysis.messages.failed'));
   } finally {
     asking.value = false;
     abortController = null;
@@ -177,7 +189,7 @@ onBeforeUnmount(() => abortController?.abort());
       <div class="flex items-center justify-between gap-3 border-b border-border pb-3">
         <div class="flex items-center gap-3">
           <div class="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-primary"><BarChart3 class="size-4" /></div>
-          <div><div class="text-base font-semibold text-foreground">智能问数</div><div class="text-[11px] text-muted-foreground">{{ selectedTables.length }} 张表已选择</div></div>
+          <div><div class="text-base font-semibold text-foreground">{{ $t('dataAnalysis.title') }}</div><div class="text-[11px] text-muted-foreground">{{ $t('dataAnalysis.selectedTables', { count: selectedTables.length }) }}</div></div>
         </div>
         <NTag v-if="currentDatasource" :bordered="false" type="success"><span class="inline-flex items-center gap-1"><Check class="size-3" />{{ currentDatasource.datasourceName }}</span></NTag>
       </div>
@@ -186,11 +198,17 @@ onBeforeUnmount(() => abortController?.abort());
         <div class="grid h-full min-h-0 gap-3 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside class="flex min-h-0 flex-col border-r border-border pr-3">
             <div class="mb-3">
-              <div class="mb-1.5 text-xs font-semibold text-foreground">数据源</div>
-              <NSelect v-model:value="datasourceId" :options="datasourceOptions" placeholder="选择数据源" />
+              <div class="mb-1.5 text-xs font-semibold text-foreground">
+                {{ $t('dataAnalysis.datasource') }}
+              </div>
+              <NSelect
+                v-model:value="datasourceId"
+                :options="datasourceOptions"
+                :placeholder="$t('dataAnalysis.datasourcePlaceholder')"
+              />
             </div>
             <div class="mb-2 flex items-center justify-between border-b border-border pb-2">
-              <NCheckbox :checked="allSelected" :indeterminate="partiallySelected" @update:checked="toggleAll">可检索表</NCheckbox>
+              <NCheckbox :checked="allSelected" :indeterminate="partiallySelected" @update:checked="toggleAll">{{ $t('dataAnalysis.retrievalTables') }}</NCheckbox>
               <span class="text-[10px] text-muted-foreground">{{ selectedTables.length }}/{{ availableTables.length }}</span>
             </div>
             <div class="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
@@ -202,7 +220,7 @@ onBeforeUnmount(() => abortController?.abort());
                   <span class="text-[10px] text-muted-foreground">{{ table.columnCount }}</span>
                 </label>
               </NCheckboxGroup>
-              <NEmpty v-if="availableTables.length === 0" description="暂无可检索表" size="small" />
+              <NEmpty v-if="availableTables.length === 0" :description="$t('dataAnalysis.noRetrievalTables')" size="small" />
             </div>
           </aside>
 
@@ -210,8 +228,8 @@ onBeforeUnmount(() => abortController?.abort());
             <LcChat
               ref="chatRef"
               :disabled="asking"
-              empty-title="从已授权的数据中提问"
-              placeholder="输入你的数据问题"
+              :empty-title="$t('dataAnalysis.emptyTitle')"
+              :placeholder="$t('dataAnalysis.placeholder')"
               :show-attachment="false"
               :suggestions="suggestionItems"
               @send="handleSend"
@@ -219,7 +237,7 @@ onBeforeUnmount(() => abortController?.abort());
               <template #empty-head>
                 <div class="flex flex-col items-center gap-3">
                   <div class="flex size-12 items-center justify-center rounded-xl border border-border text-primary"><Sparkles class="size-5" /></div>
-                  <div class="text-xl font-semibold text-foreground">从已授权的数据中提问</div>
+                  <div class="text-xl font-semibold text-foreground">{{ $t('dataAnalysis.emptyTitle') }}</div>
                 </div>
               </template>
               <template #message-append="{ item }">

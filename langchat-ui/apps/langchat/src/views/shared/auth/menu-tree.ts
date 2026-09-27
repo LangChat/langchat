@@ -1,5 +1,7 @@
 import type { AigcMenuTreeNode } from '#/api/auth/menu';
 
+import { $t } from '@vben/locales';
+
 /**
  * 扁平化菜单树。
  */
@@ -27,7 +29,7 @@ export function buildMenuNameMap(items: AigcMenuTreeNode[]) {
   return Object.fromEntries(
     flattenMenuTree(items).map((item) => [
       item.id ?? '',
-      item.name || '未命名菜单',
+      item.name || $t('menus.card.unnamed'),
     ]),
   ) as Record<string, string>;
 }

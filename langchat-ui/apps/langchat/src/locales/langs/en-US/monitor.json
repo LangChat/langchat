@@ -1,0 +1,72 @@
+{
+  "title": "Model Call Monitoring",
+  "description": "Tracks call counts, token usage and latency across all models, sourced from model call logs.",
+  "window": {
+    "days": "Last {days} days"
+  },
+  "callType": {
+    "CHAT": "Chat Model",
+    "EMBEDDING": "Embedding Model",
+    "IMAGE": "Text to Image",
+    "OCR": "Image OCR"
+  },
+  "scene": {
+    "AGENT_CHAT": "Agent Chat",
+    "DATA_ANALYSIS": "Data Analysis",
+    "KNOWLEDGE_INDEX": "Knowledge Indexing",
+    "KNOWLEDGE_RETRIEVE": "Knowledge Retrieval",
+    "IMAGE_GENERATE": "Text to Image",
+    "IMAGE_OCR": "Image OCR",
+    "unknown": "Unlabeled"
+  },
+  "columns": {
+    "model": "Model",
+    "provider": "Provider",
+    "type": "Type",
+    "scene": "Scene",
+    "duration": "Duration",
+    "status": "Status",
+    "createTime": "Call Time"
+  },
+  "metrics": {
+    "totalCalls": "Total Calls",
+    "tokens": "Token Usage",
+    "avgDuration": "Avg Response Time",
+    "successRate": "Success Rate"
+  },
+  "chart": {
+    "callsLegend": "Calls",
+    "tokensLegend": "Token Usage",
+    "countSeries": "Count",
+    "empty": "No call data",
+    "unknown": "Unknown"
+  },
+  "trend": {
+    "title": "Call Trend",
+    "description": "Daily call counts and token usage"
+  },
+  "typeDistribution": {
+    "title": "Call Type Distribution",
+    "description": "Share of chat / embedding / text-to-image / OCR calls"
+  },
+  "providerDistribution": {
+    "title": "Provider Distribution",
+    "description": "Call share by model provider"
+  },
+  "ranking": {
+    "title": "Model Usage Ranking",
+    "description": "Top models by token usage, descending",
+    "calls": "{count} calls",
+    "failed": "{count} failed"
+  },
+  "recent": {
+    "title": "Recent Calls",
+    "description": "The latest 10 model call records"
+  },
+  "hints": {
+    "totalCalls": "Number of model calls in the window",
+    "tokens": "Combined input and output tokens",
+    "avgDuration": "Average response time per model call",
+    "successRate": "No failed calls in the current window"
+  }
+}

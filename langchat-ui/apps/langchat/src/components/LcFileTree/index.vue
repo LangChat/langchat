@@ -60,7 +60,7 @@ watch(
       v-else
       class="flex h-full min-h-40 items-center justify-center px-4 text-xs text-muted-foreground"
     >
-      暂无文件
+      {{ $t('components.fileTree.empty') }}
     </div>
   </div>
 </template>

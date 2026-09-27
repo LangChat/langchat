@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VxeGridPropTypes } from '#/adapter/vxe-table';
 import type {
   AigcDocs,
   KnowledgeDocumentIndexStatus,
@@ -20,6 +21,7 @@ import {
   Trash2,
   Upload,
 } from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {NButton, NDrawer, NDrawerContent, NInput, NPopover, NSelect, NTag, NText,} from 'naive-ui';
 
@@ -65,11 +67,11 @@ const knowledgeId = computed(() =>
 );
 
 const statusFilterOptions = computed(() => [
-  { label: '全部状态', value: '' },
-  { label: '待处理', value: DOC_EMBED_STATUS.PENDING },
-  { label: '执行中', value: DOC_EMBED_STATUS.RUNNING },
-  { label: '已完成', value: DOC_EMBED_STATUS.COMPLETED },
-  { label: '失败', value: DOC_EMBED_STATUS.FAILED },
+  { label: $t('docs.status.all'), value: '' },
+  { label: $t('docs.status.pending'), value: DOC_EMBED_STATUS.PENDING },
+  { label: $t('docs.status.running'), value: DOC_EMBED_STATUS.RUNNING },
+  { label: $t('docs.status.completed'), value: DOC_EMBED_STATUS.COMPLETED },
+  { label: $t('docs.status.failed'), value: DOC_EMBED_STATUS.FAILED },
 ]);
 
 const failedDocs = computed(() =>
@@ -100,9 +102,12 @@ function resolveStatusChipClass(status?: string) {
 
 const failedDocsSummary = computed(() => {
   if (failedDocs.value.length === 0) {
-    return '当前没有失败文档。';
+    return $t('docs.messages.noFailedSummary');
   }
-  return `共 ${failedDocs.value.length} 条失败文档，最近更新时间 ${formatDocsTimestamp(failedDocs.value[0]?.updateTime)}。`;
+  return $t('docs.messages.failedCount', {
+    count: failedDocs.value.length,
+    time: formatDocsTimestamp(failedDocs.value[0]?.updateTime),
+  });
 });
 
 function matchKeyword(item: AigcDocs) {
@@ -150,6 +155,54 @@ function syncSelectedRows() {
   selectedRowIds.value = rows.map((item) => item.id ?? '').filter(Boolean);
 }
 
+const gridColumns = computed<VxeGridPropTypes.Columns<AigcDocs>>(() => [
+  { type: 'checkbox', width: 54 },
+  {
+    field: 'name',
+    minWidth: 240,
+    align: 'left',
+    slots: { default: 'docName' },
+    title: $t('docs.columns.name'),
+  },
+  {
+    field: 'ext',
+    title: $t('docs.columns.ext'),
+    width: 90,
+    align: 'center',
+  },
+  {
+    field: 'size',
+    title: $t('docs.columns.size'),
+    width: 110,
+    align: 'center',
+    formatter: ({ cellValue }: { cellValue: number }) =>
+      formatDocsFileSize(cellValue),
+  },
+  {
+    field: 'embedStatus',
+    title: $t('docs.columns.status'),
+    width: 140,
+    align: 'center',
+    slots: { default: 'statusColumn' },
+  },
+  {
+    field: 'updateTime',
+    width: 160,
+    align: 'center',
+    title: $t('docs.columns.updateTime'),
+    formatter: ({ cellValue }: { cellValue: number }) =>
+      formatDocsTimestamp(cellValue),
+  },
+  {
+    field: 'actions',
+    fixed: 'right',
+    width: 150,
+    align: 'center',
+    slots: { default: 'actionColumn' },
+    title: $t('common.labels.actions'),
+  },
+]);
+
 const [Grid, gridApi] = useVbenVxeGrid<AigcDocs>({
   class: 'bg-transparent shadow-none',
   gridClass: 'px-0 pb-0',
@@ -161,48 +214,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AigcDocs>({
     checkboxConfig: {
       highlight: true,
     },
-    columns: [
-      { type: 'checkbox', width: 54 },
-      {
-        field: 'name',
-        minWidth: 240,
-        align: 'left',
-        slots: { default: 'docName' },
-        title: '文档名称',
-      },
-      { field: 'ext', title: '后缀', width: 90, align: 'center' },
-      {
-        field: 'size',
-        title: '大小',
-        width: 110,
-        align: 'center',
-        formatter: ({ cellValue }: { cellValue: number }) =>
-          formatDocsFileSize(cellValue),
-      },
-      {
-        field: 'embedStatus',
-        title: '向量化状态',
-        width: 140,
-        align: 'center',
-        slots: { default: 'statusColumn' },
-      },
-      {
-        field: 'updateTime',
-        width: 160,
-        align: 'center',
-        title: '更新时间',
-        formatter: ({ cellValue }: { cellValue: number }) =>
-          formatDocsTimestamp(cellValue),
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        width: 150,
-        align: 'center',
-        slots: { default: 'actionColumn' },
-        title: '操作',
-      },
-    ],
+    columns: gridColumns.value,
     height: 'auto',
     pagerConfig: {
       pageSize: 20,
@@ -224,6 +236,14 @@ const [Grid, gridApi] = useVbenVxeGrid<AigcDocs>({
     },
   },
 });
+
+watch(
+  gridColumns,
+  (columns) => {
+    gridApi.setState({ gridOptions: { columns: [...columns] } });
+  },
+  { immediate: true },
+);
 
 watch(selectedDocStatus, () => {
   if (initialized.value) {
@@ -272,7 +292,7 @@ async function loadKnowledgeContext() {
 }
 
 function buildDocsTitle(docs?: null | Pick<AigcDocs, 'name'>) {
-  return docs?.name || '未命名文档';
+  return docs?.name || $t('docs.list.unnamed');
 }
 
 function openUploadPage() {
@@ -283,7 +303,7 @@ function openPreviewPage(
   docs: AigcDocs | Pick<AigcDocs, 'id' | 'knowledgeId' | 'name'>,
 ) {
   if (!docs.id || !docs.knowledgeId) {
-    message.error('当前文档缺少知识库或文档 ID');
+    message.error($t('docs.messages.missingKnowledgeOrDocId'));
     return;
   }
   void router.push(
@@ -320,13 +340,15 @@ async function handleDelete(item: AigcDocs) {
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除「${buildDocsTitle(item)}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除文档',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: buildDocsTitle(item),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('docs.messages.deleteTitle'),
     onPositiveClick: async () => {
       await docsApi.remove(item.id!);
-      message.success('文档已删除');
+      message.success($t('docs.messages.deleted'));
       await refreshDashboard();
     },
   });
@@ -335,18 +357,18 @@ async function handleDelete(item: AigcDocs) {
 async function handleBatchDelete() {
   const ids = [...selectedRowIds.value];
   if (ids.length === 0) {
-    message.warning('请先勾选要删除的文档');
+    message.warning($t('docs.messages.selectDocsToDelete'));
     return;
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认批量删除选中的 ${ids.length} 篇文档吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '批量删除文档',
+    content: $t('docs.messages.batchDeleteConfirm', { count: ids.length }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('docs.messages.batchDeleteTitle'),
     onPositiveClick: async () => {
       await Promise.all(ids.map((id) => docsApi.remove(id)));
-      message.success(`已删除 ${ids.length} 篇文档`);
+      message.success($t('docs.messages.deletedCount', { count: ids.length }));
       selectedRowIds.value = [];
       await refreshDashboard();
     },
@@ -358,10 +380,10 @@ async function handleSave(payload: Partial<AigcDocs>) {
   try {
     if (currentItem.value?.id) {
       await docsApi.update(currentItem.value.id, payload);
-      message.success('文档已更新');
+      message.success($t('docs.messages.updated'));
     } else {
       await docsApi.create(payload);
-      message.success('文档已创建');
+      message.success($t('docs.messages.created'));
     }
     showEdit.value = false;
     await refreshDashboard();
@@ -372,23 +394,25 @@ async function handleSave(payload: Partial<AigcDocs>) {
 
 async function openStatusForDocs(docs: AigcDocs) {
   if (!docs.id || !docs.knowledgeId) {
-    message.error('当前文档缺少知识库或文档 ID');
+    message.error($t('docs.messages.missingKnowledgeOrDocId'));
     return;
   }
   const result = await getKnowledgeIndexStatusApi(docs.knowledgeId, [docs.id]);
   const status = result.docs[0];
   if (!status) {
-    message.warning('未查询到当前文档的索引状态');
+    message.warning($t('docs.messages.noIndexStatus'));
     return;
   }
   statusDetail.value = status;
-  statusDetailTitle.value = docs.name || '文档向量化状态';
+  statusDetailTitle.value = docs.name
+    ? $t('docs.messages.statusDetailTitle', { name: docs.name })
+    : $t('docs.title.statusDetail');
   statusVisible.value = true;
 }
 
 async function submitDocsIndexTask(docs: AigcDocs, successText: string) {
   if (!docs.id || !docs.knowledgeId) {
-    message.error('当前文档缺少知识库或文档 ID');
+    message.error($t('docs.messages.missingKnowledgeOrDocId'));
     return;
   }
   await indexKnowledgeApi(docs.knowledgeId, {
@@ -401,43 +425,47 @@ async function submitDocsIndexTask(docs: AigcDocs, successText: string) {
 async function retrySingleDocs(docs: AigcDocs) {
   await submitDocsIndexTask(
     docs,
-    `已重新提交「${buildDocsTitle(docs)}」的向量化任务`,
+    $t('docs.messages.retrySubmittedSingle', { name: buildDocsTitle(docs) }),
   );
 }
 
 async function retryFailedDocs() {
   if (!knowledgeId.value) {
-    message.error('请先选择要重试的知识库');
+    message.error($t('docs.messages.retryNoKnowledge'));
     return;
   }
   const docsIds = failedDocs.value
     .map((item) => item.docsId)
-    .filter(Boolean);
+    .filter((id): id is string => Boolean(id));
   if (docsIds.length === 0) {
-    message.warning('当前没有失败文档可重试');
+    message.warning($t('docs.messages.noFailedDocs'));
     return;
   }
   await indexKnowledgeApi(knowledgeId.value, {
     docsIds,
   });
-  message.success(`已重新提交 ${docsIds.length} 个失败文档的向量化任务`);
+  message.success(
+    $t('docs.messages.retrySubmitted', { count: docsIds.length }),
+  );
   await refreshDashboard();
 }
 
 async function handleRetrySelected() {
   if (!knowledgeId.value) {
-    message.error('当前知识库缺少 ID');
+    message.error($t('knowledge.messages.missingId'));
     return;
   }
   const docsIds = [...selectedRowIds.value];
   if (docsIds.length === 0) {
-    message.warning('请先勾选要向量化的文档');
+    message.warning($t('docs.messages.checkAllRequired'));
     return;
   }
   await indexKnowledgeApi(knowledgeId.value, {
     docsIds,
   });
-  message.success(`已提交 ${docsIds.length} 篇文档的向量化任务`);
+  message.success(
+    $t('docs.messages.vectorizeSubmittedCount', { count: docsIds.length }),
+  );
   await refreshDashboard();
 }
 
@@ -445,7 +473,7 @@ async function handleFailedDocsStatus(
   docsStatus: KnowledgeDocumentIndexStatus,
 ) {
   if (!docsStatus.docsId || !knowledgeId.value) {
-    message.error('当前失败文档缺少必要参数');
+    message.error($t('docs.messages.missingId'));
     return;
   }
   await openStatusForDocs({
@@ -457,7 +485,7 @@ async function handleFailedDocsStatus(
 
 function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
   if (!docsStatus.docsId || !knowledgeId.value) {
-    message.error('当前失败文档缺少必要参数');
+    message.error($t('docs.messages.missingId'));
     return;
   }
   openPreviewPage({
@@ -479,16 +507,28 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
         >
           <div class="min-w-0">
             <div class="text-lg font-semibold text-foreground">
-              {{ knowledge?.name || '文档列表' }}
+              {{ knowledge?.name || $t('docs.title.list') }}
             </div>
             <div class="mt-1 text-sm leading-6 text-muted-foreground">
-              {{ knowledge?.description || '当前知识库暂无描述' }}
+              {{ knowledge?.description || $t('docs.list.noKnowledgeDescription') }}
             </div>
             <div
               class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground"
             >
-              <span>创建时间 {{ formatDocsTimestamp(knowledge?.createTime) }}</span>
-              <span>更新时间 {{ formatDocsTimestamp(knowledge?.updateTime) }}</span>
+              <span>
+                {{
+                  $t('docs.list.createdAt', {
+                    time: formatDocsTimestamp(knowledge?.createTime),
+                  })
+                }}
+              </span>
+              <span>
+                {{
+                  $t('docs.list.updatedAt', {
+                    time: formatDocsTimestamp(knowledge?.updateTime),
+                  })
+                }}
+              </span>
             </div>
           </div>
 
@@ -497,7 +537,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <template #icon>
                 <ArrowLeft class="size-4" />
               </template>
-              返回
+              {{ $t('common.actions.back') }}
             </NButton>
           </div>
         </div>
@@ -506,19 +546,19 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
           <NInput
             v-model:value="keyword"
             clearable
-            placeholder="搜索文档"
+            :placeholder="$t('docs.search.placeholder')"
             style="width: 200px"
             @keyup.enter="refreshDashboard"
           />
           <NSelect
             v-model:value="selectedDocStatus"
             :options="statusFilterOptions"
-            placeholder="筛选向量化状态"
+            :placeholder="$t('docs.status.filterPlaceholder')"
             style="width: 150px"
           />
           <NButton type="primary" @click="refreshDashboard">
             <Search class="size-4" />
-            搜索
+            {{ $t('docs.actions.search') }}
           </NButton>
           <div class="ml-auto">
             <NButton
@@ -529,7 +569,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <template #icon>
                 <Upload class="size-4" />
               </template>
-              上传文档
+              {{ $t('docs.actions.upload') }}
             </NButton>
           </div>
         </div>
@@ -545,7 +585,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                 @click="handleRetrySelected"
               >
                 <RotateCcw class="size-3.5" />
-                重新向量化
+                {{ $t('docs.actions.reVectorize') }}
               </NButton>
               <NButton
                 v-if="selectedRowCount > 0"
@@ -555,7 +595,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                 @click="handleBatchDelete"
               >
                 <Trash2 class="size-3.5" />
-                批量删除 ({{ selectedRowCount }})
+                {{ $t('docs.actions.batchDelete') }} ({{ selectedRowCount }})
               </NButton>
             </div>
           </template>
@@ -568,7 +608,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                 @click="openPreviewPage(row)"
               >
                 <FileText class="size-4 shrink-0" />
-                <span class="truncate">{{ row.name || '未命名文档' }}</span>
+                <span class="truncate">{{ row.name || $t('docs.list.unnamed') }}</span>
               </button>
             </div>
           </template>
@@ -588,19 +628,25 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               </template>
               <div class="w-64 space-y-1.5 text-xs">
                 <div class="flex items-center justify-between gap-3">
-                  <span class="text-muted-foreground">状态</span>
+                  <span class="text-muted-foreground">
+                    {{ $t('docs.card.statusLabel') }}
+                  </span>
                   <span class="text-foreground">
                     {{ resolveDocsStatusLabel(row.embedStatus) }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between gap-3">
-                  <span class="text-muted-foreground">耗时</span>
+                  <span class="text-muted-foreground">
+                    {{ $t('docs.list.durationLabel') }}
+                  </span>
                   <span class="text-foreground">
                     {{ formatDocsDuration(resolveRowStatusDetail(row)?.costMs) }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between gap-3">
-                  <span class="text-muted-foreground">最后更新</span>
+                  <span class="text-muted-foreground">
+                    {{ $t('docs.list.lastUpdate') }}
+                  </span>
                   <span class="text-foreground">
                     {{
                       formatDocsTimestamp(resolveRowStatusDetail(row)?.updateTime)
@@ -614,7 +660,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                   {{ resolveRowStatusDetail(row)?.embedError }}
                 </div>
                 <div class="pt-0.5 text-[11px] text-muted-foreground">
-                  点击查看完整状态详情
+                  {{ $t('docs.list.viewFullStatus') }}
                 </div>
               </div>
             </NPopover>
@@ -623,21 +669,23 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
           <template #actionColumn="{ row }">
             <div class="flex items-center justify-center gap-1 whitespace-nowrap">
               <NButton
-                v-tippy="'执行向量化'"
+                v-tippy="$t('docs.actions.vectorize')"
                 quaternary
                 size="small"
                 type="primary"
                 @click="
                   submitDocsIndexTask(
                     row,
-                    `已提交「${buildDocsTitle(row)}」向量化任务`,
+                    $t('docs.messages.vectorizeSubmitted', {
+                      name: buildDocsTitle(row),
+                    }),
                   )
                 "
               >
                 <PlayCircle class="size-3.5" />
               </NButton>
               <NButton
-                v-tippy="'编辑文档'"
+                v-tippy="$t('docs.title.edit')"
                 quaternary
                 size="small"
                 @click="handleEdit(row)"
@@ -645,7 +693,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                 <SquarePen class="size-3.5" />
               </NButton>
               <NButton
-                v-tippy="'删除文档'"
+                v-tippy="$t('docs.actions.deleteDoc')"
                 quaternary
                 size="small"
                 type="error"
@@ -661,17 +709,17 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               class="flex min-h-[280px] flex-col items-center justify-center gap-3 text-center"
             >
               <div class="text-sm font-semibold text-foreground">
-                当前知识库还没有文档
+                {{ $t('docs.list.empty') }}
               </div>
               <div class="max-w-md text-sm leading-6 text-muted-foreground">
-                你可以先进入上传向量化子页面批量上传文件，或者直接新建一条文档记录。
+                {{ $t('docs.list.emptyHint') }}
               </div>
               <div class="flex flex-wrap items-center gap-2">
                 <NButton secondary @click="openUploadPage">
-                  上传向量化
+                  {{ $t('docs.actions.uploadAndVectorize') }}
                 </NButton>
                 <NButton type="primary" @click="handleCreate">
-                  新建文档
+                  {{ $t('docs.actions.createDoc') }}
                 </NButton>
               </div>
             </div>
@@ -684,7 +732,12 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
       v-model:show="showEdit"
       :knowledge-options="
         knowledgeId
-          ? [{ label: knowledge?.name || '当前知识库', value: knowledgeId }]
+          ? [
+              {
+                label: knowledge?.name || $t('docs.list.currentKnowledge'),
+                value: knowledgeId,
+              },
+            ]
           : []
       "
       :model-value="currentItem"
@@ -693,7 +746,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
     />
 
     <NDrawer v-model:show="failedWorkbenchVisible" :width="860">
-      <NDrawerContent closable title="失败文档工作台">
+      <NDrawerContent closable :title="$t('docs.title.failedWorkspace')">
         <div class="space-y-5">
           <div
             class="rounded-xl border border-dashed border-border bg-muted/40 p-3"
@@ -701,7 +754,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
                 <div class="text-sm font-semibold text-foreground">
-                  失败文档集中处理
+                  {{ $t('docs.failedDocs.description') }}
                 </div>
                 <div class="mt-1 text-xs leading-5 text-muted-foreground">
                   {{ failedDocsSummary }}
@@ -714,13 +767,13 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                   type="error"
                   @click="retryFailedDocs"
                 >
-                  全部重试
+                  {{ $t('docs.actions.retryAll') }}
                 </NButton>
                 <NButton
                   secondary
                   @click="selectedDocStatus = DOC_EMBED_STATUS.FAILED"
                 >
-                  同步失败筛选
+                  {{ $t('docs.actions.syncFailedFilter') }}
                 </NButton>
               </div>
             </div>
@@ -735,7 +788,11 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <div class="truncate text-sm font-semibold text-foreground">
-                    {{ docsStatus.name || docsStatus.docsId || '未命名文档' }}
+                    {{
+                      docsStatus.name ||
+                      docsStatus.docsId ||
+                      $t('docs.list.unnamed')
+                    }}
                   </div>
                   <div
                     class="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
@@ -743,9 +800,14 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                     <NTag :bordered="false" round type="error">
                       {{ resolveDocsStatusLabel(docsStatus.embedStatus) }}
                     </NTag>
-                    <span>最后更新时间
-                      {{ formatDocsTimestamp(docsStatus.updateTime) }}</span>
-                    <span>耗时 {{ formatDocsDuration(docsStatus.costMs) }}</span>
+                    <span>
+                      {{ $t('docs.failedDocs.lastUpdate') }}
+                      {{ formatDocsTimestamp(docsStatus.updateTime) }}
+                    </span>
+                    <span>
+                      {{ $t('docs.list.durationLabel') }}
+                      {{ formatDocsDuration(docsStatus.costMs) }}
+                    </span>
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -755,7 +817,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                     type="info"
                     @click="handleFailedDocsPreview(docsStatus)"
                   >
-                    分段预览
+                    {{ $t('docs.actions.parsePreview') }}
                   </NButton>
                   <NButton
                     quaternary
@@ -763,7 +825,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                     type="warning"
                     @click="handleFailedDocsStatus(docsStatus)"
                   >
-                    状态详情
+                    {{ $t('docs.actions.statusDetail') }}
                   </NButton>
                   <NButton
                     v-if="docsStatus.docsId"
@@ -777,7 +839,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                       })
                     "
                   >
-                    立即重试
+                    {{ $t('docs.actions.retryNow') }}
                   </NButton>
                 </div>
               </div>
@@ -787,12 +849,12 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                   <div
                     class="text-[10px] font-semibold uppercase tracking-[0.18em] text-destructive"
                   >
-                    错误摘要
+                    {{ $t('docs.failedDocs.errorSummary') }}
                   </div>
                   <div
                     class="mt-2 whitespace-pre-wrap text-xs leading-6 text-destructive"
                   >
-                    {{ docsStatus.embedError || '当前没有错误详情。' }}
+                    {{ docsStatus.embedError || $t('docs.failedDocs.emptySummary') }}
                   </div>
                 </div>
 
@@ -802,7 +864,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                       <div
                         class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
                       >
-                        文档 ID
+                        {{ $t('docs.labels.docId') }}
                       </div>
                       <div class="mt-1 break-all text-xs leading-6">
                         {{ docsStatus.docsId || '--' }}
@@ -812,7 +874,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                       <div
                         class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
                       >
-                        开始时间
+                        {{ $t('docs.labels.startTime') }}
                       </div>
                       <div class="mt-1">
                         {{ formatDocsTimestamp(docsStatus.embedStartTime) }}
@@ -822,7 +884,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                       <div
                         class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
                       >
-                        结束时间
+                        {{ $t('docs.labels.endTime') }}
                       </div>
                       <div class="mt-1">
                         {{ formatDocsTimestamp(docsStatus.embedEndTime) }}
@@ -832,7 +894,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                       <div
                         class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
                       >
-                        索引标记
+                        {{ $t('docs.labels.indexStatus') }}
                       </div>
                       <div class="mt-1">
                         {{ docsStatus.indexingStatus ?? '--' }}
@@ -848,7 +910,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
             v-else
             class="rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground"
           >
-            当前知识库没有失败文档，不需要进入故障恢复流程。
+            {{ $t('docs.failedDocs.currentKnowledgeEmpty') }}
           </div>
         </div>
       </NDrawerContent>
@@ -862,7 +924,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <div
                 class="text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
               >
-                状态
+                {{ $t('docs.card.statusLabel') }}
               </div>
               <div class="mt-2 text-base font-semibold text-foreground">
                 {{ resolveDocsStatusLabel(statusDetail.embedStatus) }}
@@ -872,7 +934,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <div
                 class="text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
               >
-                耗时
+                {{ $t('docs.list.durationLabel') }}
               </div>
               <div class="mt-2 text-base font-semibold text-warning">
                 {{ formatDocsDuration(statusDetail.costMs) }}
@@ -882,7 +944,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <div
                 class="text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
               >
-                索引标记
+                {{ $t('docs.labels.indexStatus') }}
               </div>
               <div class="mt-2 text-base font-semibold text-success">
                 {{ statusDetail.indexingStatus ?? '--' }}
@@ -892,7 +954,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <div
                 class="text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
               >
-                更新时间
+                {{ $t('docs.columns.updateTime') }}
               </div>
               <div class="mt-2 text-xs font-semibold text-foreground">
                 {{ formatDocsTimestamp(statusDetail.updateTime) }}
@@ -903,7 +965,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
           <LcCard :hoverable="false">
             <template #header>
               <div class="text-sm font-semibold text-foreground">
-                执行时间线
+                {{ $t('docs.failedDocs.timeline') }}
               </div>
             </template>
             <div class="space-y-3 text-sm text-muted-foreground">
@@ -911,7 +973,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                 <div
                   class="text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
                 >
-                  开始时间
+                  {{ $t('docs.labels.startTime') }}
                 </div>
                 <div class="mt-2">
                   {{ formatDocsTimestamp(statusDetail.embedStartTime) }}
@@ -921,7 +983,7 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                 <div
                   class="text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
                 >
-                  结束时间
+                  {{ $t('docs.labels.endTime') }}
                 </div>
                 <div class="mt-2">
                   {{ formatDocsTimestamp(statusDetail.embedEndTime) }}
@@ -945,13 +1007,15 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                 })
               "
             >
-              重试当前文档
+              {{ $t('docs.actions.retryCurrent') }}
             </NButton>
           </div>
 
           <LcCard :hoverable="false">
             <template #header>
-              <div class="text-sm font-semibold text-foreground">错误详情</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('docs.failedDocs.errorDetail') }}
+              </div>
             </template>
             <div
               class="rounded-xl border border-dashed border-border bg-muted/40 p-3"
@@ -959,14 +1023,14 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               <NText
                 class="whitespace-pre-wrap text-sm leading-7 text-muted-foreground"
               >
-                {{ statusDetail.embedError || '当前没有错误信息。' }}
+                {{ statusDetail.embedError || $t('docs.failedDocs.errorInfo') }}
               </NText>
             </div>
           </LcCard>
         </div>
 
         <div v-else class="py-10 text-center text-sm text-muted-foreground">
-          当前暂无状态详情。
+          {{ $t('docs.preview.emptyStatus') }}
         </div>
       </NDrawerContent>
     </NDrawer>

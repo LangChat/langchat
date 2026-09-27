@@ -1,0 +1,65 @@
+{
+  "title": {
+    "create": "New Menu",
+    "edit": "Edit Menu"
+  },
+  "actions": {
+    "create": "New Menu"
+  },
+  "form": {
+    "name": "Menu Name",
+    "type": "Menu Type",
+    "parent": "Parent Menu",
+    "parentPlaceholder": "Select a parent menu",
+    "orderNo": "Sort Order",
+    "path": "Route Path",
+    "perms": "Permission Key",
+    "icon": "Icon",
+    "component": "Component Path",
+    "isShow": "Visible",
+    "isKeepalive": "Keep Alive",
+    "isExternal": "External Link",
+    "isDisabled": "Disabled"
+  },
+  "card": {
+    "unnamed": "Untitled Menu",
+    "typeLabel": "Type",
+    "route": "Route",
+    "parent": "Parent",
+    "order": "Order",
+    "noComponentPath": "No component path configured",
+    "hidden": "Hidden"
+  },
+  "columns": {
+    "name": "Menu Name",
+    "type": "Type",
+    "path": "Path",
+    "perms": "Permission Key",
+    "component": "Component Path",
+    "orderNo": "Order",
+    "isShow": "Visible",
+    "isKeepalive": "Keep Alive",
+    "isDisabled": "Disabled",
+    "updateTime": "Updated At"
+  },
+  "list": {
+    "tableTitle": "Menu Management",
+    "keywordPlaceholder": "Menu name / path / permission key / component path",
+    "typePlaceholder": "All types",
+    "editMenu": "Edit menu",
+    "deleteMenu": "Delete menu",
+    "show": "Shown",
+    "hide": "Hidden"
+  },
+  "messages": {
+    "created": "Menu created",
+    "updated": "Menu updated",
+    "deleted": "Menu deleted",
+    "deleteTitle": "Delete Menu"
+  },
+  "typeOptions": {
+    "catalog": "Catalog",
+    "menu": "Menu",
+    "button": "Button"
+  }
+}

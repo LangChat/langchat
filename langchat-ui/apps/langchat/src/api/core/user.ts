@@ -1,5 +1,6 @@
 import type { UserInfo } from '@vben/types';
 
+import { $t } from '@vben/locales';
 import { preferences } from '@vben/preferences';
 
 import { requestClient } from '#/api/request';
@@ -22,8 +23,8 @@ export async function getUserInfoApi() {
   return {
     avatar: preferences.app.defaultAvatar,
     desc: response.tenantId
-      ? `当前租户：${response.tenantId}`
-      : 'LangChat 控制台用户',
+      ? $t('layout.user.currentTenant', { tenantId: response.tenantId })
+      : $t('layout.user.defaultDesc'),
     homePath: '/explore',
     realName: response.displayName || response.username,
     roles: response.roles ?? [],

@@ -4,16 +4,17 @@ import type { AigcMcp } from '#/api/aigc/mcp';
 import { computed, watch } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
 import {
-  AIGC_COMMON_TAG_OPTIONS,
+  aigcCommonTagOptions,
   MCP_TRANSPORT_OPTIONS,
 } from '#/views/shared/aigc/options';
 import { parseTagList, stringifyTagList } from '#/views/shared/aigc/tags';
 
 interface Props {
-  modelValue?: Partial<AigcMcp> | null;
+  modelValue?: null | Partial<AigcMcp>;
   saving?: boolean;
   show: boolean;
 }
@@ -30,7 +31,7 @@ const emit = defineEmits<{
 }>();
 
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑 MCP 服务' : '新建 MCP 服务',
+  props.modelValue?.id ? $t('mcp.title.edit') : $t('mcp.title.create'),
 );
 
 function isNetworkTransport(transport?: string) {
@@ -49,13 +50,13 @@ const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '服务名称',
+    label: $t('mcp.form.name'),
     rules: 'required',
   },
   {
     component: 'Input',
     fieldName: 'uuid',
-    label: '唯一标识',
+    label: $t('mcp.form.uuid'),
   },
   {
     component: 'Select',
@@ -63,7 +64,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       options: MCP_TRANSPORT_OPTIONS,
     },
     fieldName: 'transport',
-    label: '协议类型',
+    label: $t('mcp.form.transport'),
   },
   {
     component: 'InputNumber',
@@ -71,22 +72,22 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       min: 1,
     },
     fieldName: 'timeout',
-    label: '超时时间',
+    label: $t('mcp.form.timeout'),
   },
   {
     component: 'Switch',
     fieldName: 'authorized',
-    label: '是否授权',
+    label: $t('mcp.form.authorized'),
   },
   {
     component: 'Input',
     fieldName: 'coverUrl',
-    label: '封面地址',
+    label: $t('mcp.form.coverUrl'),
   },
   {
     component: 'Input',
     fieldName: 'siteUrl',
-    label: '站点地址',
+    label: $t('mcp.form.siteUrl'),
     dependencies: {
       if: (values) => isNetworkTransport(String(values.transport ?? '')),
       triggerFields: ['transport'],
@@ -95,7 +96,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'sseUrl',
-    label: 'SSE 服务地址',
+    label: $t('mcp.form.sseUrl'),
     dependencies: {
       if: (values) => isNetworkTransport(String(values.transport ?? '')),
       triggerFields: ['transport'],
@@ -104,7 +105,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'dockerImage',
-    label: 'Docker 镜像',
+    label: $t('mcp.form.dockerImage'),
     dependencies: {
       if: (values) => isDockerTransport(String(values.transport ?? '')),
       triggerFields: ['transport'],
@@ -113,7 +114,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'dockerHost',
-    label: 'Docker 主机',
+    label: $t('mcp.form.dockerHost'),
     dependencies: {
       if: (values) => isDockerTransport(String(values.transport ?? '')),
       triggerFields: ['transport'],
@@ -125,12 +126,12 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       clearable: true,
       filterable: true,
       multiple: true,
-      options: AIGC_COMMON_TAG_OPTIONS,
-      placeholder: '请选择标签',
+      options: aigcCommonTagOptions(),
+      placeholder: $t('common.placeholder.selectTags'),
     },
     fieldName: 'tags',
     formItemClass: 'sm:col-span-2',
-    label: '标签',
+    label: $t('common.labels.tags'),
   },
   {
     component: 'Input',
@@ -140,7 +141,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     },
     fieldName: 'headers',
     formItemClass: 'sm:col-span-2',
-    label: '请求头 JSON',
+    label: $t('mcp.form.requestHeaders'),
     dependencies: {
       if: (values) => isNetworkTransport(String(values.transport ?? '')),
       triggerFields: ['transport'],
@@ -151,11 +152,11 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     componentProps: {
       height: 240,
       language: 'json',
-      placeholder: '请输入 Stdio 协议 JSON 配置',
+      placeholder: $t('mcp.form.stdioPlaceholder'),
     },
     fieldName: 'mcpJson',
     formItemClass: 'sm:col-span-2',
-    label: 'MCP 配置 JSON',
+    label: $t('mcp.form.stdioConfig'),
     dependencies: {
       if: (values) => isStdioTransport(String(values.transport ?? '')),
       triggerFields: ['transport'],
@@ -169,7 +170,7 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     },
     fieldName: 'description',
     formItemClass: 'sm:col-span-2',
-    label: '描述',
+    label: $t('mcp.form.description'),
   },
 ]);
 
@@ -209,7 +210,6 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[820px]',
-  confirmText: '保存',
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -217,13 +217,20 @@ const [Drawer, drawerApi] = useVbenDrawer({
       emitClose(true);
     }
   },
-  title: drawerTitle.value,
 });
 
 watch(
   () => props.saving,
   (value) => {
     drawerApi.setState({ confirmLoading: value });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
   },
   { immediate: true },
 );
@@ -251,7 +258,7 @@ watch(
         authorized: false,
         timeout: 60,
         transport: 'SSE',
-        ...(props.modelValue ?? {}),
+        ...props.modelValue,
         tags: parseTagList(props.modelValue?.tags),
       },
       false,

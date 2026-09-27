@@ -4,10 +4,12 @@ import type { AigcRole } from '#/api/auth/role';
 import { computed } from 'vue';
 
 import { ShieldCheck, SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface Props {
   item: AigcRole;
@@ -21,19 +23,15 @@ const emit = defineEmits<{
   edit: [item: AigcRole];
 }>();
 const metaItems = computed(() => [
-  { label: '编码', value: props.item.code || '--' },
+  { label: $t('roles.card.code'), value: props.item.code || '--' },
   {
-    label: '菜单权限',
+    label: $t('roles.card.menuAuth'),
     value:
-      props.menuLabels.length > 0 ? `${props.menuLabels.length} 个` : '未分配',
+      props.menuLabels.length > 0
+        ? $t('roles.card.menuCount', { count: props.menuLabels.length })
+        : $t('roles.card.notAssigned'),
   },
 ]);
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -43,27 +41,27 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary"
         >
-          {{ item.name || '未命名角色' }}
+          {{ item.name || $t('roles.card.unnamed') }}
         </div>
       </div>
     </template>
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        {{ item.description || '当前角色用于承接菜单权限分配。' }}
+        {{ item.description || $t('roles.card.defaultDescription') }}
       </p>
     </template>
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -73,7 +71,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

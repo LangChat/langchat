@@ -3,7 +3,11 @@ defineOptions({ name: 'LangChatArchitecture' });
 </script>
 
 <template>
-  <div class="architecture-scroll" role="region" aria-label="LangChat 系统架构图">
+  <div
+    class="architecture-scroll"
+    role="region"
+    :aria-label="$t('about.architecture.diagramAria')"
+  >
     <svg
       aria-labelledby="langchat-architecture-title langchat-architecture-desc"
       class="architecture-diagram"
@@ -11,11 +15,11 @@ defineOptions({ name: 'LangChatArchitecture' });
       viewBox="0 0 1100 450"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title id="langchat-architecture-title">LangChat 系统组件模块架构</title>
+      <title id="langchat-architecture-title">
+        {{ $t('about.architecture.diagramTitle') }}
+      </title>
       <desc id="langchat-architecture-desc">
-        用户通过 LangChat UI 访问 LangChat Server，服务端聚合权限、AIGC、AI
-        运行时和公共服务，并连接关系数据库、向量数据库、S3
-        对象存储、模型供应商与 MCP 服务。
+        {{ $t('about.architecture.diagramDesc') }}
       </desc>
 
       <defs>
@@ -52,14 +56,14 @@ defineOptions({ name: 'LangChatArchitecture' });
         y="1"
       />
 
-      <text class="architecture-eyebrow" x="32" y="32">交互与服务入口</text>
+      <text class="architecture-eyebrow" x="32" y="32">{{ $t('about.architecture.eyebrowEntry') }}</text>
       <g class="architecture-node architecture-node--entry">
         <rect height="64" rx="14" width="184" x="38" y="48" />
         <text class="architecture-node-title" text-anchor="middle" x="130" y="76">
-          用户 / 管理员
+          {{ $t('about.architecture.userAdmin') }}
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="130" y="98">
-          配置、构建与使用 AI 应用
+          {{ $t('about.architecture.userAdminDesc') }}
         </text>
       </g>
 
@@ -90,7 +94,7 @@ defineOptions({ name: 'LangChatArchitecture' });
           Vue 3 · TypeScript · Vben Admin
         </text>
         <text class="architecture-node-meta" text-anchor="middle" x="467" y="109">
-          统一管理与应用交互界面
+          {{ $t('about.architecture.ui') }}
         </text>
       </g>
 
@@ -121,7 +125,7 @@ defineOptions({ name: 'LangChatArchitecture' });
           LangChat Server
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="877" y="96">
-          Spring Boot 启动、模块聚合、接口发布与运行配置
+          {{ $t('about.architecture.server') }}
         </text>
       </g>
 
@@ -131,53 +135,53 @@ defineOptions({ name: 'LangChatArchitecture' });
         d="M130 144V164M410 144V164M690 144V164M970 144V164"
       />
 
-      <text class="architecture-eyebrow" x="32" y="156">核心能力层</text>
+      <text class="architecture-eyebrow" x="32" y="156">{{ $t('about.architecture.eyebrowCore') }}</text>
       <g class="architecture-node">
         <rect height="76" rx="13" width="238" x="11" y="166" />
         <text class="architecture-node-title" text-anchor="middle" x="130" y="194">
-          权限与账号
+          {{ $t('about.architecture.authModule') }}
         </text>
         <text class="architecture-node-code" text-anchor="middle" x="130" y="214">
           langchat-auth
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="130" y="233">
-          用户、角色、菜单、授权
+          {{ $t('about.architecture.authModuleDesc') }}
         </text>
       </g>
       <g class="architecture-node architecture-node--accent">
         <rect height="76" rx="13" width="238" x="291" y="166" />
         <text class="architecture-node-title" text-anchor="middle" x="410" y="194">
-          AIGC 业务
+          {{ $t('about.architecture.aigcModule') }}
         </text>
         <text class="architecture-node-code" text-anchor="middle" x="410" y="214">
           langchat-aigc
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="410" y="233">
-          模型、知识库、Agent、Skills
+          {{ $t('about.architecture.aigcModuleDesc') }}
         </text>
       </g>
       <g class="architecture-node architecture-node--accent">
         <rect height="76" rx="13" width="238" x="571" y="166" />
         <text class="architecture-node-title" text-anchor="middle" x="690" y="194">
-          AI 运行时
+          {{ $t('about.architecture.aiRuntime') }}
         </text>
         <text class="architecture-node-code" text-anchor="middle" x="690" y="214">
           langchat-core
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="690" y="233">
-          LangChain4j、RAG、工具执行
+          {{ $t('about.architecture.aiRuntimeDesc') }}
         </text>
       </g>
       <g class="architecture-node">
         <rect height="76" rx="13" width="238" x="851" y="166" />
         <text class="architecture-node-title" text-anchor="middle" x="970" y="194">
-          公共服务
+          {{ $t('about.architecture.commonServices') }}
         </text>
         <text class="architecture-node-code" text-anchor="middle" x="970" y="214">
           langchat-common
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="970" y="233">
-          OSS、任务、认证与基础工具
+          {{ $t('about.architecture.commonServicesDesc') }}
         </text>
       </g>
 
@@ -187,20 +191,20 @@ defineOptions({ name: 'LangChatArchitecture' });
         d="M118 274V296M334 274V296M550 274V296M766 274V296M982 274V296"
       />
 
-      <text class="architecture-eyebrow" x="32" y="288">数据与外部能力层</text>
+      <text class="architecture-eyebrow" x="32" y="288">{{ $t('about.architecture.eyebrowData') }}</text>
       <g class="architecture-node architecture-node--storage">
         <rect height="70" rx="13" width="192" x="22" y="298" />
         <text class="architecture-node-title" text-anchor="middle" x="118" y="328">
           MySQL
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="118" y="350">
-          业务与权限数据
+          {{ $t('about.architecture.businessData') }}
         </text>
       </g>
       <g class="architecture-node architecture-node--storage">
         <rect height="70" rx="13" width="192" x="238" y="298" />
         <text class="architecture-node-title" text-anchor="middle" x="334" y="328">
-          向量存储
+          {{ $t('about.architecture.vectorStore') }}
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="334" y="350">
           PGVector / Milvus
@@ -209,28 +213,28 @@ defineOptions({ name: 'LangChatArchitecture' });
       <g class="architecture-node architecture-node--storage">
         <rect height="70" rx="13" width="192" x="454" y="298" />
         <text class="architecture-node-title" text-anchor="middle" x="550" y="328">
-          对象存储
+          {{ $t('about.architecture.objectStorage') }}
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="550" y="350">
-          S3 协议 / RustFS
+          {{ $t('about.architecture.objectStorageDesc') }}
         </text>
       </g>
       <g class="architecture-node architecture-node--external">
         <rect height="70" rx="13" width="192" x="670" y="298" />
         <text class="architecture-node-title" text-anchor="middle" x="766" y="328">
-          模型供应商
+          {{ $t('about.architecture.modelProviders') }}
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="766" y="350">
-          多模型统一接入
+          {{ $t('about.architecture.modelProvidersDesc') }}
         </text>
       </g>
       <g class="architecture-node architecture-node--external">
         <rect height="70" rx="13" width="192" x="886" y="298" />
         <text class="architecture-node-title" text-anchor="middle" x="982" y="328">
-          MCP 服务
+          {{ $t('about.architecture.mcpServices') }}
         </text>
         <text class="architecture-node-copy" text-anchor="middle" x="982" y="350">
-          外部工具与能力扩展
+          {{ $t('about.architecture.mcpServicesDesc') }}
         </text>
       </g>
 
@@ -238,7 +242,7 @@ defineOptions({ name: 'LangChatArchitecture' });
         <rect height="44" rx="10" width="1034" x="33" y="388" />
         <circle cx="54" cy="410" r="4" />
         <text x="68" y="414">
-          模块边界依据当前仓库结构绘制，部署时可按业务规模独立扩展数据与外部服务。
+          {{ $t('about.architecture.diagramNote') }}
         </text>
       </g>
     </svg>

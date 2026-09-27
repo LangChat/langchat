@@ -1,0 +1,69 @@
+{
+  "empty": {
+    "unnamed": "未命名技能",
+    "noDescription": "未填写技能描述"
+  },
+  "card": {
+    "version": "版本",
+    "filesCount": "文件数",
+    "packageSize": "包大小",
+    "tags": "标签",
+    "enabled": "已启用",
+    "disabled": "已停用",
+    "editDocs": "编辑文档",
+    "toggleEnable": "启用技能",
+    "toggleDisable": "停用技能",
+    "downloadPackage": "下载原始包"
+  },
+  "list": {
+    "upload": "上传技能",
+    "startUpload": "开始上传",
+    "searchPlaceholder": "按技能名称、描述、标签搜索",
+    "actionsTitle": "技能操作",
+    "actionsDescription": "技能以标准技能包形式管理：上传 zip 或文件夹，根目录必须包含 SKILL.md。",
+    "formatTitle": "标准技能包格式",
+    "formatFirstPre": "1. 包根目录必须包含 ",
+    "formatFirstPost": "：使用 YAML frontmatter 声明 ",
+    "formatFirstNameHint": "（技能标识，必填）、 ",
+    "formatFirstDescHint": "（技能描述）、 ",
+    "formatFirstVersionHint": " 等字段，正文为标准化的技能指令文档。",
+    "formatSecondPre": "2. 可选目录：",
+    "formatSecondScriptsHint": "（脚本）、",
+    "formatSecondRefsHint": "（参考文档）、",
+    "formatSecondAssetsHint": "（资源文件）。",
+    "formatThird": "3. 支持 .zip 压缩包或整个文件夹（自动解析目录结构），单包最大 500MB。",
+    "formatFourth": "4. 原始包将归档到 OSS，解压副本存放在服务器本地工作区，运行时直接调用本地技能文档。",
+    "zipMode": "zip 压缩包",
+    "folderMode": "文件夹",
+    "zipDropTitle": "点击或拖拽 zip 技能包到此处",
+    "zipDropHint": "单个 .zip 文件，根目录需包含 SKILL.md",
+    "folderDropTitle": "点击或拖拽整个技能文件夹到此处",
+    "folderDropHint": "将保留目录结构上传，根目录需包含 SKILL.md",
+    "selectedFiles": "已选择 {count} 个文件"
+  },
+  "messages": {
+    "uploaded": "技能包已安装：{name}",
+    "zipRequired": "请选择技能包 zip 文件",
+    "folderRequired": "请选择技能文件夹",
+    "enableTitle": "启用技能",
+    "enableConfirm": "确认启用技能「{name}」吗？启用后 Agent 可调用该技能。",
+    "disableTitle": "停用技能",
+    "disableConfirm": "确认停用技能「{name}」吗？停用后 Agent 将无法调用该技能。",
+    "enabled": "技能已启用",
+    "disabled": "技能已停用",
+    "deleteTitle": "删除技能",
+    "deleteConfirm": "删除将同时移除 OSS 原始包与本地工作区，且不可恢复。确认删除「{name}」吗？",
+    "deleted": "技能已删除"
+  },
+  "edit": {
+    "title": "编辑技能文档",
+    "saveDocs": "保存",
+    "docsSaved": "文档已保存，frontmatter 元数据已同步",
+    "readFailed": "文件读取失败：{message}",
+    "files": "技能包文件",
+    "noFileSelected": "未选择文件",
+    "binaryNotEditable": "二进制文件不支持在线编辑",
+    "contentPlaceholder": "输入文件内容...",
+    "pickFileHint": "从左侧选择要编辑的文件"
+  }
+}

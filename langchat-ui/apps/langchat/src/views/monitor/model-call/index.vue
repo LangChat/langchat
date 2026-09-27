@@ -19,6 +19,7 @@ import {
   TriangleAlert,
   Zap,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
 import {
@@ -46,11 +47,50 @@ const { renderEcharts: renderTrendChart } = useEcharts(trendChartRef);
 const { renderEcharts: renderCallTypeChart } = useEcharts(callTypeChartRef);
 const { renderEcharts: renderProviderChart } = useEcharts(providerChartRef);
 
-const windowOptions = [
-  { label: '近 7 天', value: 7 },
-  { label: '近 14 天', value: 14 },
-  { label: '近 30 天', value: 30 },
-];
+/** 统计卡片文案来自后端埋点，这里按已知枚举值映射到本地化键，未命中时原样展示。 */
+const METRIC_LABEL_KEYS: Record<string, string> = {
+  调用总量: 'monitor.metrics.totalCalls',
+  'Token 消耗': 'monitor.metrics.tokens',
+  平均耗时: 'monitor.metrics.avgDuration',
+  调用成功率: 'monitor.metrics.successRate',
+};
+
+/** 统计卡片 hint 来自后端埋点，按已知枚举值映射到本地化键，未命中时原样展示。 */
+const METRIC_HINT_KEYS: Record<string, string> = {
+  统计窗口内的模型调用次数: 'monitor.hints.totalCalls',
+  '输入与输出 Token 合计': 'monitor.hints.tokens',
+  单次模型调用的平均响应时间: 'monitor.hints.avgDuration',
+  当前窗口无失败调用: 'monitor.hints.successRate',
+};
+
+function metricHint(hint?: string) {
+  const key = METRIC_HINT_KEYS[String(hint ?? '')];
+  return key ? $t(key) : String(hint ?? '');
+}
+
+const CALL_TYPE_LABEL_KEYS: Record<string, string> = {
+  CHAT: 'monitor.callType.CHAT',
+  EMBEDDING: 'monitor.callType.EMBEDDING',
+  IMAGE: 'monitor.callType.IMAGE',
+  OCR: 'monitor.callType.OCR',
+};
+
+const SCENE_LABEL_KEYS: Record<string, string> = {
+  AGENT_CHAT: 'monitor.scene.AGENT_CHAT',
+  DATA_ANALYSIS: 'monitor.scene.DATA_ANALYSIS',
+  KNOWLEDGE_INDEX: 'monitor.scene.KNOWLEDGE_INDEX',
+  KNOWLEDGE_RETRIEVE: 'monitor.scene.KNOWLEDGE_RETRIEVE',
+  IMAGE_GENERATE: 'monitor.scene.IMAGE_GENERATE',
+  IMAGE_OCR: 'monitor.scene.IMAGE_OCR',
+  unknown: 'monitor.scene.unknown',
+};
+
+const windowOptions = computed(() =>
+  [7, 14, 30].map((days) => ({
+    label: $t('monitor.window.days', { days }),
+    value: days,
+  })),
+);
 
 const metrics = computed<ModelCallMetricCard[]>(() => overview.value.metrics ?? []);
 const trend = computed<ModelCallTrendPoint[]>(() => overview.value.trend ?? []);
@@ -68,49 +108,43 @@ const maxModelToken = computed(() =>
   Math.max(1, ...topModels.value.map((item) => Number(item.tokenCount ?? 0))),
 );
 
-const CALL_TYPE_LABELS: Record<string, string> = {
-  CHAT: '对话模型',
-  EMBEDDING: '向量模型',
-  IMAGE: '文生图',
-  OCR: '图像识别',
-};
-
-const SCENE_LABELS: Record<string, string> = {
-  AGENT_CHAT: 'Agent 对话',
-  DATA_ANALYSIS: '智能问数',
-  KNOWLEDGE_INDEX: '知识库向量化',
-  KNOWLEDGE_RETRIEVE: '知识库检索',
-  IMAGE_GENERATE: '文生图',
-  IMAGE_OCR: '图像识别',
-  unknown: '未标注',
-};
-
-const recentColumns = [
-  { key: 'modelName', title: '模型', width: 160, ellipsis: { tooltip: true } },
-  { key: 'provider', title: '供应商', width: 110 },
-  { key: 'callType', title: '类型', width: 100 },
-  { key: 'scene', title: '场景', width: 130 },
-  { key: 'totalToken', title: 'Token', width: 90 },
-  { key: 'duration', title: '耗时', width: 90 },
-  { key: 'status', title: '状态', width: 90 },
-  { key: 'createTime', title: '调用时间', width: 160 },
-];
+const recentColumns = computed(() => [
+  {
+    key: 'modelName',
+    title: $t('monitor.columns.model'),
+    width: 160,
+    ellipsis: { tooltip: true },
+  },
+  { key: 'provider', title: $t('monitor.columns.provider'), width: 110 },
+  { key: 'callType', title: $t('monitor.columns.type'), width: 100 },
+  { key: 'scene', title: $t('monitor.columns.scene'), width: 130 },
+  { key: 'totalToken', title: $t('monitor.chart.tokensLegend'), width: 90 },
+  { key: 'duration', title: $t('monitor.columns.duration'), width: 90 },
+  { key: 'status', title: $t('monitor.columns.status'), width: 90 },
+  { key: 'createTime', title: $t('monitor.columns.createTime'), width: 160 },
+]);
 
 function resolveMetricIcon(label?: string) {
-  switch (label) {
-    case 'Token 消耗': {
-      return Zap;
-    }
-    case '平均耗时': {
+  const key = METRIC_LABEL_KEYS[String(label ?? '')];
+  switch (key) {
+    case 'monitor.metrics.avgDuration': {
       return Activity;
     }
-    case '调用成功率': {
+    case 'monitor.metrics.successRate': {
       return TriangleAlert;
+    }
+    case 'monitor.metrics.tokens': {
+      return Zap;
     }
     default: {
       return Cpu;
     }
   }
+}
+
+function metricLabel(label?: string) {
+  const key = METRIC_LABEL_KEYS[String(label ?? '')];
+  return key ? $t(key) : String(label ?? '');
 }
 
 function resolveToneType(tone?: string) {
@@ -131,11 +165,13 @@ function resolveToneType(tone?: string) {
 }
 
 function callTypeLabel(value?: string) {
-  return CALL_TYPE_LABELS[String(value ?? '')] ?? String(value ?? '--');
+  const key = CALL_TYPE_LABEL_KEYS[String(value ?? '')];
+  return key ? $t(key) : String(value ?? '--');
 }
 
 function sceneLabel(value?: string) {
-  return SCENE_LABELS[String(value ?? '')] ?? String(value ?? '--');
+  const key = SCENE_LABEL_KEYS[String(value ?? '')];
+  return key ? $t(key) : String(value ?? '--');
 }
 
 function formatNumber(value?: null | number) {
@@ -170,10 +206,12 @@ const recentRows = computed(() =>
 
 function buildTrendOption(points: ModelCallTrendPoint[]) {
   const dates = points.map((item) => item.date || '--');
+  const callsLegend = $t('monitor.chart.callsLegend');
+  const tokensLegend = $t('monitor.chart.tokensLegend');
   return {
     tooltip: { trigger: 'axis' },
     legend: {
-      data: ['调用次数', 'Token 消耗'],
+      data: [callsLegend, tokensLegend],
       top: 0,
       textStyle: { color: '#64748b', fontSize: 11 },
     },
@@ -188,14 +226,14 @@ function buildTrendOption(points: ModelCallTrendPoint[]) {
     yAxis: [
       {
         type: 'value',
-        name: '次数',
+        name: $t('monitor.chart.countSeries'),
         nameTextStyle: { color: '#94a3b8', fontSize: 10 },
         axisLabel: { color: '#64748b', fontSize: 11 },
         splitLine: { lineStyle: { color: '#e2e8f0' } },
       },
       {
         type: 'value',
-        name: 'Token',
+        name: tokensLegend,
         nameTextStyle: { color: '#94a3b8', fontSize: 10 },
         axisLabel: { color: '#64748b', fontSize: 11 },
         splitLine: { show: false },
@@ -203,7 +241,7 @@ function buildTrendOption(points: ModelCallTrendPoint[]) {
     ],
     series: [
       {
-        name: '调用次数',
+        name: callsLegend,
         type: 'line',
         smooth: true,
         symbol: 'circle',
@@ -214,7 +252,7 @@ function buildTrendOption(points: ModelCallTrendPoint[]) {
         areaStyle: { opacity: 0.14 },
       },
       {
-        name: 'Token 消耗',
+        name: tokensLegend,
         type: 'line',
         smooth: true,
         symbol: 'circle',
@@ -232,7 +270,7 @@ function buildDistributionOption(items: ModelCallDistributionItem[]) {
   if (items.length === 0) {
     return {
       title: {
-        text: '暂无调用数据',
+        text: $t('monitor.chart.empty'),
         left: 'center',
         top: 'center',
         textStyle: { color: '#94a3b8', fontSize: 12, fontWeight: 'normal' },
@@ -265,8 +303,9 @@ function buildDistributionOption(items: ModelCallDistributionItem[]) {
 }
 
 function resolveDistributionName(item: ModelCallDistributionItem) {
-  const raw = String(item.name ?? '未知');
-  return CALL_TYPE_LABELS[raw] ?? raw;
+  const raw = String(item.name ?? '');
+  const key = CALL_TYPE_LABEL_KEYS[raw];
+  return key ? $t(key) : raw || $t('monitor.chart.unknown');
 }
 
 async function renderCharts() {
@@ -303,9 +342,11 @@ onMounted(loadOverview);
         class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3"
       >
         <div class="min-w-0">
-          <div class="text-base font-semibold text-foreground">模型调用监控</div>
+          <div class="text-base font-semibold text-foreground">
+            {{ $t('monitor.title') }}
+          </div>
           <div class="mt-0.5 text-xs text-muted-foreground">
-            统计所有模型调用的次数、Token 消耗与耗时，数据来自模型调用埋点日志。
+            {{ $t('monitor.description') }}
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -324,7 +365,7 @@ onMounted(loadOverview);
           </NRadioGroup>
           <NButton :loading="loading" secondary size="small" @click="loadOverview">
             <RefreshCcw class="size-3.5" />
-            刷新
+            {{ $t('common.actions.refresh') }}
           </NButton>
         </div>
       </div>
@@ -341,10 +382,10 @@ onMounted(loadOverview);
             <template #header>
               <div class="min-w-0">
                 <div class="truncate text-[13px] font-semibold text-foreground">
-                  {{ item.label }}
+                  {{ metricLabel(item.label) }}
                 </div>
                 <div class="mt-0.5 text-[9px] leading-4 text-muted-foreground">
-                  {{ item.hint }}
+                  {{ metricHint(item.hint) }}
                 </div>
               </div>
             </template>
@@ -360,7 +401,9 @@ onMounted(loadOverview);
                 round
                 size="small"
               >
-                近 {{ windowDays }} 天
+                {{
+                  $t('monitor.window.days', { days: windowDays })
+                }}
               </NTag>
             </div>
           </LcCard>
@@ -370,9 +413,11 @@ onMounted(loadOverview);
         <div class="mt-3 rounded-lg border border-border bg-card p-4">
           <div class="mb-2 flex items-center justify-between gap-3">
             <div>
-              <div class="text-sm font-semibold text-foreground">调用趋势</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('monitor.trend.title') }}
+              </div>
               <div class="mt-0.5 text-xs text-muted-foreground">
-                按天统计调用次数与 Token 消耗
+                {{ $t('monitor.trend.description') }}
               </div>
             </div>
           </div>
@@ -383,9 +428,11 @@ onMounted(loadOverview);
         <div class="mt-3 grid gap-3 lg:grid-cols-2">
           <div class="rounded-lg border border-border bg-card p-4">
             <div class="mb-2">
-              <div class="text-sm font-semibold text-foreground">调用类型分布</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('monitor.typeDistribution.title') }}
+              </div>
               <div class="mt-0.5 text-xs text-muted-foreground">
-                对话 / 向量 / 文生图 / 图像识别的调用占比
+                {{ $t('monitor.typeDistribution.description') }}
               </div>
             </div>
             <EchartsUI ref="callTypeChartRef" height="260px" />
@@ -393,9 +440,11 @@ onMounted(loadOverview);
 
           <div class="rounded-lg border border-border bg-card p-4">
             <div class="mb-2">
-              <div class="text-sm font-semibold text-foreground">供应商分布</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('monitor.providerDistribution.title') }}
+              </div>
               <div class="mt-0.5 text-xs text-muted-foreground">
-                各模型供应商的调用占比
+                {{ $t('monitor.providerDistribution.description') }}
               </div>
             </div>
             <EchartsUI ref="providerChartRef" height="260px" />
@@ -406,9 +455,11 @@ onMounted(loadOverview);
         <div class="mt-3 rounded-lg border border-border bg-card p-4">
           <div class="mb-3 flex items-center justify-between gap-3">
             <div>
-              <div class="text-sm font-semibold text-foreground">模型消耗排行</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('monitor.ranking.title') }}
+              </div>
               <div class="mt-0.5 text-xs text-muted-foreground">
-                按 Token 消耗倒序展示调用量最高的模型
+                {{ $t('monitor.ranking.description') }}
               </div>
             </div>
             <Server class="size-4 text-muted-foreground" />
@@ -419,16 +470,22 @@ onMounted(loadOverview);
               <div class="flex items-center justify-between gap-3 text-xs">
                 <div class="flex min-w-0 items-center gap-2">
                   <span class="truncate font-medium text-foreground">
-                    {{ item.modelName || '未命名模型' }}
+                    {{ item.modelName || $t('models.card.unnamed') }}
                   </span>
                   <NTag :bordered="false" size="tiny">{{ item.provider }}</NTag>
                 </div>
                 <div class="flex shrink-0 items-center gap-3 text-muted-foreground">
-                  <span>调用 {{ formatNumber(item.callCount) }}</span>
-                  <span>Token {{ formatNumber(item.tokenCount) }}</span>
+                  <span>{{
+                    $t('monitor.ranking.calls', { count: formatNumber(item.callCount) })
+                  }}</span>
+                  <span>{{
+                    $t('monitor.chart.tokensLegend')
+                  }} {{ formatNumber(item.tokenCount) }}</span>
                   <span>{{ formatDuration(item.avgDuration) }}</span>
                   <span v-if="Number(item.errorCount ?? 0) > 0" class="text-destructive">
-                    失败 {{ item.errorCount }}
+                    {{
+                      $t('monitor.ranking.failed', { count: item.errorCount })
+                    }}
                   </span>
                 </div>
               </div>
@@ -447,15 +504,17 @@ onMounted(loadOverview);
               />
             </div>
           </div>
-          <NEmpty v-else class="py-10" description="暂无调用数据" />
+          <NEmpty v-else class="py-10" :description="$t('monitor.chart.empty')" />
         </div>
 
         <!-- 最近调用 -->
         <div class="mt-3 rounded-lg border border-border bg-card p-4">
           <div class="mb-3">
-            <div class="text-sm font-semibold text-foreground">最近调用记录</div>
+            <div class="text-sm font-semibold text-foreground">
+              {{ $t('monitor.recent.title') }}
+            </div>
             <div class="mt-0.5 text-xs text-muted-foreground">
-              最近 10 条模型调用明细
+              {{ $t('monitor.recent.description') }}
             </div>
           </div>
           <NDataTable
@@ -468,10 +527,10 @@ onMounted(loadOverview);
             size="small"
           >
             <template #empty>
-              <NEmpty description="暂无调用数据" />
+              <NEmpty :description="$t('monitor.chart.empty')" />
             </template>
           </NDataTable>
-          <NEmpty v-else class="py-10" description="暂无调用数据" />
+          <NEmpty v-else class="py-10" :description="$t('monitor.chart.empty')" />
         </div>
       </NSpin>
     </div>

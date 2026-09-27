@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "mysql": {
+      "description": "Lightweight and widely used relational database"
+    },
+    "postgresql": {
+      "description": "Full-featured open source object-relational database"
+    },
+    "oracle": {
+      "description": "Commercial database for enterprise workloads"
+    },
+    "sqlserver": {
+      "description": "Microsoft enterprise relational database"
+    }
+  },
+  "card": {
+    "unnamed": "Untitled datasource",
+    "noConnectionInfo": "No connection info yet.",
+    "databaseShort": "DB"
+  },
+  "list": {
+    "create": "New Datasource",
+    "emptyDescription": "No datasources yet",
+    "emptyHint": "Create a datasource to start connecting and managing databases.",
+    "searchPlaceholder": "Search by datasource name",
+    "actionsTitle": "Datasource Actions",
+    "actionsDescription": "Configure common database connections: MySQL, PostgreSQL, Oracle, SQL Server."
+  },
+  "detail": {
+    "fallbackTitle": "Datasource Detail",
+    "discoveryTitle": "Database Discovery",
+    "tablesCount": "{count} tables",
+    "pendingImport": "{count} pending import",
+    "discoveryHint": "Live introspection results; select tables to import into the AI retrieval config",
+    "aiConfigTitle": "AI Retrieval Config",
+    "retrievalCount": "{count} retrievable",
+    "aiConfigHint": "Only imported and enabled tables are exposed to AI queries",
+    "legend": "Green = imported; switch on = AI retrieval allowed.",
+    "saveConfig": "Save retrieval config",
+    "importedTables": "Imported Tables",
+    "originalTables": "Original Tables",
+    "allImportedTables": "All imported tables",
+    "allOriginalTables": "All original tables",
+    "imported": "Imported",
+    "import": "Import",
+    "retrievalDisabled": "Disabled",
+    "retrievalEnabled": "Retrievable",
+    "allFields": "All fields",
+    "fieldsCount": "{count} fields",
+    "fieldsEditable": "Field name, type and meaning are editable",
+    "allowAiRetrieval": "Allow AI retrieval",
+    "removeImportedTable": "Remove imported table",
+    "aiFieldNamePlaceholder": "Field name seen by AI",
+    "aiFieldTypePlaceholder": "e.g. VARCHAR(255)",
+    "aiFieldCommentPlaceholder": "Field meaning / explanation",
+    "noImportedTables": "No tables imported yet",
+    "noIntrospectedTables": "No tables were introspected",
+    "columns": {
+      "tableName": "Table",
+      "originalName": "Original Field",
+      "originalType": "Original Type",
+      "length": "Length",
+      "primaryKey": "Primary Key",
+      "nullable": "Nullable",
+      "comment": "Database Comment",
+      "importedTable": "Imported Table",
+      "aiName": "AI Field Name",
+      "aiType": "AI Field Type",
+      "aiComment": "Field Meaning / Explanation"
+    },
+    "selectedLabelAllFields": "{table} · All fields",
+    "selectedLabelWithColumn": "{table} · {column}"
+  },
+  "edit": {
+    "createTitle": "New Datasource",
+    "editTitle": "Edit Datasource",
+    "name": "Datasource Name",
+    "host": "Host Address",
+    "hostPlaceholder": "e.g. 127.0.0.1",
+    "database": "Database Name",
+    "remark": "Remark",
+    "enabled": "Enabled",
+    "vendorTitle": "Database Vendor",
+    "defaultPort": "Default port {port}",
+    "connectionTitle": "Connection Config",
+    "connectionSummary": "{type} · Default port {port}",
+    "testConnection": "Test Connection",
+    "connectionInfoRequired": "Fill in the connection info first"
+  },
+  "messages": {
+    "saved": "Datasource saved",
+    "deleted": "Datasource deleted",
+    "deleteTitle": "Delete Datasource",
+    "connectionSuccess": "Connection successful",
+    "connectionFailed": "Connection failed: {message}",
+    "tableImported": "Table \"{table}\" imported; AI can now use its retrieval fields",
+    "tableRemoved": "AI retrieval config removed for table \"{table}\"",
+    "structureSaved": "AI retrieval schema saved",
+    "datasourceLoadFailed": "Failed to load datasource: {message}",
+    "structureLoadFailed": "Failed to load table structure: {message}",
+    "customStructureLoadFailed": "Failed to load custom structure: {message}"
+  }
+}

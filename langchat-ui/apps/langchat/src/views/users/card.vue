@@ -4,11 +4,13 @@ import type { AigcUser } from '#/api/auth/user';
 import { computed } from 'vue';
 
 import { SquarePen, Trash2, UserRound } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
 import LcStatusTag from '#/components/LcStatusTag/index.vue';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 
 interface Props {
   item: AigcUser;
@@ -24,22 +26,15 @@ const emit = defineEmits<{
 
 const metaItems = computed(() => [
   {
-    label: '角色',
+    label: $t('users.card.rolesLabel'),
     value:
       props.roleLabels.length > 0
         ? props.roleLabels.slice(0, 2).join('、')
-        : '未分配',
+        : $t('users.card.notAssigned'),
   },
-  { label: '邮箱', value: props.item.email || '--' },
-  { label: '手机', value: props.item.phone || '--' },
+  { label: $t('users.form.email'), value: props.item.email || '--' },
+  { label: $t('users.card.phone'), value: props.item.phone || '--' },
 ]);
-
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -49,35 +44,42 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary"
         >
-          {{ item.realName || item.username || '未命名用户' }}
+          {{ item.realName || item.username || $t('users.card.unnamed') }}
         </div>
       </div>
     </template>
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        当前用户已分配
-        {{ roleLabels.length }} 个角色，可在编辑抽屉中维护角色关系。
+        {{
+          $t('users.card.roleCount', {
+            count: roleLabels.length,
+          })
+        }}
       </p>
     </template>
 
     <template #header-extra>
       <LcStatusTag
-        :label="item.status === 1 ? '启用' : '锁定'"
+        :label="
+          item.status === 1
+            ? $t('common.status.enabled')
+            : $t('users.card.locked')
+        "
         :type="item.status === 1 ? 'success' : 'warning'"
       />
     </template>
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -87,7 +89,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

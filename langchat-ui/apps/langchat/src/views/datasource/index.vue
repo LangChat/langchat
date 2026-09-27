@@ -1,16 +1,17 @@
 <script lang="ts" setup>
 import type { AigcDatasource } from '#/api/aigc/datasource';
 
-import {computed, onMounted, ref} from 'vue';
-import {useRouter} from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-import {Page} from '@vben/common-ui';
-import {Plus, RefreshCcw} from '@vben/icons';
+import { Page } from '@vben/common-ui';
+import { Plus, RefreshCcw } from '@vben/icons';
+import { $t } from '@vben/locales';
 
-import {NButton, NPagination} from 'naive-ui';
+import { NButton, NPagination } from 'naive-ui';
 
-import {dialog, message} from '#/adapter/naive';
-import {deleteDataSource, listDataSources} from '#/api/aigc/datasource';
+import { dialog, message } from '#/adapter/naive';
+import { deleteDataSource, listDataSources } from '#/api/aigc/datasource';
 import LcActionCard from '#/components/LcActionCard/index.vue';
 import LcListCard from '#/components/LcListCard/index.vue';
 
@@ -33,8 +34,12 @@ const pagedItems = computed(() => {
 });
 
 const actionItems = computed(() => [
-  { key: 'refresh', label: '刷新列表', icon: RefreshCcw },
-  { key: 'create', label: '新建数据源', icon: Plus },
+  {
+    key: 'refresh',
+    label: $t('common.actions.refreshList'),
+    icon: RefreshCcw,
+  },
+  { key: 'create', label: $t('datasource.list.create'), icon: Plus },
 ]);
 
 async function loadList() {
@@ -69,13 +74,15 @@ async function handleRemove(item: AigcDatasource) {
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除「${item.name || '未命名数据源'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除数据源',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.name || $t('datasource.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('datasource.messages.deleteTitle'),
     onPositiveClick: async () => {
       await deleteDataSource(item.id!);
-      message.success('数据源已删除');
+      message.success($t('datasource.messages.deleted'));
       await loadList();
     },
   });
@@ -113,18 +120,18 @@ onMounted(initializePage);
   <Page>
     <div class="flex flex-col gap-2">
       <LcListCard
-        empty-description="暂无数据源"
-        empty-hint="创建一个数据源，开始连接和管理数据库。"
+        :empty-description="$t('datasource.list.emptyDescription')"
+        :empty-hint="$t('datasource.list.emptyHint')"
         :items="pagedItems"
         :loading="loading"
-        search-placeholder="按数据源名称搜索"
+        :search-placeholder="$t('datasource.list.searchPlaceholder')"
         @update:search-value="currentPage = 1"
       >
         <template #leading-card>
           <LcActionCard
             :actions="actionItems"
-            description="配置常用数据库连接，支持 MySQL、PostgreSQL、Oracle、SQL Server。"
-            title="数据源操作"
+            :description="$t('datasource.list.actionsDescription')"
+            :title="$t('datasource.list.actionsTitle')"
             @action="handleAction"
           />
         </template>
@@ -137,7 +144,9 @@ onMounted(initializePage);
           />
         </template>
         <template #empty-extra>
-          <NButton type="primary" @click="openCreate">新建数据源</NButton>
+          <NButton type="primary" @click="openCreate">{{
+            $t('datasource.list.create')
+          }}</NButton>
         </template>
       </LcListCard>
 

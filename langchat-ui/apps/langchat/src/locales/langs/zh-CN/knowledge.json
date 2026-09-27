@@ -1,0 +1,41 @@
+{
+  "title": {
+    "create": "新建知识库",
+    "edit": "编辑知识库"
+  },
+  "actions": {
+    "create": "新建知识库"
+  },
+  "form": {
+    "name": "知识库名称",
+    "icon": "知识库图标",
+    "vectorStore": "向量库",
+    "vectorModel": "向量模型",
+    "maxResults": "召回数量",
+    "minScore": "最低分数",
+    "description": "知识库描述",
+    "descriptionPlaceholder": "请输入知识库描述"
+  },
+  "card": {
+    "unnamed": "未命名知识库",
+    "defaultDescription": "用于承载文档切片与向量召回配置。",
+    "vectorModel": "向量模型",
+    "vectorStore": "向量库",
+    "recall": "召回",
+    "topN": "Top {count}"
+  },
+  "list": {
+    "searchPlaceholder": "按知识库名称、描述、标签搜索"
+  },
+  "quickActions": {
+    "title": "知识库操作"
+  },
+  "messages": {
+    "created": "知识库已创建",
+    "updated": "知识库已更新",
+    "deleted": "知识库已删除",
+    "missingId": "当前知识库缺少 ID",
+    "vectorizeSubmitted": "已提交当前知识库的批量向量化任务",
+    "deleteTitle": "删除知识库"
+  }
+}

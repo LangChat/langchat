@@ -12,7 +12,7 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   description: '',
   icon: () => Inbox,
-  title: '暂无数据',
+  title: undefined,
 });
 </script>
 
@@ -26,7 +26,7 @@ withDefaults(defineProps<Props>(), {
       <component :is="icon" class="size-5" />
     </div>
     <div class="text-[13px] font-semibold text-foreground/80">
-      {{ title }}
+      {{ title ?? $t('common.empty.noData') }}
     </div>
     <div
       v-if="description"

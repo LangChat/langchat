@@ -5,6 +5,7 @@ import { computed, ref, watch } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 import { Save } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NEmpty, NSpin, NTag } from 'naive-ui';
 
@@ -136,7 +137,11 @@ async function loadFileContent(path: string) {
     activeContent.value = content.content ?? '';
     dirty.value = false;
   } catch (error) {
-    message.error(`文件读取失败：${(error as Error)?.message || path}`);
+    message.error(
+      $t('skills.edit.readFailed', {
+        message: (error as Error)?.message || path,
+      }),
+    );
   }
 }
 
@@ -158,7 +163,7 @@ async function handleSave() {
       activePath.value,
       activeContent.value,
     );
-    message.success('文档已保存，frontmatter 元数据已同步');
+    message.success($t('skills.edit.docsSaved'));
     dirty.value = false;
     emit('saved', updated);
   } finally {
@@ -176,8 +181,15 @@ const [Drawer, drawerApi] = useVbenDrawer({
   contentClass: 'min-h-0 overflow-hidden p-0',
   footer: false,
   onClosed: handleClose,
-  title: '编辑技能文档',
 });
+
+watch(
+  () => $t('skills.edit.title'),
+  (value) => {
+    drawerApi.setState({ title: value });
+  },
+  { immediate: true },
+);
 
 watch(
   () => props.show,
@@ -204,10 +216,12 @@ watch(
         class="flex shrink-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground"
       >
         <NTag round size="small" type="primary">
-          {{ skill?.title || skill?.name || '未命名技能' }}
+          {{ skill?.title || skill?.name || $t('skills.empty.unnamed') }}
         </NTag>
         <NTag round size="small">v{{ skill?.version || '0.0.1' }}</NTag>
-        <span>{{ skill?.description || '未填写技能描述' }}</span>
+        <span>{{
+          skill?.description || $t('skills.empty.noDescription')
+        }}</span>
       </div>
 
       <NSpin
@@ -222,7 +236,7 @@ watch(
             <div
               class="shrink-0 px-1 text-[11px] font-medium text-muted-foreground"
             >
-              技能包文件
+              {{ $t('skills.edit.files') }}
             </div>
             <LcFileTree
               class="min-h-0 flex-1"
@@ -238,7 +252,7 @@ watch(
               <span
                 class="min-w-0 truncate rounded-md bg-muted px-2 py-1 font-mono text-[11px] text-foreground"
               >
-                {{ activePath || '未选择文件' }}
+                {{ activePath || $t('skills.edit.noFileSelected') }}
               </span>
               <NButton
                 :disabled="!activePath || activeBinary || !dirty"
@@ -250,14 +264,14 @@ watch(
                 <template #icon>
                   <Save class="size-3.5" />
                 </template>
-                保存
+                {{ $t('skills.edit.saveDocs') }}
               </NButton>
             </div>
 
             <template v-if="activeBinary">
               <NEmpty
                 class="min-h-0 flex-1 justify-center rounded-lg border border-dashed border-border bg-muted/20"
-                description="二进制文件不支持在线编辑"
+                :description="$t('skills.edit.binaryNotEditable')"
               />
             </template>
             <template v-else-if="activePath">
@@ -267,14 +281,14 @@ watch(
                 height="100%"
                 :language="currentLanguage"
                 min-height="0"
-                placeholder="输入文件内容..."
+                :placeholder="$t('skills.edit.contentPlaceholder')"
                 @update:value="dirty = true"
               />
             </template>
             <template v-else>
               <NEmpty
                 class="min-h-0 flex-1 justify-center rounded-lg border border-dashed border-border bg-muted/20"
-                description="从左侧选择要编辑的文件"
+                :description="$t('skills.edit.pickFileHint')"
               />
             </template>
           </section>

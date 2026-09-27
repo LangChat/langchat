@@ -8,20 +8,21 @@ import {useRoute, useRouter} from 'vue-router';
 
 import {Page} from '@vben/common-ui';
 import {Upload} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {NButton, NInput, NInputNumber, NSelect, NStep, NSteps, NSwitch, NTag,} from 'naive-ui';
 
 import {message} from '#/adapter/naive';
 import {indexKnowledgeApi, uploadDocsApi} from '#/api/aigc/docs';
 import {useAigcLookups} from '#/views/shared/aigc/lookups';
-import {DOC_TYPE_OPTIONS} from '#/views/shared/aigc/options';
+import {docTypeOptions} from '#/views/shared/aigc/options';
 
 import {
   buildDocsIngestionConfig,
   buildKnowledgeDocsRouteLocation,
   buildKnowledgePreviewRouteLocation,
   buildKnowledgeUploadRouteLocation,
-  DOC_PARSE_MODE_OPTIONS,
+  docParseModeOptions,
   formatDocsFileSize,
   normalizeRouteParam,
   removeDocsFileExtension,
@@ -71,7 +72,7 @@ const uploadForm = ref({
 });
 
 const parseModeOptions = computed<SelectMixedOption[]>(() =>
-  DOC_PARSE_MODE_OPTIONS.map((item) => ({
+  docParseModeOptions().map((item) => ({
     label: item.label,
     value: item.value,
   })),
@@ -79,14 +80,14 @@ const parseModeOptions = computed<SelectMixedOption[]>(() =>
 
 const currentParseModeDescription = computed(
   () =>
-    DOC_PARSE_MODE_OPTIONS.find(
+    docParseModeOptions().find(
       (item) => item.value === uploadForm.value.parseMode,
     )?.description ?? '',
 );
 
 const typeOptions = computed<SelectMixedOption[]>(() => [
-  { label: '自动识别', value: '' },
-  ...DOC_TYPE_OPTIONS.map((item) => ({
+  { label: $t('docs.upload.typeAuto'), value: '' },
+  ...docTypeOptions().map((item) => ({
     label: item.label,
     value: item.value,
   })),
@@ -111,13 +112,13 @@ const failedCount = computed(
 const stepDescription = computed(() => {
   switch (currentStep.value) {
     case 1: {
-      return '放置拖拽上传框，整理本次入库文档队列。';
+      return $t('docs.upload.stepHint.upload');
     }
     case 2: {
-      return '选择知识库，并设置分段器参数与向量化行为。';
+      return $t('docs.upload.stepHint.segment');
     }
     default: {
-      return '确认上传范围和参数，执行后台向量化任务。';
+      return $t('docs.upload.stepHint.execute');
     }
   }
 });
@@ -197,7 +198,7 @@ function addFiles(files: File[]) {
     .filter((item) => !exists.has(item.sourceKey));
 
   if (nextItems.length === 0 && files.length > 0) {
-    message.warning('待上传列表中已存在相同文件');
+    message.warning($t('docs.upload.duplicateFile'));
     return;
   }
 
@@ -215,20 +216,20 @@ function resetFailedItem(item: UploadQueueItem) {
 
 function validateCurrentStep(step = currentStep.value) {
   if (step >= 1 && queueItems.value.length === 0) {
-    message.error('请先添加至少一个上传文件');
+    message.error($t('docs.upload.noFiles'));
     return false;
   }
   if (step >= 2) {
     if (!uploadForm.value.knowledgeId) {
-      message.error('请选择所属知识库');
+      message.error($t('docs.upload.selectKnowledge'));
       return false;
     }
     if (!uploadForm.value.chunkSize || uploadForm.value.chunkSize < 100) {
-      message.error('切片大小至少为 100');
+      message.error($t('docs.upload.chunkSizeTooSmall'));
       return false;
     }
     if (uploadForm.value.overlapSize < 0) {
-      message.error('重叠大小不能小于 0');
+      message.error($t('docs.upload.overlapInvalid'));
       return false;
     }
   }
@@ -289,12 +290,12 @@ async function submitUploadQueue() {
         uploadedDocs.push(uploaded);
       } catch (error) {
         item.status = 'failed';
-        item.error = error instanceof Error ? error.message : '上传失败';
+        item.error = error instanceof Error ? error.message : $t('docs.upload.uploadFailed');
       }
     }
 
     if (uploadedDocs.length === 0) {
-      message.error('没有文档上传成功，无法继续执行向量化');
+      message.error($t('docs.upload.noSuccessVectorize'));
       return;
     }
 
@@ -303,18 +304,23 @@ async function submitUploadQueue() {
         chunkSize: uploadForm.value.chunkSize,
         docsIds: uploadedDocs
           .map((item) => item.id)
-          .filter(Boolean),
+          .filter((id): id is string => Boolean(id)),
         overlapSize: uploadForm.value.overlapSize,
       });
     }
 
     const successText = uploadForm.value.autoIndex
-      ? `已上传 ${uploadedDocs.length} 个文档，并提交后台向量化任务`
-      : `已上传 ${uploadedDocs.length} 个文档`;
+      ? $t('docs.upload.uploadedWithVectorize', {
+          count: uploadedDocs.length,
+        })
+      : $t('docs.upload.uploadedOnly', { count: uploadedDocs.length });
 
     if (failedCount.value > 0) {
       message.warning(
-        `${successText}，另有 ${failedCount.value} 个文档上传失败`,
+        $t('docs.upload.partialFailed', {
+          success: successText,
+          failed: failedCount.value,
+        }),
       );
       return;
     }
@@ -364,7 +370,7 @@ function buildUid(sourceKey: string) {
       >
         <div class="min-w-0">
           <div class="text-lg font-semibold text-foreground">
-            文档上传向量化
+            {{ $t('docs.title.upload') }}
           </div>
           <div class="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
             {{ stepDescription }}
@@ -380,20 +386,29 @@ function buildUid(sourceKey: string) {
               )
             "
           >
-            返回文档列表
+            {{ $t('docs.actions.backToList') }}
           </NButton>
           <NButton secondary @click="openFileDialog">
             <Upload class="size-4" />
-            继续添加文件
+            {{ $t('docs.upload.addMore') }}
           </NButton>
         </div>
       </div>
 
       <div class="mt-4 border-t border-border pt-4">
         <NSteps :current="currentStep">
-          <NStep description="拖拽上传框 + 文档列表" title="上传文件" />
-          <NStep description="知识库、切片大小、重叠大小" title="分段设置" />
-          <NStep description="确认上传并执行后台逻辑" title="执行向量化" />
+          <NStep
+            :description="$t('docs.upload.stepUploadDescription')"
+            :title="$t('docs.upload.stepUpload')"
+          />
+          <NStep
+            :description="$t('docs.upload.stepSegmentDescription')"
+            :title="$t('docs.upload.stepSegment')"
+          />
+          <NStep
+            :description="$t('docs.upload.stepExecuteDescription')"
+            :title="$t('docs.upload.stepExecute')"
+          />
         </NSteps>
       </div>
 
@@ -415,18 +430,22 @@ function buildUid(sourceKey: string) {
             @dragover.prevent
           >
             <div class="text-lg font-semibold text-foreground">
-              拖拽文件到这里，或点击选择本地文档
+              {{ $t('docs.upload.dragHere') }}
             </div>
             <div class="mt-3 max-w-lg text-sm leading-6 text-muted-foreground">
-              支持 PDF、Office、Markdown、TXT
-              等常见知识文档格式。当前上传接口按文件顺序依次入库，适合批量整理一个知识库的文档队列。
+              {{ $t('docs.upload.supportedFormats') }}
+              {{ $t('docs.upload.supportedFormatsSuffix') }}
             </div>
             <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
               <NTag :bordered="false" round type="info">
-                已选 {{ queueItems.length }} 个文件
+                {{ $t('docs.upload.selectedCount', { count: queueItems.length }) }}
               </NTag>
               <NTag :bordered="false" round type="success">
-                总大小 {{ formatDocsFileSize(totalSize) }}
+                {{
+                  $t('docs.upload.totalSize', {
+                    size: formatDocsFileSize(totalSize),
+                  })
+                }}
               </NTag>
             </div>
           </div>
@@ -435,20 +454,20 @@ function buildUid(sourceKey: string) {
             class="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs leading-5 text-muted-foreground"
           >
             <div class="mb-1 text-xs font-semibold text-foreground">
-              上传说明
+              {{ $t('docs.upload.guideTitle') }}
             </div>
-            <div>1. 这里先整理本次要入库的文档列表，可反复拖拽追加。</div>
-            <div>2. 每个文件默认使用文件名作为文档名称，可在列表里调整。</div>
-            <div>3. 下一步统一选择知识库、切片大小和向量化策略。</div>
+            <div>{{ $t('docs.upload.guideFirst') }}</div>
+            <div>{{ $t('docs.upload.guideSecond') }}</div>
+            <div>{{ $t('docs.upload.guideThird') }}</div>
           </div>
         </div>
 
         <div class="min-w-0">
           <div class="text-sm font-semibold text-foreground">
-            待上传文档列表
+            {{ $t('docs.upload.queueTitle') }}
           </div>
           <div class="mt-1 text-xs text-muted-foreground">
-            当前共 {{ queueItems.length }} 个文件，支持逐个修改文档名称。
+            {{ $t('docs.upload.queueDescription', { count: queueItems.length }) }}
           </div>
 
           <div v-if="queueItems.length > 0" class="mt-3 space-y-3">
@@ -462,7 +481,7 @@ function buildUid(sourceKey: string) {
               >
                 <NInput
                   v-model:value="item.name"
-                  placeholder="请输入文档名称"
+                  :placeholder="$t('docs.upload.namePlaceholder')"
                 />
                 <div
                   class="flex h-8 items-center rounded-lg border border-border bg-card px-2 text-xs text-muted-foreground"
@@ -496,12 +515,12 @@ function buildUid(sourceKey: string) {
                   >
                     {{
                       item.status === 'uploaded'
-                        ? '已上传'
+                        ? $t('docs.upload.statusUploaded')
                         : item.status === 'uploading'
-                          ? '上传中'
+                          ? $t('docs.upload.statusUploading')
                           : item.status === 'failed'
-                            ? '失败'
-                            : '待处理'
+                            ? $t('docs.upload.statusFailed')
+                            : $t('docs.upload.statusPending')
                     }}
                   </NTag>
                   <NButton
@@ -510,7 +529,7 @@ function buildUid(sourceKey: string) {
                     type="error"
                     @click="removeQueueItem(item.uid)"
                   >
-                    移除
+                    {{ $t('docs.upload.remove') }}
                   </NButton>
                 </div>
               </div>
@@ -524,7 +543,7 @@ function buildUid(sourceKey: string) {
             v-else
             class="mt-3 rounded-lg border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground"
           >
-            还没有加入任何文件，先把文档拖进来。
+            {{ $t('docs.upload.queueEmpty') }}
           </div>
         </div>
       </div>
@@ -536,32 +555,32 @@ function buildUid(sourceKey: string) {
         <div class="grid gap-4 md:grid-cols-2">
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
-                所属知识库
+                {{ $t('docs.upload.knowledge') }}
               </div>
               <NSelect
                 v-model:value="uploadForm.knowledgeId"
                 :options="knowledgeOptions"
-                placeholder="请选择知识库"
+                :placeholder="$t('docs.upload.knowledgePlaceholder')"
               />
             </div>
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
-                文档类型覆盖
+                {{ $t('docs.upload.typeOverride') }}
               </div>
               <NSelect
                 v-model:value="uploadForm.type"
                 :options="typeOptions"
-                placeholder="默认自动识别"
+                :placeholder="$t('docs.upload.typePlaceholder')"
               />
             </div>
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
-                解析模式
+                {{ $t('docs.upload.parserMode') }}
               </div>
               <NSelect
                 v-model:value="uploadForm.parseMode"
                 :options="parseModeOptions"
-                placeholder="默认内置解析"
+                :placeholder="$t('docs.upload.parserPlaceholder')"
               />
               <div class="mt-1.5 text-xs text-muted-foreground">
                 {{
@@ -571,7 +590,7 @@ function buildUid(sourceKey: string) {
             </div>
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
-                切片大小
+                {{ $t('docs.upload.chunkSize') }}
               </div>
               <NInputNumber
                 v-model:value="uploadForm.chunkSize"
@@ -582,7 +601,7 @@ function buildUid(sourceKey: string) {
             </div>
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
-                重叠大小
+                {{ $t('docs.upload.overlapSize') }}
               </div>
               <NInputNumber
                 v-model:value="uploadForm.overlapSize"
@@ -593,7 +612,7 @@ function buildUid(sourceKey: string) {
             </div>
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
-                上传后自动向量化
+                {{ $t('docs.upload.autoVectorize') }}
               </div>
               <div
                 class="flex h-10 items-center rounded-xl border border-border bg-muted/20 px-3"
@@ -602,15 +621,15 @@ function buildUid(sourceKey: string) {
                 <span class="ml-3 text-sm text-muted-foreground">
                   {{
                     uploadForm.autoIndex
-                      ? '上传完成后立刻提交后台索引任务'
-                      : '仅入库，不自动向量化'
+                      ? $t('docs.upload.autoVectorizeOn')
+                      : $t('docs.upload.autoVectorizeOff')
                   }}
                 </span>
               </div>
             </div>
             <div>
               <div class="mb-2 text-sm font-medium text-foreground">
-                文档可用状态
+                {{ $t('docs.upload.docEnabled') }}
               </div>
               <div
                 class="flex h-10 items-center rounded-xl border border-border bg-muted/20 px-3"
@@ -619,8 +638,8 @@ function buildUid(sourceKey: string) {
                 <span class="ml-3 text-sm text-muted-foreground">
                   {{
                     uploadForm.enabled
-                      ? '新上传文档默认启用'
-                      : '新上传文档先禁用'
+                      ? $t('docs.upload.docEnabledOn')
+                      : $t('docs.upload.docEnabledOff')
                   }}
                 </span>
               </div>
@@ -631,21 +650,22 @@ function buildUid(sourceKey: string) {
             class="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs leading-5 text-muted-foreground"
           >
             <div class="mb-1.5 text-xs font-semibold text-foreground">
-              分段器说明
+              {{ $t('docs.upload.segmenterGuide') }}
             </div>
             <div class="space-y-1.5">
               <div>
-                切片大小决定单个 chunk 的文本长度，值越大，召回上下文越完整。
+                {{ $t('docs.upload.chunkSizeHint') }}
               </div>
               <div>
-                重叠大小用于维持上下文连续性，通常设置为切片大小的 10% 到 20%。
+                {{ $t('docs.upload.overlapSizeHint') }}
               </div>
               <div>
-                解析模式决定正文抽取方式：内置解析开箱可用；Docling 需要后端单独部署
-                docling-serve，对复杂 PDF 的版面与表格还原更好。
+                {{ $t('docs.upload.parserHint') }} docling-serve{{
+                  $t('docs.upload.parserHintSuffix')
+                }}
               </div>
               <div>
-                这里的参数会写入每个文档的 ingestionConfig，并在后续预览页复用。
+                {{ $t('docs.upload.configPersistHint') }}
               </div>
             </div>
           </div>
@@ -661,7 +681,7 @@ function buildUid(sourceKey: string) {
               <div
                 class="text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
               >
-                文档数量
+                {{ $t('docs.upload.summaryDocCount') }}
               </div>
               <div class="mt-3 text-3xl font-semibold text-foreground">
                 {{ queueItems.length }}
@@ -671,7 +691,7 @@ function buildUid(sourceKey: string) {
               <div
                 class="text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
               >
-                总大小
+                {{ $t('docs.upload.summaryTotalSize') }}
               </div>
               <div class="mt-3 text-3xl font-semibold text-primary">
                 {{ formatDocsFileSize(totalSize) }}
@@ -681,13 +701,13 @@ function buildUid(sourceKey: string) {
               <div
                 class="text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
               >
-                目标知识库
+                {{ $t('docs.upload.summaryTargetKnowledge') }}
               </div>
               <div class="mt-3 text-lg font-semibold text-foreground">
                 {{
                   lookups.knowledges.find(
                     (item) => item.value === uploadForm.knowledgeId,
-                  )?.label || '未选择'
+                  )?.label || $t('docs.upload.summaryNotSelected')
                 }}
               </div>
             </div>
@@ -695,30 +715,73 @@ function buildUid(sourceKey: string) {
 
           <div class="mt-4 grid gap-4 lg:grid-cols-2">
             <div class="rounded-lg border border-border bg-muted/30 p-4">
-              <div class="text-sm font-semibold text-foreground">分段配置</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('docs.upload.segmentConfig') }}
+              </div>
               <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-                <div>切片大小：{{ uploadForm.chunkSize }}</div>
-                <div>重叠大小：{{ uploadForm.overlapSize }}</div>
-                <div>类型覆盖：{{ uploadForm.type || '自动识别' }}</div>
                 <div>
-                  解析模式：{{
-                    DOC_PARSE_MODE_OPTIONS.find(
-                      (item) => item.value === uploadForm.parseMode,
-                    )?.label || '内置解析'
+                  {{
+                    $t('docs.upload.chunkSizeSummary', {
+                      size: uploadForm.chunkSize,
+                    })
+                  }}
+                </div>
+                <div>
+                  {{
+                    $t('docs.upload.overlapSizeSummary', {
+                      size: uploadForm.overlapSize,
+                    })
+                  }}
+                </div>
+                <div>
+                  {{
+                    $t('docs.upload.typeSummary', {
+                      type: uploadForm.type || $t('docs.upload.typeSummaryDefault'),
+                    })
+                  }}
+                </div>
+                <div>
+                  {{
+                    $t('docs.upload.parserSummary', {
+                      parser:
+                        docParseModeOptions().find(
+                          (item) => item.value === uploadForm.parseMode,
+                        )?.label || $t('docs.upload.parserSummaryDefault'),
+                    })
                   }}
                 </div>
               </div>
             </div>
             <div class="rounded-lg border border-border bg-muted/30 p-4">
-              <div class="text-sm font-semibold text-foreground">执行策略</div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('docs.upload.executeStrategy') }}
+              </div>
               <div class="mt-3 space-y-2 text-sm text-muted-foreground">
                 <div>
-                  上传后自动向量化：{{ uploadForm.autoIndex ? '是' : '否' }}
+                  {{
+                    $t('docs.upload.autoVectorizeSummary', {
+                      value: uploadForm.autoIndex
+                        ? $t('common.status.yes')
+                        : $t('common.status.no'),
+                    })
+                  }}
                 </div>
-                <div>文档默认启用：{{ uploadForm.enabled ? '是' : '否' }}</div>
                 <div>
-                  完成后跳转预览：{{
-                    uploadForm.openPreviewAfterUpload ? '是' : '否'
+                  {{
+                    $t('docs.upload.docEnabledSummary', {
+                      value: uploadForm.enabled
+                        ? $t('common.status.yes')
+                        : $t('common.status.no'),
+                    })
+                  }}
+                </div>
+                <div>
+                  {{
+                    $t('docs.upload.openPreviewSummary', {
+                      value: uploadForm.openPreviewAfterUpload
+                        ? $t('common.status.yes')
+                        : $t('common.status.no'),
+                    })
                   }}
                 </div>
               </div>
@@ -728,14 +791,14 @@ function buildUid(sourceKey: string) {
           <div class="mt-4 rounded-lg border border-border bg-muted/20 p-4">
             <div class="mb-3 flex items-center justify-between gap-3">
               <div class="text-sm font-semibold text-foreground">
-                上传队列确认
+                {{ $t('docs.upload.queueConfirm') }}
               </div>
               <div class="flex items-center gap-2">
                 <NTag :bordered="false" round type="success">
-                  已上传 {{ uploadedCount }}
+                  {{ $t('docs.upload.uploadedCount', { count: uploadedCount }) }}
                 </NTag>
                 <NTag :bordered="false" round type="error">
-                  失败 {{ failedCount }}
+                  {{ $t('docs.upload.failedCount', { count: failedCount }) }}
                 </NTag>
               </div>
             </div>
@@ -772,12 +835,12 @@ function buildUid(sourceKey: string) {
                 >
                   {{
                     item.status === 'uploaded'
-                      ? '已上传'
+                      ? $t('docs.upload.statusUploaded')
                       : item.status === 'uploading'
-                        ? '上传中'
+                        ? $t('docs.upload.statusUploading')
                         : item.status === 'failed'
-                          ? '失败'
-                          : '待处理'
+                          ? $t('docs.upload.statusFailed')
+                          : $t('docs.upload.statusPending')
                   }}
                 </NTag>
               </div>
@@ -788,22 +851,24 @@ function buildUid(sourceKey: string) {
           <div
             class="rounded-lg border border-dashed border-border bg-muted/30 p-3"
           >
-            <div class="text-sm font-semibold text-foreground">完成后动作</div>
+            <div class="text-sm font-semibold text-foreground">
+              {{ $t('docs.upload.afterUpload') }}
+            </div>
           <div
             class="mt-3 flex h-12 items-center rounded-lg border border-border bg-muted/20 px-3"
           >
             <NSwitch v-model:value="uploadForm.openPreviewAfterUpload" />
             <span class="ml-3 text-sm text-muted-foreground">
-              上传成功后自动进入首个文档的分段预览页
+              {{ $t('docs.upload.openPreviewHint') }}
             </span>
           </div>
 
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
             <div>
-              如果队列里有上传失败的文档，页面会停留在当前步骤，方便你修正后再次提交。
+              {{ $t('docs.upload.stayHint') }}
             </div>
             <div>
-              后台向量化接口仍然是异步执行，提交成功后可在文档列表或状态详情中继续观察进度。
+              {{ $t('docs.upload.asyncHint') }}
             </div>
           </div>
         </div>
@@ -813,14 +878,16 @@ function buildUid(sourceKey: string) {
         class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3"
       >
         <div class="text-sm text-muted-foreground">
-          第 {{ currentStep }} 步，共 3 步
+          {{
+            $t('docs.upload.stepIndicator', { current: currentStep, total: 3 })
+          }}
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <NButton
             :disabled="currentStep === 1 || submitting"
             @click="goPrevStep"
           >
-            上一步
+            {{ $t('docs.upload.prev') }}
           </NButton>
           <NButton
             v-if="currentStep < 3"
@@ -828,7 +895,7 @@ function buildUid(sourceKey: string) {
             type="primary"
             @click="goNextStep"
           >
-            下一步
+            {{ $t('docs.upload.next') }}
           </NButton>
           <NButton
             v-else
@@ -836,7 +903,7 @@ function buildUid(sourceKey: string) {
             type="primary"
             @click="submitUploadQueue"
           >
-            确认上传并执行向量化
+            {{ $t('docs.upload.confirmUpload') }}
           </NButton>
         </div>
       </div>

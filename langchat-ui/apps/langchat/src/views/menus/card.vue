@@ -4,13 +4,15 @@ import type { AigcMenu } from '#/api/auth/menu';
 import { computed } from 'vue';
 
 import { Menu, SquarePen, Trash2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NButton, NSpace, NTag } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
+import { formatRelativeTime } from '#/views/shared/aigc/time';
 import {
   findAuthOptionLabel,
-  MENU_TYPE_OPTIONS,
+  menuTypeOptions,
 } from '#/views/shared/auth/options';
 
 interface Props {
@@ -26,25 +28,19 @@ const emit = defineEmits<{
 }>();
 const metaItems = computed(() => [
   {
-    label: '类型',
-    value: findAuthOptionLabel(MENU_TYPE_OPTIONS, props.item.type),
+    label: $t('menus.card.typeLabel'),
+    value: findAuthOptionLabel(menuTypeOptions(), props.item.type),
   },
-  { label: '路由', value: props.item.path || '--' },
+  { label: $t('menus.card.route'), value: props.item.path || '--' },
   {
-    label: '上级',
-    value: props.parentName || '无',
+    label: $t('menus.card.parent'),
+    value: props.parentName || $t('common.labels.none'),
   },
   {
-    label: '排序',
+    label: $t('menus.card.order'),
     value: props.item.orderNo ?? '--',
   },
 ]);
-function formatTime(timestamp?: number) {
-  if (!timestamp) {
-    return '刚刚';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false });
-}
 </script>
 
 <template>
@@ -54,21 +50,21 @@ function formatTime(timestamp?: number) {
         <div
           class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary"
         >
-          {{ item.name || '未命名菜单' }}
+          {{ item.name || $t('menus.card.unnamed') }}
         </div>
       </div>
     </template>
 
     <template #description>
       <p class="text-[11px] text-muted-foreground line-clamp-2">
-        {{ item.component || item.path || '未配置组件路径' }}
+        {{ item.component || item.path || $t('menus.card.noComponentPath') }}
       </p>
     </template>
 
     <template #header-extra>
       <div class="flex items-center gap-2">
         <NTag :bordered="false" round type="primary">
-          {{ findAuthOptionLabel(MENU_TYPE_OPTIONS, item.type) }}
+          {{ findAuthOptionLabel(menuTypeOptions(), item.type) }}
         </NTag>
         <NTag
           v-if="item.isShow === false"
@@ -76,21 +72,21 @@ function formatTime(timestamp?: number) {
           round
           type="warning"
         >
-          已隐藏
+          {{ $t('menus.card.hidden') }}
         </NTag>
       </div>
     </template>
 
     <template #footer-extra>
       <div class="truncate whitespace-nowrap text-[11px] text-muted-foreground">
-        {{ formatTime(item.updateTime) }}
+        {{ formatRelativeTime(item.updateTime) }}
       </div>
     </template>
 
     <template #footer>
       <NSpace :size="4">
         <NButton
-          v-tippy="'编辑'"
+          v-tippy="$t('common.actions.edit')"
           circle
           class="text-muted-foreground hover:text-primary"
           quaternary
@@ -100,7 +96,7 @@ function formatTime(timestamp?: number) {
           <SquarePen class="size-3.5" />
         </NButton>
         <NButton
-          v-tippy="'删除'"
+          v-tippy="$t('common.actions.delete')"
           circle
           class="text-muted-foreground hover:text-destructive"
           quaternary

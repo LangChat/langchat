@@ -1,4 +1,6 @@
-import { onScopeDispose, ref } from 'vue';
+import { onScopeDispose, ref, unref } from 'vue';
+
+import { i18n } from '@vben/locales';
 
 /**
  * 浏览器 SpeechRecognition 的最小结构类型(W3C 规范尚未进入 TS DOM lib)。
@@ -91,7 +93,7 @@ export function useVoiceInput(options: VoiceInputOptions = {}) {
     const instance = new RecognitionConstructor();
     instance.continuous = true;
     instance.interimResults = true;
-    instance.lang = options.lang ?? 'zh-CN';
+    instance.lang = options.lang ?? unref(i18n.global.locale) ?? 'zh-CN';
     instance.addEventListener('result', (event) => {
       let text = '';
       for (let i = 0; i < event.results.length; i += 1) {

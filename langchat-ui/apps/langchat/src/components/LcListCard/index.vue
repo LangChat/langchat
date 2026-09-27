@@ -2,6 +2,7 @@
 import type { Component } from 'vue';
 import { computed, useSlots } from 'vue';
 import { LayoutGrid, Search, Tag } from '@vben/icons';
+import { $t } from '@vben/locales';
 import { NInput, NTag } from 'naive-ui';
 
 import LcCard from '#/components/LcCard/index.vue';
@@ -48,12 +49,12 @@ const props = withDefaults(defineProps<Props>(), {
   columnsClass:
     'grid gap-3 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4',
   commonTagIcon: () => Tag,
-  emptyDescription: '暂无数据',
+  emptyDescription: undefined,
   emptyHint: '',
   itemKeyField: 'id',
   items: () => [],
   loading: false,
-  searchPlaceholder: '请输入关键字搜索',
+  searchPlaceholder: undefined,
   searchValue: '',
   skeletonCount: 8,
   tags: () => [],
@@ -68,7 +69,7 @@ const slots = useSlots();
 const normalizedTags = computed(() => {
   const tags = props.tags.some((item) => item.value === 'ALL')
     ? props.tags
-    : [{ label: '全部', value: 'ALL' }, ...props.tags];
+    : [{ label: $t('common.labels.all'), value: 'ALL' }, ...props.tags];
 
   return tags.map((item) => ({
     ...item,
@@ -92,11 +93,11 @@ const normalizedItems = computed(() =>
 const hasLeadingCard = computed(() => Boolean(slots['leading-card']));
 
 function resolveCardTitle(item: Record<string, any>) {
-  return String(item[props.cardTitleField] || '未命名');
+  return String(item[props.cardTitleField] || $t('common.labels.untitled'));
 }
 
 function resolveCardDescription(item: Record<string, any>) {
-  return String(item[props.cardDescriptionField] || '暂无描述');
+  return String(item[props.cardDescriptionField] || $t('common.empty.noDescription'));
 }
 
 function resolveCardIcon(item: Record<string, any>) {
@@ -129,7 +130,7 @@ function resolveCardIcon(item: Record<string, any>) {
         <NInput
           :value="searchValue"
           clearable
-          :placeholder="searchPlaceholder"
+          :placeholder="searchPlaceholder ?? $t('components.listCard.searchPlaceholder')"
           @update:value="
             (value) => emit('update:search-value', String(value ?? ''))
           "
@@ -182,7 +183,7 @@ function resolveCardIcon(item: Record<string, any>) {
       <LcEmptyState
         v-if="normalizedItems.length === 0"
         :description="emptyHint"
-        :title="emptyDescription"
+        :title="emptyDescription ?? $t('common.empty.noData')"
       >
         <slot name="empty-extra"></slot>
       </LcEmptyState>
@@ -191,7 +192,7 @@ function resolveCardIcon(item: Record<string, any>) {
     <LcEmptyState
       v-else
       :description="emptyHint"
-      :title="emptyDescription"
+      :title="emptyDescription ?? $t('common.empty.noData')"
     >
       <slot name="empty-extra"></slot>
     </LcEmptyState>

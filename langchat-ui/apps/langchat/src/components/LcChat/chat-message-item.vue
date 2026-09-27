@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { LcChatMessage } from './types';
 
-import { computed, ref } from 'vue';
+import { computed, ref, unref } from 'vue';
 
 import {
   Check,
@@ -12,6 +12,7 @@ import {
   User,
   Volume2,
 } from '@vben/icons';
+import { i18n } from '@vben/locales';
 
 import MarkdownRender from 'markstream-vue';
 
@@ -69,7 +70,8 @@ function handleSpeak() {
     return;
   }
   const utterance = new SpeechSynthesisUtterance(props.message.content);
-  utterance.lang = 'zh-CN';
+  // 朗读语言跟随当前界面语言
+  utterance.lang = unref(i18n.global.locale) || 'zh-CN';
   utterance.addEventListener('end', () => {
     speaking.value = false;
   });
@@ -142,7 +144,7 @@ function handleSpeak() {
             class="inline-flex items-center gap-2 py-0.5"
           >
             <span class="chat-spinner"></span>
-            <span class="chat-shimmer">正在思考…</span>
+            <span class="chat-shimmer">{{ $t('chat.message.thinking') }}</span>
           </span>
           <template v-else>
             <div class="chat-markdown">
@@ -164,7 +166,7 @@ function handleSpeak() {
         :class="isUser ? 'flex-row-reverse' : ''"
       >
         <button
-          :aria-label="copied ? '已复制' : '复制'"
+          :aria-label="copied ? $t('common.actions.copied') : $t('common.actions.copy')"
           class="flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           type="button"
           @click="handleCopy"
@@ -174,7 +176,7 @@ function handleSpeak() {
         </button>
         <button
           v-if="!isUser && message.content"
-          :aria-label="speaking ? '停止朗读' : '语音朗读'"
+          :aria-label="speaking ? $t('chat.message.stopSpeaking') : $t('chat.message.speak')"
           class="flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           type="button"
           @click="handleSpeak"
@@ -184,7 +186,7 @@ function handleSpeak() {
         </button>
         <button
           v-if="!isUser && isLast && !running"
-          aria-label="重新生成"
+          :aria-label="$t('chat.message.regenerate')"
           class="flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           type="button"
           @click="emit('regenerate')"

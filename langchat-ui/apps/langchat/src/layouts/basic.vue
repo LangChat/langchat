@@ -23,6 +23,7 @@ import {
   UserDropdown,
 } from '@vben/layouts';
 import { preferences, updatePreferences } from '@vben/preferences';
+import { $t } from '@vben/locales';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { openWindow } from '@vben/utils';
 
@@ -50,7 +51,7 @@ const menus = computed(() => [
       router.push({ path: '/about' });
     },
     icon: Info,
-    text: '关于 LangChat',
+    text: $t('layout.sidebar.about'),
   },
   {
     handler: () => {
@@ -68,7 +69,7 @@ const menus = computed(() => [
       });
     },
     icon: CircleHelp,
-    text: '问题反馈',
+    text: $t('layout.sidebar.feedback'),
   },
 ]);
 

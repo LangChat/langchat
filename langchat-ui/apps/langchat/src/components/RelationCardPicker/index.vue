@@ -29,12 +29,12 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  addText: '添加关联',
+  addText: undefined,
   compact: false,
   icon: () => Link,
   modalTitle: '',
-  placeholder: '请选择',
-  title: '关联配置',
+  placeholder: undefined,
+  title: undefined,
 });
 
 const modelValue = defineModel<string[]>({ default: () => [] });
@@ -86,13 +86,13 @@ defineExpose({ open: openSelectModal });
       <div
         class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
       >
-        {{ title }}
+        {{ title ?? $t('components.relationPicker.title') }}
       </div>
       <NButton secondary size="small" @click="openSelectModal">
         <template #icon>
           <component :is="icon" class="size-3.5" />
         </template>
-        {{ addText }}
+        {{ addText ?? $t('components.relationPicker.add') }}
       </NButton>
     </div>
 
@@ -107,8 +107,10 @@ defineExpose({ open: openSelectModal });
         <span class="truncate text-xs text-muted-foreground">
           {{
             selectedOptions.length > 0
-              ? `已关联 ${selectedOptions.length} 项`
-              : placeholder
+              ? $t('components.relationPicker.selectedCount', {
+                  count: selectedOptions.length,
+                })
+              : (placeholder ?? $t('common.placeholder.pleaseSelect'))
           }}
         </span>
       </span>
@@ -158,7 +160,7 @@ defineExpose({ open: openSelectModal });
           </div>
         </div>
         <button
-          v-tippy="'移除'"
+          v-tippy="$t('components.relationPicker.remove')"
           class="shrink-0 rounded p-1 text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
           type="button"
           @click="toggleOption(option.value)"
@@ -172,11 +174,11 @@ defineExpose({ open: openSelectModal });
       v-else-if="compact"
       class="rounded-md bg-muted/25 px-2.5 py-2 text-xs leading-5 text-muted-foreground"
     >
-      暂无关联
+      {{ $t('components.relationPicker.empty') }}
     </div>
 
     <Modal
-      :title="modalTitle || `选择${title}`"
+      :title="modalTitle || $t('components.relationPicker.selectPrefix', { title: title ?? $t('components.relationPicker.title') })"
       class="w-[900px]"
       header-class="border-b"
     >
@@ -184,7 +186,7 @@ defineExpose({ open: openSelectModal });
         <NInput
           v-model:value="keyword"
           clearable
-          placeholder="搜索名称、描述或标签"
+          :placeholder="$t('components.relationPicker.searchPlaceholder')"
         />
         <div class="max-h-[60vh] overflow-y-auto pr-1">
           <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -208,7 +210,7 @@ defineExpose({ open: openSelectModal });
                   <div
                     class="mt-0.5 line-clamp-2 text-[11px] leading-5 text-muted-foreground"
                   >
-                    {{ option.description || '暂无描述信息。' }}
+                    {{ option.description || $t('components.relationPicker.noDescription') }}
                   </div>
                 </div>
                 <CheckCircle2
@@ -242,13 +244,15 @@ defineExpose({ open: openSelectModal });
             v-if="filteredOptions.length === 0"
             class="rounded-md border border-dashed border-border px-4 py-8 text-center text-xs text-muted-foreground"
           >
-            未找到可选项
+            {{ $t('components.relationPicker.noOptions') }}
           </div>
         </div>
       </div>
       <template #footer>
         <div class="flex w-full justify-end">
-          <NButton type="primary" @click="modalApi.close()">完成</NButton>
+          <NButton type="primary" @click="modalApi.close()">
+            {{ $t('common.actions.done') }}
+          </NButton>
         </div>
       </template>
     </Modal>

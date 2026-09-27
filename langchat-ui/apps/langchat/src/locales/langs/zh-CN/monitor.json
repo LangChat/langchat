@@ -1,0 +1,72 @@
+{
+  "title": "模型调用监控",
+  "description": "统计所有模型调用的次数、Token 消耗与耗时，数据来自模型调用埋点日志。",
+  "window": {
+    "days": "近 {days} 天"
+  },
+  "callType": {
+    "CHAT": "对话模型",
+    "EMBEDDING": "向量模型",
+    "IMAGE": "文生图",
+    "OCR": "图像识别"
+  },
+  "scene": {
+    "AGENT_CHAT": "Agent 对话",
+    "DATA_ANALYSIS": "智能问数",
+    "KNOWLEDGE_INDEX": "知识库向量化",
+    "KNOWLEDGE_RETRIEVE": "知识库检索",
+    "IMAGE_GENERATE": "文生图",
+    "IMAGE_OCR": "图像识别",
+    "unknown": "未标注"
+  },
+  "columns": {
+    "model": "模型",
+    "provider": "供应商",
+    "type": "类型",
+    "scene": "场景",
+    "duration": "耗时",
+    "status": "状态",
+    "createTime": "调用时间"
+  },
+  "metrics": {
+    "totalCalls": "调用总量",
+    "tokens": "Token 消耗",
+    "avgDuration": "平均耗时",
+    "successRate": "调用成功率"
+  },
+  "chart": {
+    "callsLegend": "调用次数",
+    "tokensLegend": "Token 消耗",
+    "countSeries": "次数",
+    "empty": "暂无调用数据",
+    "unknown": "未知"
+  },
+  "trend": {
+    "title": "调用趋势",
+    "description": "按天统计调用次数与 Token 消耗"
+  },
+  "typeDistribution": {
+    "title": "调用类型分布",
+    "description": "对话 / 向量 / 文生图 / 图像识别的调用占比"
+  },
+  "providerDistribution": {
+    "title": "供应商分布",
+    "description": "各模型供应商的调用占比"
+  },
+  "ranking": {
+    "title": "模型消耗排行",
+    "description": "按 Token 消耗倒序展示调用量最高的模型",
+    "calls": "调用 {count}",
+    "failed": "失败 {count}"
+  },
+  "recent": {
+    "title": "最近调用记录",
+    "description": "最近 10 条模型调用明细"
+  },
+  "hints": {
+    "totalCalls": "统计窗口内的模型调用次数",
+    "tokens": "输入与输出 Token 合计",
+    "avgDuration": "单次模型调用的平均响应时间",
+    "successRate": "当前窗口无失败调用"
+  }
+}

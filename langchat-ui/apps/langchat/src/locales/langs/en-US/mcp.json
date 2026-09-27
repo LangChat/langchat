@@ -1,0 +1,47 @@
+{
+  "title": {
+    "create": "New MCP Service",
+    "edit": "Edit MCP Service"
+  },
+  "actions": {
+    "create": "New MCP Service",
+    "refreshList": "Refresh list"
+  },
+  "form": {
+    "name": "Service Name",
+    "uuid": "Unique ID",
+    "transport": "Transport Protocol",
+    "timeout": "Timeout",
+    "authorized": "Authorized",
+    "coverUrl": "Cover URL",
+    "siteUrl": "Site URL",
+    "sseUrl": "SSE Endpoint",
+    "dockerImage": "Docker Image",
+    "dockerHost": "Docker Host",
+    "requestHeaders": "Headers JSON",
+    "stdioConfig": "MCP Config JSON",
+    "stdioPlaceholder": "Enter the Stdio protocol JSON config",
+    "description": "Description"
+  },
+  "card": {
+    "unnamed": "Untitled Service",
+    "transportLabel": "Transport",
+    "site": "Site",
+    "uuid": "Unique ID",
+    "timeout": "Timeout",
+    "timeoutValue": "{value}s",
+    "transportSummary": "Current transport {transport}, site {siteUrl}.",
+    "authorized": "Authorized",
+    "pendingAuthorized": "Pending auth"
+  },
+  "list": {
+    "searchPlaceholder": "Search by service name, unique ID or protocol",
+    "actionsTitle": "MCP Actions"
+  },
+  "messages": {
+    "created": "MCP service created",
+    "updated": "MCP service updated",
+    "deleted": "MCP service deleted",
+    "deleteTitle": "Delete MCP Service"
+  }
+}

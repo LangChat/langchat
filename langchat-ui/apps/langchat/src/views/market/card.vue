@@ -35,7 +35,7 @@ const emit = defineEmits<{
         <template #icon>
           <MessageCircle class="size-3.5" />
         </template>
-        进入应用
+        {{ $t('market.enterApp') }}
       </NButton>
     </template>
   </AigcAgentCard>

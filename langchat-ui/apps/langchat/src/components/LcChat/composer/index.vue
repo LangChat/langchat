@@ -16,6 +16,7 @@ import {
   Square,
   X,
 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { VbenPopover } from '@vben-core/shadcn-ui';
 
@@ -38,7 +39,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
-  placeholder: '有问题,尽管问',
+  placeholder: undefined,
   showAttachment: true,
   showModel: true,
 });
@@ -238,7 +239,7 @@ function submit() {
   emit('send', {
     attachments: attachments.value.map((item) => ({ ...item })),
     modelId: modelId.value,
-    text: trimmed || '请查看我上传的附件。',
+    text: trimmed || $t('chat.composer.attachmentFallbackText'),
   });
   text.value = '';
   clearAttachments();
@@ -303,15 +304,15 @@ function handleKeydown(event: KeyboardEvent) {
             >
               {{
                 item.status === 'uploading'
-                  ? `上传中 ${item.progress}%`
+                  ? $t('chat.composer.uploading', { progress: item.progress })
                   : item.status === 'error'
-                    ? item.error || '上传失败'
+                    ? item.error || $t('chat.composer.uploadFailed')
                     : formatFileSize(item.size)
               }}
             </span>
           </span>
           <button
-            aria-label="移除附件"
+            :aria-label="$t('chat.composer.removeAttachment')"
             class="chip-x"
             type="button"
             @click="removeAttachment(item.id)"
@@ -332,7 +333,7 @@ function handleKeydown(event: KeyboardEvent) {
       <div class="plus-anchor">
         <button
           v-if="recording"
-          aria-label="取消听写"
+          :aria-label="$t('chat.composer.cancelDictation')"
           class="icon-btn"
           type="button"
           @click="cancelDictation"
@@ -347,7 +348,7 @@ function handleKeydown(event: KeyboardEvent) {
           @update:open="attachMenuOpen = $event"
         >
           <template #trigger>
-            <button aria-label="添加附件" class="icon-btn" type="button">
+            <button :aria-label="$t('chat.composer.addAttachment')" class="icon-btn" type="button">
               <Plus class="size-[18px]" />
             </button>
           </template>
@@ -362,8 +363,10 @@ function handleKeydown(event: KeyboardEvent) {
               >
                 <ImagePlus class="size-4" />
               </span>
-              <span>添加图片</span>
-              <span class="ml-auto text-[11px] text-muted-foreground opacity-80">Images</span>
+              <span>{{ $t('chat.composer.addImage') }}</span>
+              <span class="ml-auto text-[11px] text-muted-foreground opacity-80">{{
+                $t('chat.composer.imageHint')
+              }}</span>
             </button>
             <button
               class="flex w-full items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
@@ -375,8 +378,10 @@ function handleKeydown(event: KeyboardEvent) {
               >
                 <Paperclip class="size-4" />
               </span>
-              <span>添加文件</span>
-              <span class="ml-auto text-[11px] text-muted-foreground opacity-80">Any</span>
+              <span>{{ $t('chat.composer.addFile') }}</span>
+              <span class="ml-auto text-[11px] text-muted-foreground opacity-80">{{
+                $t('chat.composer.anyFileHint')
+              }}</span>
             </button>
             <button
               class="flex w-full items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
@@ -388,8 +393,10 @@ function handleKeydown(event: KeyboardEvent) {
               >
                 <Camera class="size-4" />
               </span>
-              <span>拍照</span>
-              <span class="ml-auto text-[11px] text-muted-foreground opacity-80">Camera</span>
+              <span>{{ $t('chat.composer.takePhoto') }}</span>
+              <span class="ml-auto text-[11px] text-muted-foreground opacity-80">{{
+                $t('chat.composer.cameraHint')
+              }}</span>
             </button>
           </div>
         </VbenPopover>
@@ -399,10 +406,10 @@ function handleKeydown(event: KeyboardEvent) {
       <textarea
         ref="textareaRef"
         v-model="text"
-        aria-label="输入消息"
+        :aria-label="$t('chat.composer.inputMessage')"
         class="composer-textarea"
         :disabled="disabled"
-        :placeholder="placeholder"
+        :placeholder="placeholder ?? $t('chat.composer.default')"
         :readonly="recording"
         rows="1"
         @paste="handlePaste"
@@ -443,7 +450,7 @@ function handleKeydown(event: KeyboardEvent) {
                 v-if="models.length === 0"
                 class="text-muted-foreground px-3 py-6 text-center text-xs"
               >
-                {{ modelsLoading ? '模型加载中…' : '暂无可用对话模型' }}
+                {{ modelsLoading ? $t('chat.composer.modelsLoading') : $t('chat.composer.noModels') }}
               </div>
               <div v-else class="flex flex-col gap-0.5">
                 <button
@@ -465,7 +472,7 @@ function handleKeydown(event: KeyboardEvent) {
                     :src="getProviderIcon(item.provider)"
                   />
                   <span class="min-w-0 flex-1 truncate">
-                    {{ item.name || item.model || '未命名模型' }}
+                    {{ item.name || item.model || $t('models.card.unnamed') }}
                   </span>
                   <span class="text-[10px] text-muted-foreground">
                     {{ getProviderLabel(item.provider) }}
@@ -489,12 +496,14 @@ function handleKeydown(event: KeyboardEvent) {
           </span>
 
           <button
-            aria-label="语音输入"
+            :aria-label="$t('chat.composer.voiceInput')"
             class="icon-btn mic-btn"
             :class="{ recording }"
             :disabled="disabled || !voiceSupported"
             :title="
-              voiceSupported ? '语音输入' : '当前浏览器不支持语音识别'
+              voiceSupported
+                ? $t('chat.composer.voiceInput')
+                : $t('chat.composer.voiceUnsupported')
             "
             type="button"
             @click="handleMicClick"
@@ -507,7 +516,7 @@ function handleKeydown(event: KeyboardEvent) {
 
           <span class="slot" :class="{ 'is-collapsed': recording }">
             <button
-              :aria-label="actionMode === 'send' ? '发送' : '语音输入'"
+              :aria-label="actionMode === 'send' ? $t('chat.composer.send') : $t('chat.composer.voiceInput')"
               class="action-btn"
               :data-mode="actionMode"
               :disabled="

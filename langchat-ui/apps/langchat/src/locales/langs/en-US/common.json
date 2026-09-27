@@ -1,0 +1,74 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "done": "Done",
+    "add": "Add",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "copy": "Copy",
+    "copied": "Copied",
+    "refresh": "Refresh",
+    "refreshList": "Refresh list",
+    "search": "Search",
+    "reset": "Reset",
+    "back": "Back",
+    "viewDetails": "View details",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "clearFilter": "Clear filters",
+    "confirmDelete": "Delete"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enabledMessage": "Enabled",
+    "disabledMessage": "Disabled",
+    "yes": "Yes",
+    "no": "No",
+    "default": "Default",
+    "unknown": "Unknown",
+    "justNow": "Just now",
+    "configured": "Configured",
+    "notConfigured": "Not configured"
+  },
+  "labels": {
+    "all": "All",
+    "none": "None",
+    "optional": "Optional",
+    "count": "{count}",
+    "keyword": "Keyword",
+    "type": "Type",
+    "provider": "Provider",
+    "host": "Host",
+    "port": "Port",
+    "username": "Username",
+    "password": "Password",
+    "status": "Status",
+    "tags": "Tags",
+    "actions": "Actions",
+    "model": "Model",
+    "knowledgeBase": "Knowledge base",
+    "skill": "Skill",
+    "untitled": "Untitled"
+  },
+  "placeholder": {
+    "pleaseSelect": "Please select",
+    "selectTags": "Select tags"
+  },
+  "empty": {
+    "noData": "No data",
+    "noDescription": "No description"
+  },
+  "messages": {
+    "deleteConfirmContent": "This action cannot be undone. Are you sure you want to delete \"{name}\"?",
+    "copySuccess": "Copied to clipboard",
+    "copyFailed": "Copy failed",
+    "saveFailed": "Save failed: {message}",
+    "quickActionsDescription": "Frequent actions are grouped in the first card slot."
+  }
+}

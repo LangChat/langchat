@@ -1,0 +1,39 @@
+{
+  "title": {
+    "create": "新建向量库",
+    "edit": "编辑向量库"
+  },
+  "actions": {
+    "create": "新建向量库",
+    "refreshList": "刷新列表"
+  },
+  "form": {
+    "name": "向量库名称",
+    "host": "主机地址",
+    "database": "数据库名",
+    "table": "表名/集合名",
+    "dimension": "向量维度"
+  },
+  "card": {
+    "unnamed": "未命名向量库",
+    "providerLabel": "提供商",
+    "database": "数据库",
+    "dimension": "维度",
+    "nodeSummary": "当前节点 {host}:{port}，用于承载",
+    "tableSummary": "的向量化数据。",
+    "defaultTable": "默认表"
+  },
+  "list": {
+    "searchPlaceholder": "按名称、供应商、主机地址搜索",
+    "emptyDescription": "当前还没有向量库数据。",
+    "actionsTitle": "向量库操作",
+    "actionsDescription": "将操作抽离到独立卡片，便于列表头部保持干净。",
+    "summary": "当前共 {total} 个向量库 · 供应商 {providers} 类 · 已完成配置 {ready}"
+  },
+  "messages": {
+    "created": "向量库已创建",
+    "updated": "向量库已更新",
+    "deleted": "向量库已删除",
+    "deleteTitle": "删除向量库"
+  }
+}

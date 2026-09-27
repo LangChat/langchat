@@ -3,17 +3,19 @@ import type { AigcAgent } from '#/api/aigc/agent';
 import type { LabelOption } from '#/views/shared/aigc/options';
 
 import { computed, markRaw, watch } from 'vue';
-import { useVbenDrawer } from '@vben/common-ui';
 
-import { type VbenFormSchema, useVbenForm } from '#/adapter/form';
+import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
 import LcIcon from '#/components/LcIcon/index.vue';
 import {
-  AGENT_STATUS_OPTIONS,
+  agentStatusOptions,
 } from '#/views/shared/aigc/options';
 
 interface Props {
   modelOptions: LabelOption[];
-  modelValue?: Partial<AigcAgent> | null;
+  modelValue?: null | Partial<AigcAgent>;
   saving?: boolean;
   show: boolean;
 }
@@ -22,23 +24,23 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
   saving: false,
 });
-const LcIconEditor = markRaw(LcIcon);
-
 const emit = defineEmits<{
   cancel: [];
   save: [payload: Partial<AigcAgent>];
   'update:show': [value: boolean];
 }>();
 
+const LcIconEditor = markRaw(LcIcon);
+
 const drawerTitle = computed(() =>
-  props.modelValue?.id ? '编辑智能体' : '新建智能体',
+  props.modelValue?.id ? $t('agents.title.edit') : $t('agents.title.create'),
 );
 
 const formSchema = computed<VbenFormSchema[]>(() => [
   {
     component: 'Input',
     fieldName: 'agentName',
-    label: '智能体名称',
+    label: $t('agents.form.name'),
     rules: 'required',
   },
   {
@@ -51,16 +53,16 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     },
     fieldName: 'icon',
     formItemClass: 'sm:cols-span-2',
-    label: '应用图标',
+    label: $t('agents.form.appIcon'),
     modelPropName: 'modelValue',
   },
   {
     component: 'Select',
     componentProps: {
-      options: AGENT_STATUS_OPTIONS,
+      options: agentStatusOptions(),
     },
     fieldName: 'status',
-    label: '状态',
+    label: $t('agents.form.status'),
   },
   {
     component: 'Select',
@@ -69,19 +71,19 @@ const formSchema = computed<VbenFormSchema[]>(() => [
       options: props.modelOptions,
     },
     fieldName: 'reasoningModelId',
-    label: '推理模型',
+    label: $t('agents.form.reasoningModel'),
     rules: 'selectRequired',
   },
   {
     component: 'Input',
     componentProps: {
       autosize: { maxRows: 6, minRows: 3 },
-      placeholder: '请输入智能体描述',
+      placeholder: $t('agents.form.descriptionPlaceholder'),
       type: 'textarea',
     },
     fieldName: 'description',
     formItemClass: 'sm:cols-span-2',
-    label: '描述',
+    label: $t('agents.form.description'),
   },
 ]);
 
@@ -123,7 +125,7 @@ async function handleSave() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[920px]',
-  confirmText: '保存',
+  confirmText: $t('common.actions.save'),
   onCancel: () => emitClose(true),
   onConfirm: handleSave,
   onOpenChange: (isOpen) => {
@@ -133,6 +135,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   title: drawerTitle.value,
 });
+
+watch(
+  () => $t('common.actions.save'),
+  (value) => {
+    drawerApi.setState({ confirmText: value });
+  },
+  { immediate: true },
+);
 
 watch(
   () => props.saving,

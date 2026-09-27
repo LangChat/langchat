@@ -1,66 +1,82 @@
+import { $t } from '@vben/locales';
+
 export interface LabelOption {
   label: string;
   value: number | string;
 }
 
-export const MODEL_TYPE_OPTIONS: LabelOption[] = [
-  { label: '聊天模型', value: 'CHAT' },
-  { label: '推理模型', value: 'REASONING' },
-  { label: '向量模型', value: 'EMBEDDING' },
-  { label: '视觉模型', value: 'VISION' },
-  { label: '语音模型', value: 'SPEECH' },
-];
+export function modelTypeOptions(): LabelOption[] {
+  return [
+    { label: $t('models.typeOptions.chat'), value: 'CHAT' },
+    { label: $t('models.typeOptions.reasoning'), value: 'REASONING' },
+    { label: $t('models.typeOptions.embedding'), value: 'EMBEDDING' },
+    { label: $t('models.typeOptions.vision'), value: 'VISION' },
+    { label: $t('models.typeOptions.speech'), value: 'SPEECH' },
+  ];
+}
 
-export const MODEL_PROVIDER_OPTIONS: LabelOption[] = [
-  { label: 'OpenAI', value: 'OPENAI' },
-  { label: 'DeepSeek', value: 'DEEPSEEK' },
-  { label: 'Ollama', value: 'OLLAMA' },
-  { label: '通义千问', value: 'DASHSCOPE' },
-  { label: 'Azure OpenAI', value: 'AZURE_OPENAI' },
-];
+export function modelProviderOptions(): LabelOption[] {
+  return [
+    { label: 'OpenAI', value: 'OPENAI' },
+    { label: 'DeepSeek', value: 'DEEPSEEK' },
+    { label: 'Ollama', value: 'OLLAMA' },
+    { label: $t('models.provider.DASHSCOPE'), value: 'DASHSCOPE' },
+    { label: 'Azure OpenAI', value: 'AZURE_OPENAI' },
+  ];
+}
 
+/** 向量库供应商标识为产品名，保持原文即可。 */
 export const VECTOR_PROVIDER_OPTIONS: LabelOption[] = [
   { label: 'PGVector', value: 'PGVECTOR' },
   { label: 'Milvus', value: 'MILVUS' },
 ];
 
+/** MCP 传输协议为技术协议名，保持原文即可。 */
 export const MCP_TRANSPORT_OPTIONS: LabelOption[] = [
   { label: 'Docker', value: 'SSE' },
   { label: 'HTTP', value: 'HTTP' },
   { label: 'Stdio', value: 'STDIO' },
 ];
 
-export const DOC_TYPE_OPTIONS: LabelOption[] = [
-  { label: '文件', value: 'FILE' },
-  { label: 'Markdown', value: 'MARKDOWN' },
-  { label: '文本', value: 'TEXT' },
-  { label: '问答', value: 'QA' },
-];
+export function docTypeOptions(): LabelOption[] {
+  return [
+    { label: $t('docs.typeOptions.file'), value: 'FILE' },
+    { label: 'Markdown', value: 'MARKDOWN' },
+    { label: $t('docs.typeOptions.text'), value: 'TEXT' },
+    { label: $t('docs.typeOptions.qa'), value: 'QA' },
+  ];
+}
 
-export const AGENT_STATUS_OPTIONS: LabelOption[] = [
-  { label: '草稿', value: 'DRAFT' },
-  { label: '已发布', value: 'PUBLISHED' },
-  { label: '停用', value: 'DISABLED' },
-];
+export function agentStatusOptions(): LabelOption[] {
+  return [
+    { label: $t('agents.status.draft'), value: 'DRAFT' },
+    { label: $t('agents.status.published'), value: 'PUBLISHED' },
+    { label: $t('agents.status.disabled'), value: 'DISABLED' },
+  ];
+}
 
-export const MEMORY_TYPE_OPTIONS: LabelOption[] = [
-  { label: '窗口记忆', value: 'WINDOW' },
-  { label: '摘要记忆', value: 'SUMMARY' },
-  { label: '长期记忆', value: 'LONG_TERM' },
-];
+export function memoryTypeOptions(): LabelOption[] {
+  return [
+    { label: $t('agents.memory.window'), value: 'WINDOW' },
+    { label: $t('agents.memory.summary'), value: 'SUMMARY' },
+    { label: $t('agents.memory.longTerm'), value: 'LONG_TERM' },
+  ];
+}
 
-export const AIGC_COMMON_TAG_OPTIONS: LabelOption[] = [
-  { label: '通用', value: '通用' },
-  { label: '生产', value: '生产' },
-  { label: '测试', value: '测试' },
-  { label: '内部', value: '内部' },
-  { label: '外部', value: '外部' },
-  { label: '核心', value: '核心' },
-];
+export function aigcCommonTagOptions(): LabelOption[] {
+  return [
+    { label: $t('agents.scope.general'), value: '通用' },
+    { label: $t('agents.scope.production'), value: '生产' },
+    { label: $t('agents.scope.testing'), value: '测试' },
+    { label: $t('agents.scope.internal'), value: '内部' },
+    { label: $t('agents.scope.external'), value: '外部' },
+    { label: $t('agents.scope.core'), value: '核心' },
+  ];
+}
 
 export function findOptionLabel(options: LabelOption[], value?: null | string) {
   if (!value) {
-    return '未配置';
+    return $t('common.status.notConfigured');
   }
   return options.find((option) => option.value === value)?.label ?? value;
 }

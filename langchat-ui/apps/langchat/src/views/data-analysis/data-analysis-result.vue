@@ -7,6 +7,7 @@ import type {
 import { watch } from 'vue';
 
 import { BarChart3, Table2 } from '@vben/icons';
+import { $t } from '@vben/locales';
 
 import { NCollapse, NCollapseItem, NTabPane, NTabs, NTag } from 'naive-ui';
 
@@ -54,19 +55,19 @@ watch(
   <div v-if="table || chart" class="mt-3 overflow-hidden rounded-lg border border-border bg-background">
     <NTabs type="line" class="px-3">
       <NTabPane v-if="chart" name="chart">
-        <template #tab><span class="inline-flex items-center gap-1.5"><BarChart3 class="size-3.5" />图表</span></template>
+        <template #tab><span class="inline-flex items-center gap-1.5"><BarChart3 class="size-3.5" />{{ $t('dataAnalysis.result.chartTab') }}</span></template>
         <DataAnalysisChart :option="chart.option" />
       </NTabPane>
       <NTabPane v-if="table" name="table">
-        <template #tab><span class="inline-flex items-center gap-1.5"><Table2 class="size-3.5" />数据表</span></template>
+        <template #tab><span class="inline-flex items-center gap-1.5"><Table2 class="size-3.5" />{{ $t('dataAnalysis.result.tableTab') }}</span></template>
         <div class="pb-3">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="text-xs font-semibold text-foreground">{{ table.title }}</span>
-            <NTag :bordered="false" size="small">{{ table.rowCount }} 行</NTag>
+            <NTag :bordered="false" size="small">{{ $t('dataAnalysis.result.rowCount', { count: table.rowCount }) }}</NTag>
           </div>
           <Grid />
           <NCollapse v-if="table.sql" class="mt-2">
-            <NCollapseItem name="sql" title="查看 SQL">
+            <NCollapseItem name="sql" :title="$t('dataAnalysis.result.viewSql')">
               <pre class="overflow-x-auto rounded-md bg-muted/50 p-3 text-[11px] leading-5 text-muted-foreground">{{ table.sql }}</pre>
             </NCollapseItem>
           </NCollapse>

@@ -6,6 +6,7 @@ import {useRouter} from 'vue-router';
 
 import {Page} from '@vben/common-ui';
 import {Plus, RefreshCcw} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import {NButton, NPagination} from 'naive-ui';
 
@@ -16,7 +17,7 @@ import LcActionCard from '#/components/LcActionCard/index.vue';
 import LcListCard from '#/components/LcListCard/index.vue';
 import {buildKnowledgeDocsRouteLocation} from '#/views/docs/shared';
 import {useAigcLookups} from '#/views/shared/aigc/lookups';
-import {AIGC_COMMON_TAG_OPTIONS} from '#/views/shared/aigc/options';
+import {aigcCommonTagOptions} from '#/views/shared/aigc/options';
 import {parseTagList} from '#/views/shared/aigc/tags';
 
 import KnowledgeCard from './card.vue';
@@ -38,8 +39,8 @@ const pageSize = ref(6);
 const items = ref<AigcKnowledge[]>([]);
 const currentItem = ref<null | Partial<AigcKnowledge>>(null);
 const tagFilterOptions = computed(() => [
-  { label: '全部', value: 'ALL' },
-  ...AIGC_COMMON_TAG_OPTIONS.map((item) => ({
+  { label: $t('common.labels.all'), value: 'ALL' },
+  ...aigcCommonTagOptions().map((item) => ({
     label: item.label,
     value: String(item.value),
   })),
@@ -69,8 +70,8 @@ watch([keyword, selectedTag], () => {
   currentPage.value = 1;
 });
 const actionItems = computed(() => [
-  { key: 'refresh', label: '刷新列表', icon: RefreshCcw },
-  { key: 'create', label: '新建知识库', icon: Plus },
+  { key: 'refresh', label: $t('common.actions.refreshList'), icon: RefreshCcw },
+  { key: 'create', label: $t('knowledge.actions.create'), icon: Plus },
 ]);
 
 function jumpToKnowledge(knowledgeId?: string) {
@@ -116,13 +117,15 @@ async function handleDelete(item: AigcKnowledge) {
   }
   dialog.warning({
     closable: false,
-    content: `删除后不可恢复，确认删除「${item.name || '未命名知识库'}」吗？`,
-    negativeText: '取消',
-    positiveText: '确认删除',
-    title: '删除知识库',
+    content: $t('common.messages.deleteConfirmContent', {
+      name: item.name || $t('knowledge.card.unnamed'),
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('knowledge.messages.deleteTitle'),
     onPositiveClick: async () => {
       await knowledgeApi.remove(item.id!);
-      message.success('知识库已删除');
+      message.success($t('knowledge.messages.deleted'));
       await loadList();
     },
   });
@@ -133,10 +136,10 @@ async function handleSave(payload: Partial<AigcKnowledge>) {
   try {
     if (currentItem.value?.id) {
       await knowledgeApi.update(currentItem.value.id, payload);
-      message.success('知识库已更新');
+      message.success($t('knowledge.messages.updated'));
     } else {
       await knowledgeApi.create(payload);
-      message.success('知识库已创建');
+      message.success($t('knowledge.messages.created'));
     }
     showEdit.value = false;
     await loadList();
@@ -148,11 +151,11 @@ async function handleSave(payload: Partial<AigcKnowledge>) {
 async function handleIndex(item?: AigcKnowledge | string) {
   const knowledgeId = typeof item === 'string' ? item : item?.id;
   if (!knowledgeId) {
-    message.error('当前知识库缺少 ID');
+    message.error($t('knowledge.messages.missingId'));
     return;
   }
   await indexKnowledgeApi(knowledgeId, {});
-  message.success('已提交当前知识库的批量向量化任务');
+  message.success($t('knowledge.messages.vectorizeSubmitted'));
 }
 
 onMounted(initializePage);
@@ -167,15 +170,15 @@ onMounted(initializePage);
         :loading="loading"
         :search-value="keyword"
         :tags="tagFilterOptions"
-        search-placeholder="按知识库名称、描述、标签搜索"
+        :search-placeholder="$t('knowledge.list.searchPlaceholder')"
         @update:active-tag="selectedTag = $event"
         @update:search-value="keyword = $event"
       >
         <template #leading-card>
           <LcActionCard
             :actions="actionItems"
-            description="常用操作统一放置在首个卡片位。"
-            title="知识库操作"
+            :description="$t('common.messages.quickActionsDescription')"
+            :title="$t('knowledge.quickActions.title')"
             @action="handleAction"
           />
         </template>
@@ -191,7 +194,7 @@ onMounted(initializePage);
           />
         </template>
         <template #empty-extra>
-          <NButton type="primary" @click="handleCreate">新建知识库</NButton>
+          <NButton type="primary" @click="handleCreate">{{ $t('knowledge.actions.create') }}</NButton>
         </template>
       </LcListCard>
 

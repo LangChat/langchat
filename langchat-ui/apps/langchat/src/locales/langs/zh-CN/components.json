@@ -40,6 +40,12 @@
     "noMatch": "未找到匹配模型",
     "searchPlaceholder": "搜索模型"
   },
+  "vectorStoreSelector": {
+    "placeholder": "请选择向量库",
+    "label": "向量库",
+    "noMatch": "未找到匹配的向量库",
+    "searchPlaceholder": "搜索名称、地址或数据库"
+  },
   "aigcAgentCard": {
     "knowledgeAndSkills": "知识库 {knowledge}，技能 {skills}。",
     "noKnowledge": "未配置知识库",

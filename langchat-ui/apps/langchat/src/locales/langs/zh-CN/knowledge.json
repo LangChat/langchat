@@ -6,6 +6,31 @@
   "actions": {
     "create": "新建知识库"
   },
+  "tabs": {
+    "documents": "文档管理",
+    "settings": "知识库配置"
+  },
+  "settings": {
+    "title": "知识库配置",
+    "description": "统一维护知识库基础信息、向量化资源与检索策略。",
+    "basicTitle": "基础信息",
+    "basicDescription": "这些信息用于知识库列表展示与业务识别。",
+    "retrievalTitle": "向量与检索",
+    "retrievalDescription": "配置文档向量化使用的模型、存储和默认召回策略。",
+    "namePlaceholder": "请输入清晰、可识别的知识库名称",
+    "vectorStorePlaceholder": "请选择向量数据库",
+    "vectorModelPlaceholder": "请选择向量模型",
+    "maxResultsHint": "单次检索最多返回的分段数量",
+    "minScoreHint": "低于该相似度的分段不会被召回",
+    "reindexHint": "更换向量模型或向量数据库后，已有文档不会自动迁移，请重新执行向量化以保持索引一致。",
+    "save": "保存配置",
+    "saved": "知识库配置已保存",
+    "validation": {
+      "name": "请输入知识库名称",
+      "vectorStore": "请选择向量数据库",
+      "vectorModel": "请选择向量模型"
+    }
+  },
   "form": {
     "name": "知识库名称",
     "icon": "知识库图标",

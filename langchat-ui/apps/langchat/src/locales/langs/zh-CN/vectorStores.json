@@ -11,8 +11,21 @@
     "name": "向量库名称",
     "host": "主机地址",
     "database": "数据库名",
-    "table": "表名/集合名",
-    "dimension": "向量维度"
+    "dimension": "向量维度",
+    "providerTitle": "选择供应商"
+  },
+  "meta": {
+    "defaultPort": "默认端口 {port}",
+    "pgvector": {
+      "description": "PostgreSQL 的向量扩展，适合已有 PG 实例的场景",
+      "tableLabel": "表名（可选）",
+      "tablePlaceholder": "留空则使用默认表 {table}"
+    },
+    "milvus": {
+      "description": "分布式向量数据库，适合大规模向量检索",
+      "tableLabel": "集合名",
+      "tablePlaceholder": "请输入集合名"
+    }
   },
   "card": {
     "unnamed": "未命名向量库",
@@ -20,8 +33,7 @@
     "database": "数据库",
     "dimension": "维度",
     "nodeSummary": "当前节点 {host}:{port}，用于承载",
-    "tableSummary": "的向量化数据。",
-    "defaultTable": "默认表"
+    "tableSummary": "的向量化数据。"
   },
   "list": {
     "searchPlaceholder": "按名称、供应商、主机地址搜索",

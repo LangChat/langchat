@@ -11,8 +11,21 @@
     "name": "Vector Store Name",
     "host": "Host Address",
     "database": "Database Name",
-    "table": "Table/Collection",
-    "dimension": "Vector Dimension"
+    "dimension": "Vector Dimension",
+    "providerTitle": "Select Provider"
+  },
+  "meta": {
+    "defaultPort": "Default port {port}",
+    "pgvector": {
+      "description": "Vector extension for PostgreSQL, best when a PostgreSQL instance already exists",
+      "tableLabel": "Table Name (optional)",
+      "tablePlaceholder": "Leave empty to use the default table {table}"
+    },
+    "milvus": {
+      "description": "Distributed vector database built for large-scale similarity search",
+      "tableLabel": "Collection Name",
+      "tablePlaceholder": "Enter the collection name"
+    }
   },
   "card": {
     "unnamed": "Untitled Vector Store",
@@ -20,8 +33,7 @@
     "database": "Database",
     "dimension": "Dimension",
     "nodeSummary": "Current node {host}:{port}, hosts the vector data of",
-    "tableSummary": ".",
-    "defaultTable": "the default table"
+    "tableSummary": "."
   },
   "list": {
     "searchPlaceholder": "Search by name, provider or host",

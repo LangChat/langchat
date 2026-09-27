@@ -5,6 +5,16 @@ export interface LabelOption {
   value: number | string;
 }
 
+/** 模型配置与向量库配置共用的常见向量维度。 */
+export function vectorDimensionOptions(): LabelOption[] {
+  return [256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096].map(
+    (value) => ({
+      label: String(value),
+      value,
+    }),
+  );
+}
+
 export function modelTypeOptions(): LabelOption[] {
   return [
     { label: $t('models.typeOptions.chat'), value: 'CHAT' },

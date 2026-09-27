@@ -40,6 +40,12 @@
     "noMatch": "No matching models",
     "searchPlaceholder": "Search models"
   },
+  "vectorStoreSelector": {
+    "placeholder": "Select a vector store",
+    "label": "Vector Store",
+    "noMatch": "No matching vector stores",
+    "searchPlaceholder": "Search by name, address or database"
+  },
   "aigcAgentCard": {
     "knowledgeAndSkills": "Knowledge bases {knowledge}, skills {skills}.",
     "noKnowledge": "No knowledge base",

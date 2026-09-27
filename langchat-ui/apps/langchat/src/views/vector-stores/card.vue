@@ -67,8 +67,7 @@ const metaItems = computed(() => [
             host: item.host || '--',
             port: item.port || '--',
           })
-        }}{{ item.tableName || $t('vectorStores.card.defaultTable')
-        }}{{ $t('vectorStores.card.tableSummary') }}
+        }}{{ item.tableName || '--' }}{{ $t('vectorStores.card.tableSummary') }}
       </p>
     </template>
 

@@ -2,8 +2,10 @@
 import type { AigcModel } from '#/api/aigc/model';
 
 import { computed, ref } from 'vue';
+
 import { Check, ChevronDown, Search, Settings, X } from '@vben/icons';
 import { $t } from '@vben/locales';
+
 import {
   ScrollArea,
   Select,
@@ -26,27 +28,29 @@ interface ModelConfig {
   topP?: number;
 }
 
-function isStringIcon(icon: unknown): icon is string {
-  return typeof icon === 'string';
-}
-
 interface Props {
   allowedTypes?: string[];
   config: ModelConfig;
   modelEntities?: AigcModel[];
   modelId?: string;
+  showConfig?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   allowedTypes: () => ['REASONING', 'CHAT'],
   modelEntities: () => [],
   modelId: '',
+  showConfig: true,
 });
 
 const emit = defineEmits<{
   'update:config': [value: ModelConfig];
   'update:modelId': [value: string];
 }>();
+
+function isStringIcon(icon: unknown): icon is string {
+  return typeof icon === 'string';
+}
 
 const searchKeyword = ref('');
 const showConfigPanel = ref(false);
@@ -95,7 +99,7 @@ const providerGroups = computed(() => {
       models,
       provider,
     }))
-    .sort((a, b) => a.provider.localeCompare(b.provider));
+    .toSorted((a, b) => a.provider.localeCompare(b.provider));
 });
 
 const filteredProviderGroups = computed(() => {
@@ -197,7 +201,9 @@ function applyPreset(value: string) {
         type="button"
       >
         <template v-if="selectedModelEntity">
-          <template v-if="isStringIcon(getProviderIcon(selectedModelEntity.provider))">
+          <template
+            v-if="isStringIcon(getProviderIcon(selectedModelEntity.provider))"
+          >
             <img
               :src="getProviderIcon(selectedModelEntity.provider)"
               class="size-4 shrink-0"
@@ -212,7 +218,10 @@ function applyPreset(value: string) {
           <span class="flex-1 truncate text-left text-xs">{{
             selectedModelLabel
           }}</span>
-          <Settings class="text-muted-foreground size-3.5 shrink-0" />
+          <Settings
+            v-if="showConfig"
+            class="text-muted-foreground size-3.5 shrink-0"
+          />
         </template>
         <template v-else>
           <span class="text-muted-foreground flex-1 text-left text-xs">{{
@@ -230,6 +239,7 @@ function applyPreset(value: string) {
             $t('components.modelSelector.label')
           }}</span>
           <button
+            v-if="showConfig"
             :class="
               showConfigPanel
                 ? 'hover:bg-accent text-foreground'
@@ -274,7 +284,9 @@ function applyPreset(value: string) {
                 class="text-muted-foreground mb-1 px-1.5 text-[10px] font-medium"
               >
                 <span class="inline-flex items-center gap-1.5">
-                  <template v-if="isStringIcon(getProviderIcon(group.provider))">
+                  <template
+                    v-if="isStringIcon(getProviderIcon(group.provider))"
+                  >
                     <img
                       :src="getProviderIcon(group.provider)"
                       class="size-3.5"
@@ -365,7 +377,9 @@ function applyPreset(value: string) {
               <SelectTrigger
                 class="bg-muted h-[30px] w-24 border border-border text-xs"
               >
-                <SelectValue :placeholder="$t('components.modelSelector.loadingPreset')" />
+                <SelectValue
+                  :placeholder="$t('components.modelSelector.loadingPreset')"
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem
@@ -382,7 +396,11 @@ function applyPreset(value: string) {
 
           <div class="rounded-lg border border-border bg-background px-3 py-2">
             <div class="mb-2 text-xs text-muted-foreground">
-              {{ $t('components.modelSelector.temperature', { value: (config.temperature ?? 0.7).toFixed(2) }) }}
+              {{
+                $t('components.modelSelector.temperature', {
+                  value: (config.temperature ?? 0.7).toFixed(2),
+                })
+              }}
             </div>
             <input
               :value="toTemperatureRange(config.temperature)"
@@ -400,7 +418,11 @@ function applyPreset(value: string) {
           </div>
           <div class="rounded-lg border border-border bg-background px-3 py-2">
             <div class="mb-2 text-xs text-muted-foreground">
-              {{ $t('components.modelSelector.topP', { value: (config.topP ?? 0.9).toFixed(2) }) }}
+              {{
+                $t('components.modelSelector.topP', {
+                  value: (config.topP ?? 0.9).toFixed(2),
+                })
+              }}
             </div>
             <input
               :value="toTopPRange(config.topP)"
@@ -416,7 +438,11 @@ function applyPreset(value: string) {
           </div>
           <div class="rounded-lg border border-border bg-background px-3 py-2">
             <div class="mb-2 text-xs text-muted-foreground">
-              {{ $t('components.modelSelector.maxOutput', { value: config.maxOutputTokens ?? 2048 }) }}
+              {{
+                $t('components.modelSelector.maxOutput', {
+                  value: config.maxOutputTokens ?? 2048,
+                })
+              }}
             </div>
             <input
               :value="toTokenRange(config.maxOutputTokens)"

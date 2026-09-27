@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import type { AigcModel } from '#/api/aigc/model';
+import type { AigcModel, AigcModelConfig } from '#/api/aigc/model';
 
 import { computed, nextTick, ref, watch } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
 import { type VbenFormSchema, useVbenForm } from '#/adapter/form';
+import { vectorDimensionOptions } from '#/views/shared/aigc/options';
 import {
   getModelProviderOptions,
   getModelTypeConfigFields,
@@ -53,11 +54,26 @@ type ConfigFieldName = (typeof ALL_CONFIG_FIELD_NAMES)[number];
 const configFieldNameSet = new Set<string>(ALL_CONFIG_FIELD_NAMES);
 
 const CONNECTION_FIELD_NAMES = ['apiKey', 'baseUrl'] as const;
+const DEFAULT_EMBEDDING_DIMENSION = 1024;
+
+function positiveInteger(value: unknown): number | undefined {
+  const numberValue = Number(value);
+  return Number.isInteger(numberValue) && numberValue > 0
+    ? numberValue
+    : undefined;
+}
+
+function normalizeConfig(config: unknown): AigcModelConfig {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return {};
+  }
+  return { ...(config as AigcModelConfig) };
+}
 
 function getConfigFieldSchemaMap(): Record<ConfigFieldName, VbenFormSchema> {
   return {
     apiKey: {
-      component: 'Input',
+      component: 'VbenInputPassword',
       componentProps: {
         placeholder: $t('models.form.apiKeyPlaceholder'),
       },
@@ -73,14 +89,14 @@ function getConfigFieldSchemaMap(): Record<ConfigFieldName, VbenFormSchema> {
       label: 'Base URL',
     },
     dimension: {
-      component: 'Slider',
+      component: 'Select',
       componentProps: {
-        max: 4096,
-        min: 1,
-        step: 1,
+        options: vectorDimensionOptions(),
+        placeholder: $t('models.form.dimensionPlaceholder'),
       },
       fieldName: 'dimension',
-      label: 'dimension',
+      label: $t('models.form.dimension'),
+      rules: 'selectRequired',
     },
     maxToken: {
       component: 'Slider',
@@ -203,30 +219,41 @@ async function handleFormValuesChange(values: Record<string, any>) {
   currentProvider.value = provider;
   currentType.value = resolvedType;
 
+  const nextValues: Record<string, any> = {};
+
   // 供应商变化时，Base URL 自动填充该供应商的默认地址（仍可手动修改）
   if (providerChanged) {
     const defaultBaseUrl = getProviderBaseUrl(provider);
     if (defaultBaseUrl && defaultBaseUrl !== values.baseUrl) {
-      isSyncingProviderType.value = true;
-      try {
-        await formApi.setValues({ baseUrl: defaultBaseUrl }, false);
-      } finally {
-        isSyncingProviderType.value = false;
-      }
+      nextValues.baseUrl = defaultBaseUrl;
     }
   }
 
-  if (!providerChanged && !typeChanged) {
-    return;
+  if (resolvedType !== values.type) {
+    nextValues.type = resolvedType;
   }
 
-  if (resolvedType === values.type) {
+  if (providerChanged || typeChanged) {
+    const selectedModel = String(values.model || '');
+    const availableModels = getProviderRecommendedModels(
+      provider,
+      resolvedType,
+    );
+    if (!selectedModel || !availableModels.includes(selectedModel)) {
+      nextValues.model = availableModels[0] || '';
+    }
+    if (resolvedType === 'EMBEDDINGS') {
+      nextValues.dimension = DEFAULT_EMBEDDING_DIMENSION;
+    }
+  }
+
+  if (Object.keys(nextValues).length === 0) {
     return;
   }
 
   isSyncingProviderType.value = true;
   try {
-    await formApi.setValues({ type: resolvedType }, false);
+    await formApi.setValues(nextValues, false);
   } finally {
     isSyncingProviderType.value = false;
   }
@@ -258,16 +285,13 @@ const formSchema = computed<VbenFormSchema[]>(() => [
     rules: 'selectRequired',
   },
   {
-    component: 'Input',
+    component: 'Select',
     componentProps: {
-      placeholder: presetModelOptions.value.length
-        ? $t('models.form.namePlaceholderByPreset', {
-            list: presetModelOptions.value
-              .slice(0, 3)
-              .map((item) => item.label)
-              .join(' / '),
-          })
-        : $t('models.form.namePlaceholder'),
+      clearable: true,
+      filterable: true,
+      options: presetModelOptions.value,
+      placeholder: $t('models.form.modelSelectPlaceholder'),
+      tag: true,
     },
     fieldName: 'model',
     label: $t('models.form.name'),
@@ -312,6 +336,13 @@ async function handleSave() {
       delete payload[fieldName];
     }
   }
+  const configJson = normalizeConfig(props.modelValue?.configJson);
+  delete configJson.dimension;
+  if (currentType.value === 'EMBEDDINGS') {
+    configJson.dimension = positiveInteger(payload.dimension);
+  }
+  delete payload.dimension;
+  payload.configJson = configJson;
   emit('save', payload as Partial<AigcModel>);
 }
 
@@ -362,11 +393,16 @@ watch(
     drawerApi.open();
 
     const incoming = props.modelValue ?? {};
+    const incomingConfig = normalizeConfig(incoming.configJson);
+    const incomingFields = { ...incoming };
+    delete incomingFields.configJson;
     const incomingProvider = String(incoming.provider || 'OPENAI');
     const incomingType = resolveTypeForProvider(
       incomingProvider,
       String(incoming.type || 'TEXT2TEXT'),
     );
+    const defaultModel =
+      getProviderRecommendedModels(incomingProvider, incomingType)[0] || '';
     currentProvider.value = incomingProvider;
     currentType.value = incomingType;
 
@@ -379,14 +415,17 @@ watch(
         {
           apiKey: '',
           billingType: 'TOKEN',
-          dimension: 1536,
+          dimension:
+            positiveInteger(incomingConfig.dimension) ??
+            DEFAULT_EMBEDDING_DIMENSION,
           maxToken: 4096,
-          model: '',
           name: '',
           temperature: 0.7,
           timeout: 60,
           topP: 1,
-          ...incoming,
+          ...incomingFields,
+          // 新建时默认选中当前供应商和类型的首个预置模型；编辑时保留原值
+          model: String(incoming.model || '') || defaultModel,
           // Base URL 默认填充当前供应商的内置地址；编辑时若已有值则保留
           baseUrl:
             String(incoming.baseUrl || '') ||

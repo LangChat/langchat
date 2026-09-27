@@ -115,14 +115,18 @@ const typeFilterOptions = computed(() => {
   ];
 });
 
+const normalizedSelectedType = computed(() =>
+  selectedType.value ? normalizeModelType(selectedType.value) : '',
+);
+
 const filteredItems = computed(() => {
   const query = keyword.value.trim().toLowerCase();
   return items.value.filter((item) => {
     const matchProvider =
       !selectedProvider.value || item.provider === selectedProvider.value;
     const matchType =
-      !selectedType.value ||
-      normalizeModelType(item.type) === selectedType.value;
+      !normalizedSelectedType.value ||
+      normalizeModelType(item.type) === normalizedSelectedType.value;
     const matchKeyword =
       !query ||
       [item.name, item.model, item.provider, item.type]
@@ -273,6 +277,11 @@ function resetFilters() {
   keyword.value = '';
   selectedProvider.value = '';
   selectedType.value = '';
+}
+
+function handleTypeFilter(type: string) {
+  selectedType.value = type ? normalizeModelType(type) : '';
+  currentPage.value = 1;
 }
 
 onMounted(loadList);
@@ -440,7 +449,8 @@ onMounted(loadList);
                         "
                         class="flex h-9 cursor-pointer items-center gap-2 rounded-lg border px-3 text-left transition-colors"
                         type="button"
-                        @click="selectedType = String(option.value)"
+                        :aria-pressed="selectedType === option.value"
+                        @click="handleTypeFilter(String(option.value))"
                       >
                         <span
                           class="inline-flex size-6 items-center justify-center rounded-md border border-border/70 bg-muted/40"

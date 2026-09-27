@@ -5,52 +5,85 @@ import type {
   KnowledgeDocumentIndexStatus,
   KnowledgeIndexStatusResult,
 } from '#/api/aigc/docs';
-import type {AigcKnowledge} from '#/api/aigc/knowledge';
+import type { AigcKnowledge } from '#/api/aigc/knowledge';
 
-import {computed, onMounted, ref, watch} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
+import {
+  computed,
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
-import {Page} from '@vben/common-ui';
+import { Page } from '@vben/common-ui';
 import {
   ArrowLeft,
   FileText,
   PlayCircle,
   RotateCcw,
   Search,
+  SlidersHorizontal,
   SquarePen,
   Trash2,
   Upload,
 } from '@vben/icons';
-import {$t} from '@vben/locales';
+import { $t } from '@vben/locales';
 
-import {NButton, NDrawer, NDrawerContent, NInput, NPopover, NSelect, NTag, NText,} from 'naive-ui';
+import {
+  NButton,
+  NDrawer,
+  NDrawerContent,
+  NInput,
+  NPopover,
+  NSelect,
+  NTag,
+  NText,
+} from 'naive-ui';
 
-import {dialog, message} from '#/adapter/naive';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {docsApi, getKnowledgeIndexStatusApi, indexKnowledgeApi,} from '#/api/aigc/docs';
-import {knowledgeApi} from '#/api/aigc/knowledge';
+import { dialog, message } from '#/adapter/naive';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import {
+  docsApi,
+  getKnowledgeIndexStatusApi,
+  indexKnowledgeApi,
+} from '#/api/aigc/docs';
+import { knowledgeApi } from '#/api/aigc/knowledge';
 import LcCard from '#/components/LcCard/index.vue';
 import {
   formatDocsDuration,
   formatDocsTimestamp,
   resolveDocsStatusLabel,
 } from '#/views/shared/aigc/docs-status';
+import { useAigcLookups } from '#/views/shared/aigc/lookups';
 
 import DocsEdit from './edit.vue';
+import KnowledgeSettingsPanel from './knowledge-settings-panel.vue';
 import {
   buildKnowledgePreviewRouteLocation,
   buildKnowledgeUploadRouteLocation,
   DOC_EMBED_STATUS,
+  docParseModeOptions,
+  formatDocsCharCount,
   formatDocsFileSize,
   normalizeRouteParam,
+  parseDocsIngestionConfig,
 } from './shared';
 
 const route = useRoute();
 const router = useRouter();
+const { loadLookups, lookups } = useAigcLookups({
+  models: true,
+  vectorStores: true,
+});
 
 const initialized = ref(false);
 const saving = ref(false);
+const settingsSaving = ref(false);
 const showEdit = ref(false);
+const activeTab = ref<'documents' | 'settings'>('documents');
 const keyword = ref('');
 const currentItem = ref<null | Partial<AigcDocs>>(null);
 const selectedDocStatus = ref('');
@@ -75,13 +108,56 @@ const statusFilterOptions = computed(() => [
 ]);
 
 const failedDocs = computed(() =>
-  [...(statusSummary.value?.docs ?? [])]
+  (statusSummary.value?.docs ?? [])
     .filter((item) => item.embedStatus === DOC_EMBED_STATUS.FAILED)
-    .sort((left, right) => (right.updateTime ?? 0) - (left.updateTime ?? 0)),
+    .toSorted(
+      (left, right) => (right.updateTime ?? 0) - (left.updateTime ?? 0),
+    ),
 );
 
 const hasFailedDocs = computed(() => failedDocs.value.length > 0);
 const selectedRowCount = computed(() => selectedRowIds.value.length);
+const hasActiveIndexTasks = computed(
+  () =>
+    (statusSummary.value?.pendingCount ?? 0) > 0 ||
+    (statusSummary.value?.runningCount ?? 0) > 0,
+);
+
+const STATUS_POLL_INTERVAL_MS = 3000;
+let statusPollingTimer: ReturnType<typeof setTimeout> | undefined;
+let statusPollingInFlight = false;
+
+function stopStatusPolling() {
+  if (statusPollingTimer !== undefined) {
+    clearTimeout(statusPollingTimer);
+    statusPollingTimer = undefined;
+  }
+}
+
+function scheduleStatusPolling() {
+  stopStatusPolling();
+  if (
+    !initialized.value ||
+    activeTab.value !== 'documents' ||
+    !knowledgeId.value ||
+    !hasActiveIndexTasks.value ||
+    statusPollingInFlight
+  ) {
+    return;
+  }
+  statusPollingTimer = setTimeout(async () => {
+    statusPollingTimer = undefined;
+    statusPollingInFlight = true;
+    try {
+      await refreshDashboard();
+    } catch {
+      // 请求层已统一提示错误；轮询失败不终止后续状态检查。
+    } finally {
+      statusPollingInFlight = false;
+      scheduleStatusPolling();
+    }
+  }, STATUS_POLL_INTERVAL_MS);
+}
 
 function resolveRowStatusDetail(row: AigcDocs) {
   return statusSummary.value?.docs.find((item) => item.docsId === row.id);
@@ -118,6 +194,18 @@ function matchKeyword(item: AigcDocs) {
   return [item.name, item.ext, item.url, item.content]
     .map((value) => String(value ?? '').toLowerCase())
     .some((value) => value.includes(query));
+}
+
+function resolveDocsSegmentConfig(row: AigcDocs) {
+  return parseDocsIngestionConfig(row.ingestionConfig);
+}
+
+function resolveDocsParseModeLabel(row: AigcDocs) {
+  const { parseMode } = resolveDocsSegmentConfig(row);
+  return (
+    docParseModeOptions().find((item) => item.value === parseMode)?.label ??
+    $t('docs.upload.parserSummaryDefault')
+  );
 }
 
 async function queryDocs(params: {
@@ -177,6 +265,14 @@ const gridColumns = computed<VxeGridPropTypes.Columns<AigcDocs>>(() => [
     align: 'center',
     formatter: ({ cellValue }: { cellValue: number }) =>
       formatDocsFileSize(cellValue),
+  },
+  {
+    field: 'ingestionConfig',
+    title: $t('docs.columns.segment'),
+    width: 200,
+    align: 'center',
+    showOverflow: true,
+    slots: { default: 'segmentColumn' },
   },
   {
     field: 'embedStatus',
@@ -252,6 +348,15 @@ watch(selectedDocStatus, () => {
 });
 
 watch(
+  [hasActiveIndexTasks, activeTab, knowledgeId],
+  scheduleStatusPolling,
+);
+
+onActivated(scheduleStatusPolling);
+onDeactivated(stopStatusPolling);
+onBeforeUnmount(stopStatusPolling);
+
+watch(
   knowledgeId,
   async (value) => {
     if (!value) {
@@ -273,7 +378,7 @@ onMounted(async () => {
     return;
   }
   initialized.value = true;
-  await loadKnowledgeContext();
+  await Promise.all([loadLookups(), loadKnowledgeContext()]);
   await refreshDashboard();
 });
 
@@ -315,11 +420,11 @@ function openPreviewPage(
 }
 
 async function refreshDashboard() {
-  await gridApi.reload();
-  syncSelectedRows();
   if (knowledgeId.value) {
     statusSummary.value = await getKnowledgeIndexStatusApi(knowledgeId.value);
   }
+  await gridApi.reload();
+  syncSelectedRows();
 }
 
 function handleCreate() {
@@ -392,6 +497,21 @@ async function handleSave(payload: Partial<AigcDocs>) {
   }
 }
 
+async function handleKnowledgeSettingsSave(payload: Partial<AigcKnowledge>) {
+  if (!knowledgeId.value) {
+    message.error($t('knowledge.messages.missingId'));
+    return;
+  }
+  settingsSaving.value = true;
+  try {
+    await knowledgeApi.update(knowledgeId.value, payload);
+    message.success($t('knowledge.settings.saved'));
+    await loadKnowledgeContext();
+  } finally {
+    settingsSaving.value = false;
+  }
+}
+
 async function openStatusForDocs(docs: AigcDocs) {
   if (!docs.id || !docs.knowledgeId) {
     message.error($t('docs.messages.missingKnowledgeOrDocId'));
@@ -434,9 +554,9 @@ async function retryFailedDocs() {
     message.error($t('docs.messages.retryNoKnowledge'));
     return;
   }
-  const docsIds = failedDocs.value
-    .map((item) => item.docsId)
-    .filter((id): id is string => Boolean(id));
+  const docsIds = failedDocs.value.flatMap((item) =>
+    item.docsId ? [item.docsId] : [],
+  );
   if (docsIds.length === 0) {
     message.warning($t('docs.messages.noFailedDocs'));
     return;
@@ -510,7 +630,9 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
               {{ knowledge?.name || $t('docs.title.list') }}
             </div>
             <div class="mt-1 text-sm leading-6 text-muted-foreground">
-              {{ knowledge?.description || $t('docs.list.noKnowledgeDescription') }}
+              {{
+                knowledge?.description || $t('docs.list.noKnowledgeDescription')
+              }}
             </div>
             <div
               class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground"
@@ -542,189 +664,325 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 border-t border-border pt-3">
-          <NInput
-            v-model:value="keyword"
-            clearable
-            :placeholder="$t('docs.search.placeholder')"
-            style="width: 200px"
-            @keyup.enter="refreshDashboard"
-          />
-          <NSelect
-            v-model:value="selectedDocStatus"
-            :options="statusFilterOptions"
-            :placeholder="$t('docs.status.filterPlaceholder')"
-            style="width: 150px"
-          />
-          <NButton type="primary" @click="refreshDashboard">
-            <Search class="size-4" />
-            {{ $t('docs.actions.search') }}
-          </NButton>
-          <div class="ml-auto">
-            <NButton
-              :disabled="!knowledgeId"
-              type="primary"
-              @click="openUploadPage"
+        <div class="mt-1 border-b border-border" role="tablist">
+          <div class="flex items-center gap-6">
+            <button
+              :aria-selected="activeTab === 'documents'"
+              :class="
+                activeTab === 'documents'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              "
+              class="relative inline-flex h-10 cursor-pointer items-center gap-2 border-b-2 px-0.5 text-sm font-medium transition-colors"
+              role="tab"
+              type="button"
+              @click="activeTab = 'documents'"
             >
-              <template #icon>
-                <Upload class="size-4" />
-              </template>
-              {{ $t('docs.actions.upload') }}
-            </NButton>
+              <FileText class="size-4" />
+              {{ $t('knowledge.tabs.documents') }}
+              <span
+                class="rounded-md bg-muted px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground"
+              >
+                {{ statusSummary?.docsCount ?? 0 }}
+              </span>
+            </button>
+            <button
+              :aria-selected="activeTab === 'settings'"
+              :class="
+                activeTab === 'settings'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              "
+              class="relative inline-flex h-10 cursor-pointer items-center gap-2 border-b-2 px-0.5 text-sm font-medium transition-colors"
+              role="tab"
+              type="button"
+              @click="activeTab = 'settings'"
+            >
+              <SlidersHorizontal class="size-4" />
+              {{ $t('knowledge.tabs.settings') }}
+            </button>
           </div>
         </div>
 
-        <Grid class="mt-4 min-h-0 flex-1 bg-transparent">
-          <template #toolbar-tools>
-            <div class="flex items-center gap-2">
-              <NButton
-                v-if="selectedRowCount > 0"
-                ghost
-                size="small"
-                type="primary"
-                @click="handleRetrySelected"
-              >
-                <RotateCcw class="size-3.5" />
-                {{ $t('docs.actions.reVectorize') }}
-              </NButton>
-              <NButton
-                v-if="selectedRowCount > 0"
-                ghost
-                size="small"
-                type="error"
-                @click="handleBatchDelete"
-              >
-                <Trash2 class="size-3.5" />
-                {{ $t('docs.actions.batchDelete') }} ({{ selectedRowCount }})
-              </NButton>
-            </div>
-          </template>
-
-          <template #docName="{ row }">
-            <div class="min-w-0 text-left">
-              <button
-                class="flex max-w-full cursor-pointer items-center gap-2 rounded-md border border-transparent p-1 text-left text-sm font-medium text-primary transition-all hover:border-dashed hover:border-primary hover:bg-primary/5"
-                type="button"
-                @click="openPreviewPage(row)"
-              >
-                <FileText class="size-4 shrink-0" />
-                <span class="truncate">{{ row.name || $t('docs.list.unnamed') }}</span>
-              </button>
-            </div>
-          </template>
-
-          <template #statusColumn="{ row }">
-            <NPopover trigger="hover" :show-arrow="true">
-              <template #trigger>
-                <button
-                  :class="resolveStatusChipClass(row.embedStatus)"
-                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius)] border px-2 py-0.5 text-xs font-medium transition-colors hover:opacity-85"
-                  type="button"
-                  @click="openStatusForDocs(row)"
-                >
-                  <span class="size-1.5 rounded-full bg-current"></span>
-                  {{ resolveDocsStatusLabel(row.embedStatus) }}
-                </button>
-              </template>
-              <div class="w-64 space-y-1.5 text-xs">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-muted-foreground">
-                    {{ $t('docs.card.statusLabel') }}
-                  </span>
-                  <span class="text-foreground">
-                    {{ resolveDocsStatusLabel(row.embedStatus) }}
-                  </span>
-                </div>
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-muted-foreground">
-                    {{ $t('docs.list.durationLabel') }}
-                  </span>
-                  <span class="text-foreground">
-                    {{ formatDocsDuration(resolveRowStatusDetail(row)?.costMs) }}
-                  </span>
-                </div>
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-muted-foreground">
-                    {{ $t('docs.list.lastUpdate') }}
-                  </span>
-                  <span class="text-foreground">
-                    {{
-                      formatDocsTimestamp(resolveRowStatusDetail(row)?.updateTime)
-                    }}
-                  </span>
-                </div>
-                <div
-                  v-if="resolveRowStatusDetail(row)?.embedError"
-                  class="line-clamp-2 rounded-md bg-destructive/10 px-2 py-1 leading-5 text-destructive"
-                >
-                  {{ resolveRowStatusDetail(row)?.embedError }}
-                </div>
-                <div class="pt-0.5 text-[11px] text-muted-foreground">
-                  {{ $t('docs.list.viewFullStatus') }}
-                </div>
-              </div>
-            </NPopover>
-          </template>
-
-          <template #actionColumn="{ row }">
-            <div class="flex items-center justify-center gap-1 whitespace-nowrap">
-              <NButton
-                v-tippy="$t('docs.actions.vectorize')"
-                quaternary
-                size="small"
-                type="primary"
-                @click="
-                  submitDocsIndexTask(
-                    row,
-                    $t('docs.messages.vectorizeSubmitted', {
-                      name: buildDocsTitle(row),
-                    }),
-                  )
-                "
-              >
-                <PlayCircle class="size-3.5" />
-              </NButton>
-              <NButton
-                v-tippy="$t('docs.title.edit')"
-                quaternary
-                size="small"
-                @click="handleEdit(row)"
-              >
-                <SquarePen class="size-3.5" />
-              </NButton>
-              <NButton
-                v-tippy="$t('docs.actions.deleteDoc')"
-                quaternary
-                size="small"
-                type="error"
-                @click="handleDelete(row)"
-              >
-                <Trash2 class="size-3.5" />
-              </NButton>
-            </div>
-          </template>
-
-          <template #empty>
-            <div
-              class="flex min-h-[280px] flex-col items-center justify-center gap-3 text-center"
-            >
-              <div class="text-sm font-semibold text-foreground">
-                {{ $t('docs.list.empty') }}
-              </div>
-              <div class="max-w-md text-sm leading-6 text-muted-foreground">
-                {{ $t('docs.list.emptyHint') }}
-              </div>
+        <template v-if="activeTab === 'documents'">
+          <Grid class="min-h-0 flex-1 bg-transparent">
+            <template #toolbar-actions>
               <div class="flex flex-wrap items-center gap-2">
-                <NButton secondary @click="openUploadPage">
-                  {{ $t('docs.actions.uploadAndVectorize') }}
-                </NButton>
-                <NButton type="primary" @click="handleCreate">
-                  {{ $t('docs.actions.createDoc') }}
+                <NInput
+                  v-model:value="keyword"
+                  clearable
+                  size="small"
+                  :placeholder="$t('docs.search.placeholder')"
+                  style="width: 220px"
+                  @keyup.enter="refreshDashboard"
+                />
+                <NSelect
+                  v-model:value="selectedDocStatus"
+                  :options="statusFilterOptions"
+                  :placeholder="$t('docs.status.filterPlaceholder')"
+                  size="small"
+                  style="width: 160px"
+                />
+                <NButton size="small" type="primary" @click="refreshDashboard">
+                  <template #icon>
+                    <Search class="size-3.5" />
+                  </template>
+                  {{ $t('docs.actions.search') }}
                 </NButton>
               </div>
-            </div>
-          </template>
-        </Grid>
+            </template>
+
+            <template #toolbar-tools>
+              <div class="flex items-center gap-2">
+                <NButton
+                  v-if="selectedRowCount > 0"
+                  ghost
+                  size="small"
+                  type="primary"
+                  @click="handleRetrySelected"
+                >
+                  <RotateCcw class="size-3.5" />
+                  {{ $t('docs.actions.reVectorize') }}
+                </NButton>
+                <NButton
+                  v-if="selectedRowCount > 0"
+                  ghost
+                  size="small"
+                  type="error"
+                  @click="handleBatchDelete"
+                >
+                  <Trash2 class="size-3.5" />
+                  {{ $t('docs.actions.batchDelete') }} ({{ selectedRowCount }})
+                </NButton>
+                <span
+                  v-if="selectedRowCount > 0"
+                  class="mx-0.5 h-4 w-px bg-border"
+                ></span>
+                <NButton
+                  :disabled="!knowledgeId"
+                  size="small"
+                  type="primary"
+                  @click="openUploadPage"
+                >
+                  <template #icon>
+                    <Upload class="size-3.5" />
+                  </template>
+                  {{ $t('docs.actions.upload') }}
+                </NButton>
+              </div>
+            </template>
+
+            <template #docName="{ row }">
+              <div class="min-w-0 text-left">
+                <button
+                  class="flex max-w-full cursor-pointer items-center gap-2 rounded-md border border-transparent p-1 text-left text-sm font-medium text-primary transition-all hover:border-dashed hover:border-primary hover:bg-primary/5"
+                  type="button"
+                  @click="openPreviewPage(row)"
+                >
+                  <FileText class="size-4 shrink-0" />
+                  <span class="truncate">{{
+                    row.name || $t('docs.list.unnamed')
+                  }}</span>
+                </button>
+              </div>
+            </template>
+
+            <template #segmentColumn="{ row }">
+              <NPopover trigger="hover" :show-arrow="true">
+                <template #trigger>
+                  <NTag :bordered="false" round size="small" type="info">
+                    {{ resolveDocsParseModeLabel(row) }}
+                  </NTag>
+                </template>
+                <div class="w-60 space-y-1.5 text-xs">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.upload.parserMode') }}
+                    </span>
+                    <span class="text-foreground">
+                      {{ resolveDocsParseModeLabel(row) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.upload.chunkSize') }}
+                    </span>
+                    <span class="text-foreground tabular-nums">
+                      {{
+                        resolveDocsSegmentConfig(row).chunkSize ??
+                        $t('docs.list.segmentDefault')
+                      }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.upload.overlapSize') }}
+                    </span>
+                    <span class="text-foreground tabular-nums">
+                      {{
+                        resolveDocsSegmentConfig(row).overlapSize ??
+                        $t('docs.list.segmentDefault')
+                      }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.columns.segmentCount') }}
+                    </span>
+                    <span class="text-foreground tabular-nums">
+                      {{ resolveRowStatusDetail(row)?.segmentCount ?? 0 }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.columns.charCount') }}
+                    </span>
+                    <span class="text-foreground tabular-nums">
+                      {{
+                        formatDocsCharCount(
+                          resolveRowStatusDetail(row)?.charCount,
+                        )
+                      }}
+                    </span>
+                  </div>
+                  <div
+                    class="pt-0.5 text-[11px] leading-5 text-muted-foreground"
+                  >
+                    {{ $t('docs.list.segmentHint') }}
+                  </div>
+                </div>
+              </NPopover>
+            </template>
+
+            <template #statusColumn="{ row }">
+              <NPopover trigger="hover" :show-arrow="true">
+                <template #trigger>
+                  <button
+                    :class="resolveStatusChipClass(row.embedStatus)"
+                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius)] border px-2 py-0.5 text-xs font-medium transition-colors hover:opacity-85"
+                    type="button"
+                    @click="openStatusForDocs(row)"
+                  >
+                    <span class="size-1.5 rounded-full bg-current"></span>
+                    {{ resolveDocsStatusLabel(row.embedStatus) }}
+                  </button>
+                </template>
+                <div class="w-64 space-y-1.5 text-xs">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.card.statusLabel') }}
+                    </span>
+                    <span class="text-foreground">
+                      {{ resolveDocsStatusLabel(row.embedStatus) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.list.durationLabel') }}
+                    </span>
+                    <span class="text-foreground">
+                      {{
+                        formatDocsDuration(resolveRowStatusDetail(row)?.costMs)
+                      }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-muted-foreground">
+                      {{ $t('docs.list.lastUpdate') }}
+                    </span>
+                    <span class="text-foreground">
+                      {{
+                        formatDocsTimestamp(
+                          resolveRowStatusDetail(row)?.updateTime,
+                        )
+                      }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="resolveRowStatusDetail(row)?.embedError"
+                    class="line-clamp-2 rounded-md bg-destructive/10 px-2 py-1 leading-5 text-destructive"
+                  >
+                    {{ resolveRowStatusDetail(row)?.embedError }}
+                  </div>
+                  <div class="pt-0.5 text-[11px] text-muted-foreground">
+                    {{ $t('docs.list.viewFullStatus') }}
+                  </div>
+                </div>
+              </NPopover>
+            </template>
+
+            <template #actionColumn="{ row }">
+              <div
+                class="flex items-center justify-center gap-1 whitespace-nowrap"
+              >
+                <NButton
+                  v-tippy="$t('docs.actions.vectorize')"
+                  quaternary
+                  size="small"
+                  type="primary"
+                  @click="
+                    submitDocsIndexTask(
+                      row,
+                      $t('docs.messages.vectorizeSubmitted', {
+                        name: buildDocsTitle(row),
+                      }),
+                    )
+                  "
+                >
+                  <PlayCircle class="size-3.5" />
+                </NButton>
+                <NButton
+                  v-tippy="$t('docs.title.edit')"
+                  quaternary
+                  size="small"
+                  @click="handleEdit(row)"
+                >
+                  <SquarePen class="size-3.5" />
+                </NButton>
+                <NButton
+                  v-tippy="$t('docs.actions.deleteDoc')"
+                  quaternary
+                  size="small"
+                  type="error"
+                  @click="handleDelete(row)"
+                >
+                  <Trash2 class="size-3.5" />
+                </NButton>
+              </div>
+            </template>
+
+            <template #empty>
+              <div
+                class="flex min-h-[280px] flex-col items-center justify-center gap-3 text-center"
+              >
+                <div class="text-sm font-semibold text-foreground">
+                  {{ $t('docs.list.empty') }}
+                </div>
+                <div class="max-w-md text-sm leading-6 text-muted-foreground">
+                  {{ $t('docs.list.emptyHint') }}
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <NButton secondary @click="openUploadPage">
+                    {{ $t('docs.actions.uploadAndVectorize') }}
+                  </NButton>
+                  <NButton type="primary" @click="handleCreate">
+                    {{ $t('docs.actions.createDoc') }}
+                  </NButton>
+                </div>
+              </div>
+            </template>
+          </Grid>
+        </template>
+
+        <div v-else class="min-h-0 flex-1 overflow-y-auto pt-2">
+          <KnowledgeSettingsPanel
+            :model-entities="lookups.modelEntities"
+            :model-value="knowledge"
+            :saving="settingsSaving"
+            :vector-store-entities="lookups.vectorStoreEntities"
+            @save="handleKnowledgeSettingsSave"
+          />
+        </div>
       </div>
     </div>
 
@@ -854,7 +1112,10 @@ function handleFailedDocsPreview(docsStatus: KnowledgeDocumentIndexStatus) {
                   <div
                     class="mt-2 whitespace-pre-wrap text-xs leading-6 text-destructive"
                   >
-                    {{ docsStatus.embedError || $t('docs.failedDocs.emptySummary') }}
+                    {{
+                      docsStatus.embedError ||
+                      $t('docs.failedDocs.emptySummary')
+                    }}
                   </div>
                 </div>
 

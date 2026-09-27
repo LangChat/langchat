@@ -142,6 +142,16 @@ function normalizeParseMode(value: unknown) {
   return mode === 'DOCLING' || mode === 'AUTO' ? mode : 'BUILTIN';
 }
 
+/**
+ * 格式化字符数量，按当前语言习惯添加千分位。
+ */
+export function formatDocsCharCount(charCount?: null | number) {
+  if (charCount === null || charCount === undefined || Number.isNaN(charCount)) {
+    return '--';
+  }
+  return charCount.toLocaleString();
+}
+
 export function formatDocsFileSize(size?: null | number) {
   if (size === null || size === undefined || Number.isNaN(size)) {
     return '--';

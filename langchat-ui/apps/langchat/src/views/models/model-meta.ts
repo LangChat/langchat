@@ -47,6 +47,7 @@ export interface ModelTypeMeta {
 const MODEL_TYPE_ALIAS_MAP: Record<string, ModelTypeKey> = {
   CHAT: 'TEXT2TEXT',
   EMBEDDING: 'EMBEDDINGS',
+  EMBEDDINGS: 'EMBEDDINGS',
   IMAGE2TEXT: 'IMAGE2TEXT',
   OCR: 'OCR',
   REASONING: 'TEXT2TEXT',
@@ -174,8 +175,8 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
     label: 'OpenAI',
     models: {
       EMBEDDINGS: ['text-embedding-3-small', 'text-embedding-3-large'],
-      TEXT2IMAGE: ['gpt-image-1'],
-      TEXT2TEXT: ['gpt-4.1', 'gpt-4o', 'gpt-4.1-mini'],
+      TEXT2IMAGE: ['gpt-image-1', 'gpt-image-1-mini'],
+      TEXT2TEXT: ['gpt-5.1', 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1'],
     },
   },
   DASHSCOPE: {
@@ -185,9 +186,18 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
       return $t('models.provider.DASHSCOPE');
     },
     models: {
-      EMBEDDINGS: ['text-embedding-v3'],
-      TEXT2IMAGE: ['wanx2.1-t2i-turbo', 'wanx2.1-t2i-plus'],
-      TEXT2TEXT: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen3-max'],
+      EMBEDDINGS: [
+        'qwen3.7-text-embedding',
+        'qwen3.7-text-embedding-flash',
+        'qwen3-vl-embedding',
+      ],
+      TEXT2IMAGE: ['qwen-image-max', 'wanx2.1-t2i-plus'],
+      TEXT2TEXT: [
+        'qwen3.8-max',
+        'qwen3.8-flash',
+        'qwen3.7-plus',
+        'qwen3.8-omni-flash',
+      ],
     },
   },
   DEEPSEEK: {
@@ -195,7 +205,7 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
     icon: pi('DEEPSEEK'),
     label: 'DeepSeek',
     models: {
-      TEXT2TEXT: ['deepseek-chat', 'deepseek-reasoner'],
+      TEXT2TEXT: ['deepseek-v4-pro', 'deepseek-flash'],
     },
   },
   ZHIPU: {
@@ -206,7 +216,7 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
     },
     models: {
       EMBEDDINGS: ['embedding-3'],
-      TEXT2TEXT: ['glm-4-plus', 'glm-4-air'],
+      TEXT2TEXT: ['glm-5.2', 'glm-5-turbo', 'glm-5'],
     },
   },
   VOLCENGINE: {
@@ -217,7 +227,12 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
     },
     models: {
       EMBEDDINGS: ['doubao-embedding-large'],
-      TEXT2TEXT: ['doubao-pro-32k', 'doubao-lite-32k'],
+      TEXT2TEXT: [
+        'doubao-seed-evolving',
+        'doubao-seed-2-1-pro-260915',
+        'doubao-seed-2-1-lite-260915',
+        'doubao-seed-2-1-turbo-260628',
+      ],
     },
   },
   GEMINI: {
@@ -225,9 +240,18 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
     icon: pi('GEMINI'),
     label: 'Google Gemini',
     models: {
-      EMBEDDINGS: ['text-embedding-004'],
-      TEXT2IMAGE: ['imagen-3.0-generate-002'],
-      TEXT2TEXT: ['gemini-2.5-pro', 'gemini-2.5-flash'],
+      EMBEDDINGS: ['gemini-embedding-2-preview', 'gemini-embedding-001'],
+      TEXT2IMAGE: [
+        'gemini-3-pro-image',
+        'gemini-3.1-flash-image',
+        'gemini-3.1-flash-lite-image',
+      ],
+      TEXT2TEXT: [
+        'gemini-3.8-flash',
+        'gemini-3.7-flash',
+        'gemini-3.5-flash',
+        'gemini-3.1-pro-preview',
+      ],
     },
   },
   MINIMAX: {
@@ -235,7 +259,12 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
     icon: pi('MINIMAX'),
     label: 'MiniMax',
     models: {
-      TEXT2TEXT: ['MiniMax-Text-01'],
+      TEXT2TEXT: [
+        'MiniMax-M3',
+        'MiniMax-M2.7',
+        'MiniMax-M2.7-highspeed',
+        'MiniMax-M2.5',
+      ],
     },
   },
   OLLAMA: {
@@ -243,8 +272,8 @@ export const MODEL_PROVIDER_META: Record<string, ModelProviderMeta> = {
     icon: pi('OLLAMA'),
     label: 'Ollama',
     models: {
-      EMBEDDINGS: ['bge-m3', 'nomic-embed-text'],
-      TEXT2TEXT: ['llama3.1', 'qwen2.5', 'deepseek-r1'],
+      EMBEDDINGS: ['qwen3-embedding', 'bge-m3', 'nomic-embed-text'],
+      TEXT2TEXT: ['qwen3.5', 'glm-5', 'gpt-oss:120b', 'deepseek-r1'],
     },
   },
 };

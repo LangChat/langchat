@@ -2,25 +2,40 @@
 import type {
   AigcDocs,
   KnowledgeDocumentIndexStatus,
-  KnowledgeDocumentPreview,
 } from '#/api/aigc/docs';
+import type {AigcSegment} from '#/api/aigc/segment';
 
 import {computed, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 
 import {Page} from '@vben/common-ui';
-import {ArrowLeft, ChevronsUpDown, FileText, RefreshCcw} from '@vben/icons';
+import {
+  ArrowLeft,
+  ChevronsUpDown,
+  FileText,
+  RefreshCcw,
+  RotateCcw,
+  SquarePen,
+  Trash2,
+} from '@vben/icons';
 import {$t} from '@vben/locales';
 
-import {NButton, NTag} from 'naive-ui';
+import {NButton, NCheckbox, NInput, NSwitch, NTag} from 'naive-ui';
 
-import {message} from '#/adapter/naive';
+import {dialog, message} from '#/adapter/naive';
 import {
   docsApi,
   getKnowledgeIndexStatusApi,
   indexKnowledgeApi,
-  previewKnowledgeApi,
 } from '#/api/aigc/docs';
+import {
+  deleteSegmentApi,
+  deleteSegmentsApi,
+  listKnowledgeSegmentsApi,
+  reindexSegmentApi,
+  updateSegmentContentApi,
+  updateSegmentEnabledApi,
+} from '#/api/aigc/segment';
 import {
   formatDocsDuration,
   formatDocsTimestamp,
@@ -31,9 +46,11 @@ import {useAigcLookups} from '#/views/shared/aigc/lookups';
 
 import {
   buildKnowledgeDocsRouteLocation,
-  DOC_EMBED_STATUS,
+  docParseModeOptions,
+  formatDocsCharCount,
   formatDocsFileSize,
   normalizeRouteParam,
+  parseDocsIngestionConfig,
 } from './shared';
 
 const route = useRoute();
@@ -44,11 +61,15 @@ const { lookups, loadLookups } = useAigcLookups({
 
 const initialized = ref(false);
 const docsOptions = ref<AigcDocs[]>([]);
-const previewLoading = ref(false);
-const previewItem = ref<KnowledgeDocumentPreview | null>(null);
+const segments = ref<AigcSegment[]>([]);
+const segmentsLoading = ref(false);
 const statusDetail = ref<KnowledgeDocumentIndexStatus | null>(null);
 const selectedDoc = ref<AigcDocs | null>(null);
-const expandedSections = ref<number[]>([]);
+const expandedIds = ref<string[]>([]);
+const selectedIds = ref<string[]>([]);
+const editingId = ref('');
+const editingContent = ref('');
+const pendingSegmentId = ref('');
 
 const knowledgeId = computed(() =>
   normalizeRouteParam(route.query.knowledgeId),
@@ -61,14 +82,28 @@ const knowledgeLabel = computed(
       ?.label || $t('knowledge.card.unnamed'),
 );
 
-const visibleSectionCount = computed(
-  () => previewItem.value?.sections?.length ?? 0,
+const segmentCount = computed(() => segments.value.length);
+const charCount = computed(() =>
+  segments.value.reduce(
+    (total, item) => total + (item.content?.length ?? 0),
+    0,
+  ),
+);
+const segmentConfig = computed(() =>
+  parseDocsIngestionConfig(selectedDoc.value?.ingestionConfig),
+);
+const parseModeLabel = computed(
+  () =>
+    docParseModeOptions().find(
+      (item) => item.value === segmentConfig.value.parseMode,
+    )?.label ?? $t('docs.upload.parserSummaryDefault'),
+);
+const selectedCount = computed(() => selectedIds.value.length);
+const allSelected = computed(
+  () => segmentCount.value > 0 && selectedCount.value === segmentCount.value,
 );
 const allExpanded = computed(
-  () =>
-    (previewItem.value?.sections?.length ?? 0) > 0 &&
-    expandedSections.value.length ===
-      (previewItem.value?.sections?.length ?? 0),
+  () => segmentCount.value > 0 && expandedIds.value.length === segmentCount.value,
 );
 
 watch(
@@ -106,7 +141,7 @@ async function bootstrapPage() {
     return;
   }
 
-  await Promise.all([loadStatusDetail(), loadPreview()]);
+  await Promise.all([loadStatusDetail(), loadSegments()]);
 }
 
 async function loadStatusDetail() {
@@ -120,47 +155,171 @@ async function loadStatusDetail() {
   statusDetail.value = result.docs[0] ?? null;
 }
 
-async function loadPreview() {
+async function loadSegments() {
   if (!knowledgeId.value || !docsId.value) {
-    previewItem.value = null;
+    segments.value = [];
     return;
   }
-  previewLoading.value = true;
+  segmentsLoading.value = true;
   try {
-    const result = await previewKnowledgeApi(knowledgeId.value, {
-      chunkLimit: 200,
-      docsIds: [docsId.value],
-      sectionLimit: 200,
-    });
-    previewItem.value = result.docs[0] ?? null;
-    expandedSections.value = [];
-  } finally {
-    previewLoading.value = false;
-  }
-}
-
-function isExpanded(index: number) {
-  return expandedSections.value.includes(index);
-}
-
-function toggleSection(index: number) {
-  if (isExpanded(index)) {
-    expandedSections.value = expandedSections.value.filter(
-      (item) => item !== index,
+    segments.value = await listKnowledgeSegmentsApi(
+      knowledgeId.value,
+      docsId.value,
     );
-    return;
+    expandedIds.value = [];
+    selectedIds.value = [];
+    cancelEdit();
+  } finally {
+    segmentsLoading.value = false;
   }
-  expandedSections.value = [...expandedSections.value, index];
 }
 
-function toggleAllSections() {
-  if (allExpanded.value) {
-    expandedSections.value = [];
+function segmentKey(segment: AigcSegment) {
+  return segment.id ?? '';
+}
+
+function isExpanded(segment: AigcSegment) {
+  return expandedIds.value.includes(segmentKey(segment));
+}
+
+function isSelected(segment: AigcSegment) {
+  return selectedIds.value.includes(segmentKey(segment));
+}
+
+function isDisabled(segment: AigcSegment) {
+  return segment.enabled === false;
+}
+
+function isEditing(segment: AigcSegment) {
+  return editingId.value === segmentKey(segment);
+}
+
+function toggleSegment(segment: AigcSegment) {
+  const key = segmentKey(segment);
+  if (editingId.value === key) {
     return;
   }
-  expandedSections.value = (previewItem.value?.sections ?? []).map(
-    (_item, index) => index,
-  );
+  expandedIds.value = isExpanded(segment)
+    ? expandedIds.value.filter((item) => item !== key)
+    : [...expandedIds.value, key];
+}
+
+function toggleExpandedAll() {
+  expandedIds.value = allExpanded.value
+    ? []
+    : segments.value.map((segment) => segmentKey(segment));
+}
+
+function toggleSelected(segment: AigcSegment, checked: boolean) {
+  const key = segmentKey(segment);
+  selectedIds.value = checked
+    ? [...selectedIds.value, key]
+    : selectedIds.value.filter((item) => item !== key);
+}
+
+function toggleSelectedAll(checked: boolean) {
+  selectedIds.value = checked
+    ? segments.value.map((segment) => segmentKey(segment))
+    : [];
+}
+
+function startEdit(segment: AigcSegment) {
+  editingId.value = segmentKey(segment);
+  editingContent.value = segment.content ?? '';
+  expandedIds.value = [...expandedIds.value, segmentKey(segment)];
+}
+
+function cancelEdit() {
+  editingId.value = '';
+  editingContent.value = '';
+}
+
+async function saveSegment(segment: AigcSegment, reindex = false) {
+  const content = editingContent.value.trim();
+  if (!content) {
+    message.warning($t('docs.preview.segmentContentEmpty'));
+    return;
+  }
+  const key = segmentKey(segment);
+  pendingSegmentId.value = key;
+  try {
+    await updateSegmentContentApi(knowledgeId.value, key, { content });
+    if (reindex) {
+      await reindexSegmentApi(knowledgeId.value, key);
+      message.success($t('docs.preview.segmentReindexed'));
+    } else {
+      message.success($t('docs.preview.segmentSaved'));
+    }
+    cancelEdit();
+    await Promise.all([loadSegments(), loadStatusDetail()]);
+  } finally {
+    pendingSegmentId.value = '';
+  }
+}
+
+async function handleReindex(segment: AigcSegment) {
+  const key = segmentKey(segment);
+  pendingSegmentId.value = key;
+  try {
+    await reindexSegmentApi(knowledgeId.value, key);
+    message.success($t('docs.preview.segmentReindexed'));
+    await loadStatusDetail();
+  } finally {
+    pendingSegmentId.value = '';
+  }
+}
+
+async function handleToggleEnabled(segment: AigcSegment, enabled: boolean) {
+  const key = segmentKey(segment);
+  pendingSegmentId.value = key;
+  try {
+    await updateSegmentEnabledApi(knowledgeId.value, key, { enabled });
+    message.success(
+      enabled
+        ? $t('docs.preview.segmentEnabled')
+        : $t('docs.preview.segmentDisabled'),
+    );
+    await Promise.all([loadSegments(), loadStatusDetail()]);
+  } finally {
+    pendingSegmentId.value = '';
+  }
+}
+
+function confirmDeleteSegment(segment: AigcSegment) {
+  dialog.warning({
+    closable: false,
+    content: $t('docs.preview.deleteSegmentConfirm', {
+      index: (segment.position ?? 0) + 1,
+    }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('docs.preview.deleteSegmentTitle'),
+    onPositiveClick: async () => {
+      await deleteSegmentApi(knowledgeId.value, segmentKey(segment));
+      message.success($t('docs.preview.segmentDeleted'));
+      await Promise.all([loadSegments(), loadStatusDetail()]);
+    },
+  });
+}
+
+function confirmBatchDelete() {
+  const ids = [...selectedIds.value];
+  if (ids.length === 0) {
+    message.warning($t('docs.preview.selectSegmentsFirst'));
+    return;
+  }
+  dialog.warning({
+    closable: false,
+    content: $t('docs.preview.batchDeleteConfirm', { count: ids.length }),
+    negativeText: $t('common.actions.cancel'),
+    positiveText: $t('common.actions.confirmDelete'),
+    title: $t('docs.preview.batchDeleteTitle'),
+    onPositiveClick: async () => {
+      await deleteSegmentsApi(knowledgeId.value, { segmentIds: ids });
+      message.success($t('docs.preview.segmentsDeleted', { count: ids.length }));
+      await Promise.all([loadSegments(), loadStatusDetail()]);
+    },
+  });
 }
 
 async function submitCurrentIndex() {
@@ -178,52 +337,109 @@ async function submitCurrentIndex() {
 
 <template>
   <Page>
-    <div class="rounded-lg border border-border bg-card p-4">
-      <div class="flex flex-col gap-2">
-        <div
-          class="flex flex-col gap-2 border-b border-border pb-4 xl:flex-row xl:items-start xl:justify-between"
-        >
-          <div class="flex min-w-0 items-start gap-3">
-            <NButton
-              secondary
-              @click="router.push(buildKnowledgeDocsRouteLocation(knowledgeId))"
-            >
-              <ArrowLeft class="size-4" />
-              {{ $t('common.actions.back') }}
-            </NButton>
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <FileText class="size-5 text-primary" />
-                <div class="truncate text-lg font-semibold text-foreground">
-                  {{ selectedDoc?.name || $t('docs.title.preview') }}
-                </div>
-              </div>
-              <div class="mt-2 text-sm leading-6 text-muted-foreground">
-                {{
-                  $t('docs.preview.description', {
-                    knowledge: knowledgeLabel,
-                    total: visibleSectionCount,
-                  })
-                }}
+    <div class="flex h-full min-h-0 flex-col gap-3">
+      <div
+        class="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 xl:flex-row xl:items-start xl:justify-between"
+      >
+        <div class="flex min-w-0 items-start gap-3">
+          <NButton
+            secondary
+            @click="router.push(buildKnowledgeDocsRouteLocation(knowledgeId))"
+          >
+            <ArrowLeft class="size-4" />
+            {{ $t('common.actions.back') }}
+          </NButton>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <FileText class="size-5 text-primary" />
+              <div class="truncate text-lg font-semibold text-foreground">
+                {{ selectedDoc?.name || $t('docs.title.preview') }}
               </div>
             </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <NButton secondary @click="loadPreview">
-              <RefreshCcw class="size-4" />
-              {{ $t('docs.actions.refreshPreview') }}
-            </NButton>
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+              <NTag :bordered="false" round size="small">
+                <span class="text-muted-foreground">
+                  {{ $t('docs.preview.tagCreateTime') }}
+                </span>
+                <span class="ml-1 font-medium tabular-nums text-foreground">
+                  {{ formatDocsTimestamp(selectedDoc?.createTime) }}
+                </span>
+              </NTag>
+              <NTag :bordered="false" round size="small">
+                <span class="text-muted-foreground">
+                  {{ $t('docs.preview.tagSegmentCount') }}
+                </span>
+                <span class="ml-1 font-medium tabular-nums text-foreground">
+                  {{ segmentCount }}
+                </span>
+              </NTag>
+              <NTag :bordered="false" round size="small">
+                <span class="text-muted-foreground">
+                  {{ $t('docs.preview.tagCharCount') }}
+                </span>
+                <span class="ml-1 font-medium tabular-nums text-foreground">
+                  {{ formatDocsCharCount(charCount) }}
+                </span>
+              </NTag>
+              <NTag :bordered="false" round size="small" type="info">
+                <span class="text-muted-foreground">
+                  {{ $t('docs.preview.tagParseMode') }}
+                </span>
+                <span class="ml-1 font-medium text-foreground">
+                  {{ parseModeLabel }}
+                </span>
+              </NTag>
+            </div>
           </div>
         </div>
 
-        <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-          <div class="min-w-0">
-            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <NButton secondary @click="loadSegments">
+            <RefreshCcw class="size-4" />
+            {{ $t('docs.actions.refreshPreview') }}
+          </NButton>
+          <NButton type="primary" @click="submitCurrentIndex">
+            <RotateCcw class="size-4" />
+            {{ $t('docs.actions.reVectorize') }}
+          </NButton>
+        </div>
+      </div>
+
+      <div
+        class="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_300px] xl:grid-rows-[minmax(0,1fr)]"
+      >
+        <section class="flex min-h-0 flex-col rounded-lg border border-border bg-card">
+          <div
+            class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3"
+          >
+            <div class="flex items-center gap-3">
+              <NCheckbox
+                :checked="allSelected"
+                :disabled="segmentCount === 0"
+                size="small"
+                @update:checked="toggleSelectedAll"
+              />
               <div class="text-sm font-semibold text-foreground">
                 {{ $t('docs.preview.sections') }}
+                <span class="ml-1 text-xs font-normal text-muted-foreground">
+                  {{
+                    $t('docs.preview.selectedCount', { count: selectedCount })
+                  }}
+                </span>
               </div>
-              <NButton bordered size="small" @click="toggleAllSections">
+            </div>
+            <div class="flex items-center gap-2">
+              <NButton
+                v-if="selectedCount > 0"
+                ghost
+                size="small"
+                type="error"
+                @click="confirmBatchDelete"
+              >
+                <Trash2 class="size-3.5" />
+                {{ $t('docs.actions.batchDelete') }} ({{ selectedCount }})
+              </NButton>
+              <NButton bordered size="small" @click="toggleExpandedAll">
                 <ChevronsUpDown class="size-4" />
                 {{
                   allExpanded
@@ -232,102 +448,207 @@ async function submitCurrentIndex() {
                 }}
               </NButton>
             </div>
+          </div>
 
+          <div class="min-h-0 flex-1 overflow-y-auto p-4">
             <div
-              v-if="previewLoading"
+              v-if="segmentsLoading"
               class="rounded-lg border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground"
             >
               {{ $t('docs.preview.generating') }}
             </div>
 
             <div
-              v-else-if="(previewItem?.sections?.length ?? 0) > 0"
-              class="space-y-3"
+              v-else-if="segmentCount === 0"
+              class="flex min-h-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 py-12 text-center"
             >
-              <div
-                v-for="(section, index) in previewItem?.sections || []"
-                :key="`section-${index}`"
-                class="rounded-lg border border-dashed border-border bg-muted/10 p-4"
-              >
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <div class="flex items-center gap-2">
-                    <NTag :bordered="false" round size="small" type="info">
-                      {{ $t('docs.preview.segment', { index: index + 1 }) }}
-                    </NTag>
-                    <span class="text-xs text-muted-foreground">
-                      {{ $t('docs.preview.charCount', { count: section.length }) }}
-                    </span>
-                  </div>
-                  <button
-                    class="text-xs font-medium text-primary transition-opacity hover:opacity-80"
-                    type="button"
-                    @click="toggleSection(index)"
-                  >
-                    {{
-                      isExpanded(index)
-                        ? $t('common.actions.collapse')
-                        : $t('common.actions.expand')
-                    }}
-                  </button>
-                </div>
+              <div class="text-sm font-semibold text-foreground">
+                {{ $t('docs.preview.segmentEmpty') }}
+              </div>
+              <div class="max-w-md text-sm leading-6 text-muted-foreground">
+                {{ $t('docs.preview.segmentEmptyHint') }}
+              </div>
+              <NButton type="primary" @click="submitCurrentIndex">
+                <RotateCcw class="size-4" />
+                {{ $t('docs.actions.reVectorize') }}
+              </NButton>
+            </div>
 
-                <div
-                  :class="[
-                    isExpanded(index) ? '' : 'line-clamp-2',
-                  ]" class="mt-3 whitespace-pre-wrap text-sm leading-7 text-muted-foreground"
-                >
-                  {{ section }}
+            <div v-else class="space-y-3">
+              <div
+                v-for="(segment, index) in segments"
+                :key="segmentKey(segment)"
+                class="cursor-pointer rounded-lg border bg-card p-3 transition-all hover:border-primary/50 hover:bg-primary/5"
+                :class="[
+                  isExpanded(segment)
+                    ? 'border-primary/60 bg-primary/5'
+                    : 'border-border',
+                  isDisabled(segment) ? 'opacity-70' : '',
+                ]"
+                @click="toggleSegment(segment)"
+              >
+                <div class="flex items-start gap-3">
+                  <NCheckbox
+                    :checked="isSelected(segment)"
+                    size="small"
+                    @click.stop
+                    @update:checked="(value) => toggleSelected(segment, value)"
+                  />
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <NTag :bordered="false" round size="small" type="info">
+                        {{ $t('docs.preview.segment', { index: index + 1 }) }}
+                      </NTag>
+                      <span class="text-xs text-muted-foreground tabular-nums">
+                        {{
+                          $t('docs.preview.charCount', {
+                            count: segment.content?.length ?? 0,
+                          })
+                        }}
+                      </span>
+                      <NTag
+                        v-if="isDisabled(segment)"
+                        :bordered="false"
+                        round
+                        size="small"
+                        type="warning"
+                      >
+                        {{ $t('docs.preview.disabled') }}
+                      </NTag>
+                    </div>
+
+                    <div v-if="isEditing(segment)" class="mt-3 space-y-2" @click.stop>
+                      <NInput
+                        v-model:value="editingContent"
+                        :autosize="{ minRows: 3, maxRows: 12 }"
+                        type="textarea"
+                      />
+                      <div class="flex flex-wrap items-center gap-2">
+                        <NButton
+                          :loading="pendingSegmentId === segmentKey(segment)"
+                          size="small"
+                          type="primary"
+                          @click="saveSegment(segment)"
+                        >
+                          {{ $t('common.actions.save') }}
+                        </NButton>
+                        <NButton
+                          :loading="pendingSegmentId === segmentKey(segment)"
+                          ghost
+                          size="small"
+                          type="primary"
+                          @click="saveSegment(segment, true)"
+                        >
+                          {{ $t('docs.preview.saveAndReindex') }}
+                        </NButton>
+                        <NButton size="small" @click="cancelEdit">
+                          {{ $t('common.actions.cancel') }}
+                        </NButton>
+                      </div>
+                    </div>
+
+                    <div
+                      v-else
+                      :class="[isExpanded(segment) ? '' : 'line-clamp-2']"
+                      class="mt-2 whitespace-pre-wrap text-sm leading-7 text-muted-foreground"
+                    >
+                      {{ segment.content }}
+                    </div>
+                  </div>
+
+                  <div
+                    v-if="!isEditing(segment)"
+                    class="flex shrink-0 items-center gap-1"
+                    @click.stop
+                  >
+                    <NSwitch
+                      :value="!isDisabled(segment)"
+                      :loading="pendingSegmentId === segmentKey(segment)"
+                      size="small"
+                      @update:value="
+                        (value) => handleToggleEnabled(segment, value)
+                      "
+                    />
+                    <NButton
+                      v-tippy="$t('docs.preview.editSegment')"
+                      quaternary
+                      size="small"
+                      @click="startEdit(segment)"
+                    >
+                      <SquarePen class="size-3.5" />
+                    </NButton>
+                    <NButton
+                      v-tippy="$t('docs.actions.reVectorize')"
+                      quaternary
+                      size="small"
+                      type="primary"
+                      @click="handleReindex(segment)"
+                    >
+                      <RotateCcw class="size-3.5" />
+                    </NButton>
+                    <NButton
+                      v-tippy="$t('docs.preview.deleteSegment')"
+                      quaternary
+                      size="small"
+                      type="error"
+                      @click="confirmDeleteSegment(segment)"
+                    >
+                      <Trash2 class="size-3.5" />
+                    </NButton>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div
-              v-else
-              class="rounded-lg border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground"
-            >
-              {{ $t('docs.preview.empty') }}
-            </div>
           </div>
+        </section>
 
-          <aside
-            class="border-t border-border pt-4 xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0"
-          >
-            <div class="space-y-5">
-              <div>
-                <div
-                  class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
-                >
-                  {{ $t('docs.preview.metadata') }}
+        <aside
+          class="min-h-0 overflow-y-auto rounded-lg border border-border bg-card"
+        >
+          <div class="divide-y divide-border">
+            <div class="p-4">
+              <div
+                class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+              >
+                {{ $t('docs.preview.metadata') }}
+              </div>
+              <div class="mt-3 space-y-3 text-xs leading-6">
+                <div>
+                  <div class="text-muted-foreground">
+                    {{ $t('docs.search.knowledgeName') }}
+                  </div>
+                  <div class="mt-1">
+                    <NTag :bordered="false" round size="small" type="info">
+                      {{ knowledgeLabel }}
+                    </NTag>
+                  </div>
                 </div>
-                <div
-                  class="mt-3 space-y-2 text-xs leading-6 text-muted-foreground"
-                >
-                  <div>
-                    {{ $t('docs.search.knowledgeName', { name: knowledgeLabel }) }}
+                <div>
+                  <div class="text-muted-foreground">
+                    {{ $t('docs.search.docName') }}
                   </div>
-                  <div>
-                    {{
-                      $t('docs.search.docName', {
-                        name: selectedDoc?.name || '--',
-                      })
-                    }}
+                  <div class="mt-1 break-all font-medium text-foreground">
+                    {{ selectedDoc?.name || '--' }}
                   </div>
-                  <div>
-                    {{
-                      $t('docs.search.docId', { id: selectedDoc?.id || '--' })
-                    }}
-                  </div>
-                  <div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <NTag :bordered="false" round size="small">
                     {{
                       $t('docs.search.ext', { ext: selectedDoc?.ext || '--' })
                     }}
-                  </div>
-                  <div>
+                  </NTag>
+                  <NTag :bordered="false" round size="small">
                     {{
                       $t('docs.search.size', {
                         size: formatDocsFileSize(selectedDoc?.size),
                       })
                     }}
+                  </NTag>
+                </div>
+                <div class="space-y-1 text-muted-foreground">
+                  <div class="break-all">
+                    {{ $t('docs.labels.docId') }}: {{ selectedDoc?.id || '--' }}
                   </div>
                   <div>
                     {{
@@ -338,118 +659,109 @@ async function submitCurrentIndex() {
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <div
-                  class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
-                >
-                  {{ $t('docs.preview.parserInfo') }}
-                </div>
-                <div
-                  class="mt-3 space-y-2 text-xs leading-6 text-muted-foreground"
-                >
-                  <div>
-                    {{
-                      $t('docs.preview.parserName', {
-                        name: previewItem?.parserName || '--',
-                      })
-                    }}
-                  </div>
-                  <div>
-                    {{
-                      $t('docs.preview.sectionCount', {
-                        count: previewItem?.sectionCount || 0,
-                      })
-                    }}
-                  </div>
-                  <div>
-                    {{
-                      $t('docs.preview.chunkCount', {
-                        count: previewItem?.chunkCount || 0,
-                      })
-                    }}
-                  </div>
-                  <div>
-                    {{
-                      $t('docs.preview.contentLength', {
-                        count: previewItem?.contentLength || 0,
-                      })
-                    }}
-                  </div>
-                </div>
+            <div class="p-4">
+              <div
+                class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+              >
+                {{ $t('docs.preview.parserInfo') }}
               </div>
-
-              <div>
-                <div
-                  class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
-                >
-                  {{ $t('docs.preview.vectorStatus') }}
-                </div>
-                <div class="mt-3 flex items-center gap-2">
-                  <NTag
-                    :bordered="false"
-                    :type="
-                      resolveDocsStatusType(statusDetail?.embedStatus) as any
-                    "
-                    round
-                    size="small"
-                  >
-                    {{ resolveDocsStatusLabel(statusDetail?.embedStatus) }}
-                  </NTag>
-                </div>
-                <div
-                  class="mt-3 space-y-2 text-xs leading-6 text-muted-foreground"
-                >
-                  <div>
-                    {{
-                      $t('docs.preview.startTime', {
-                        time: formatDocsTimestamp(statusDetail?.embedStartTime),
-                      })
-                    }}
+              <div class="mt-3 space-y-3 text-xs leading-6">
+                <div>
+                  <div class="text-muted-foreground">
+                    {{ $t('docs.upload.parserMode') }}
                   </div>
-                  <div>
-                    {{
-                      $t('docs.preview.endTime', {
-                        time: formatDocsTimestamp(statusDetail?.embedEndTime),
-                      })
-                    }}
-                  </div>
-                  <div>
-                    {{
-                      $t('docs.preview.duration', {
-                        time: formatDocsDuration(statusDetail?.costMs),
-                      })
-                    }}
-                  </div>
-                  <div>
-                    {{
-                      $t('docs.preview.indexStatus', {
-                        status: statusDetail?.indexingStatus ?? '--',
-                      })
-                    }}
+                  <div class="mt-1">
+                    <NTag :bordered="false" round size="small" type="info">
+                      {{ parseModeLabel }}
+                    </NTag>
                   </div>
                 </div>
-                <div
-                  v-if="statusDetail?.embedError"
-                  class="mt-3 rounded-xl border border-dashed border-border px-3 py-2 text-xs leading-6 text-destructive"
-                >
-                  {{ statusDetail.embedError }}
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-muted-foreground">
+                    {{ $t('docs.upload.chunkSize') }}
+                  </span>
+                  <span class="font-medium tabular-nums text-foreground">
+                    {{
+                      segmentConfig.chunkSize ?? $t('docs.list.segmentDefault')
+                    }}
+                  </span>
                 </div>
-                <div class="mt-3">
-                  <NButton
-                    v-if="statusDetail?.embedStatus === DOC_EMBED_STATUS.FAILED"
-                    quaternary
-                    size="small"
-                    type="error"
-                    @click="submitCurrentIndex"
-                  >
-                    {{ $t('docs.actions.retryCurrent') }}
-                  </NButton>
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-muted-foreground">
+                    {{ $t('docs.upload.overlapSize') }}
+                  </span>
+                  <span class="font-medium tabular-nums text-foreground">
+                    {{
+                      segmentConfig.overlapSize ?? $t('docs.list.segmentDefault')
+                    }}
+                  </span>
                 </div>
               </div>
             </div>
-          </aside>
-        </div>
+
+            <div class="p-4">
+              <div
+                class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+              >
+                {{ $t('docs.preview.vectorStatus') }}
+              </div>
+              <div class="mt-3 flex items-center gap-2">
+                <NTag
+                  :bordered="false"
+                  :type="
+                    resolveDocsStatusType(statusDetail?.embedStatus) as any
+                  "
+                  round
+                  size="small"
+                >
+                  {{ resolveDocsStatusLabel(statusDetail?.embedStatus) }}
+                </NTag>
+              </div>
+              <div
+                class="mt-3 space-y-1.5 text-xs leading-6 text-muted-foreground"
+              >
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ $t('docs.preview.tagSegmentCount') }}</span>
+                  <span class="tabular-nums text-foreground">
+                    {{ statusDetail?.segmentCount ?? segmentCount }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ $t('docs.preview.tagCharCount') }}</span>
+                  <span class="tabular-nums text-foreground">
+                    {{ formatDocsCharCount(statusDetail?.charCount ?? charCount) }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ $t('docs.preview.startTime') }}</span>
+                  <span class="tabular-nums text-foreground">
+                    {{ formatDocsTimestamp(statusDetail?.embedStartTime) }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ $t('docs.preview.endTime') }}</span>
+                  <span class="tabular-nums text-foreground">
+                    {{ formatDocsTimestamp(statusDetail?.embedEndTime) }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ $t('docs.preview.duration') }}</span>
+                  <span class="tabular-nums text-foreground">
+                    {{ formatDocsDuration(statusDetail?.costMs) }}
+                  </span>
+                </div>
+              </div>
+              <div
+                v-if="statusDetail?.embedError"
+                class="mt-3 rounded-xl border border-dashed border-border px-3 py-2 text-xs leading-6 text-destructive"
+              >
+                {{ statusDetail.embedError }}
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   </Page>

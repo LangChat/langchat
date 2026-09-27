@@ -1,36 +1,36 @@
 {
   "type": {
     "TEXT2TEXT": {
-      "label": "Text Generation",
-      "description": "General chat, reasoning, code generation"
+      "label": "Text Generation Model",
+      "description": "For general chat, reasoning, and code generation"
     },
     "EMBEDDINGS": {
-      "label": "Embedding",
-      "description": "Vector search, recall, clustering"
+      "label": "Embedding Model",
+      "description": "Converts text into vectors for search, recall, and clustering"
     },
     "IMAGE2TEXT": {
-      "label": "Image Understanding",
-      "description": "Image understanding, multimodal Q&A"
+      "label": "Image Understanding Model",
+      "description": "Understands image content for multimodal Q&A"
     },
     "OCR": {
-      "label": "OCR",
-      "description": "Image-to-text recognition, structured extraction"
+      "label": "OCR Model",
+      "description": "Recognizes text and structure in images and documents"
     },
     "SPEECH2TEXT": {
-      "label": "Speech Recognition",
-      "description": "Speech recognition, live dictation"
+      "label": "Speech Recognition Model",
+      "description": "Converts speech to text with live dictation support"
     },
     "TEXT2IMAGE": {
-      "label": "Text to Image",
-      "description": "Text-to-image, stylized generation"
+      "label": "Text-to-Image Model",
+      "description": "Generates or edits images from text prompts"
     },
     "TEXT2SPEECH": {
-      "label": "Text to Speech",
-      "description": "Speech broadcast, voice cloning"
+      "label": "Text-to-Speech Model",
+      "description": "Converts text into speech with voice generation support"
     },
     "TEXT2VIDEO": {
-      "label": "Text to Video",
-      "description": "Text-to-video, shot composition"
+      "label": "Text-to-Video Model",
+      "description": "Generates videos and shots from text prompts"
     }
   },
   "provider": {
@@ -48,11 +48,11 @@
   "list": {
     "title": "Model Center",
     "allProviders": "All Providers",
-    "allTypes": "All Types",
+    "allTypes": "All Models",
     "allTypesDescription": "Show models of every type",
-    "breadcrumbAll": "All Providers / All Types",
+    "breadcrumbAll": "All Providers / All Models",
     "breadcrumbBoth": "{provider} / {type}",
-    "breadcrumbProvider": "{provider} / All Types",
+    "breadcrumbProvider": "{provider} / All Models",
     "breadcrumbType": "All Providers / {type}",
     "searchPlaceholder": "Search by model name, ID or provider",
     "total": "{count} model configs",
@@ -67,11 +67,14 @@
     "alias": "Model Alias",
     "provider": "Provider",
     "type": "Model Type",
+    "modelSelectPlaceholder": "Select a preset or enter a custom model ID",
     "namePlaceholderByPreset": "e.g. {list}",
     "namePlaceholder": "Enter the model name",
     "name": "Model Name",
     "apiKeyPlaceholder": "Enter the model API key",
     "baseUrlPlaceholder": "e.g. https://api.openai.com/v1",
+    "dimension": "Vector Dimension",
+    "dimensionPlaceholder": "Select the model output dimension",
     "timeout": "Timeout (s)"
   },
   "messages": {

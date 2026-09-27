@@ -1,5 +1,4 @@
 import type { AigcModel } from '#/api/aigc/model';
-
 import type { LabelOption } from '#/views/shared/aigc/options';
 
 import { computed, ref } from 'vue';
@@ -33,9 +32,7 @@ function toOption(value: number | string, label: string): LabelOption {
  */
 export function useAigcLookups(options: LookupOptions = {}) {
   const models = ref<AigcModel[]>([]);
-  const vectorStores = ref<Awaited<ReturnType<typeof vectorStoreApi.list>>>(
-    [],
-  );
+  const vectorStores = ref<Awaited<ReturnType<typeof vectorStoreApi.list>>>([]);
   const knowledges = ref<Awaited<ReturnType<typeof knowledgeApi.list>>>([]);
   const mcps = ref<Awaited<ReturnType<typeof mcpApi.list>>>([]);
   const skills = ref<Awaited<ReturnType<typeof skillApi.list>>>([]);
@@ -118,7 +115,10 @@ export function useAigcLookups(options: LookupOptions = {}) {
 
   const skillOptions = computed<LabelOption[]>(() =>
     skills.value.map((item) =>
-      toOption(item.id ?? '', item.title || item.name || $t('skills.empty.unnamed')),
+      toOption(
+        item.id ?? '',
+        item.title || item.name || $t('skills.empty.unnamed'),
+      ),
     ),
   );
 
@@ -129,6 +129,7 @@ export function useAigcLookups(options: LookupOptions = {}) {
       modelEntities: models.value,
       models: modelOptions.value,
       skills: skillOptions.value,
+      vectorStoreEntities: vectorStores.value,
       vectorStores: vectorStoreOptions.value,
     })),
     loadLookups,

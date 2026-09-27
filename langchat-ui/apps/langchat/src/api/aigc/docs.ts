@@ -31,6 +31,7 @@ export interface AigcDocs extends BaseEntity {
  * 单文档索引状态。
  */
 export interface KnowledgeDocumentIndexStatus {
+  charCount?: number | null;
   costMs?: number | null;
   docsId?: string;
   embedEndTime?: number | null;
@@ -40,6 +41,7 @@ export interface KnowledgeDocumentIndexStatus {
   ext?: string;
   indexingStatus?: number | null;
   name?: string;
+  segmentCount?: number | null;
   updateTime?: number | null;
 }
 

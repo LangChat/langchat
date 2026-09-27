@@ -73,6 +73,147 @@ LangChat 是一个模块化、可扩展的开源 AI Agent 应用平台。它将�
 - **模块化单体架构**：后端按 common、auth、aigc、core、datasource、server 划分边界，兼顾开发效率与演进空间。
 - **完整管理界面**：Vue 3 前端覆盖概览、模型、Agent、知识库、Skills、MCP、数据源、用户与角色等主要工作流。
 
+## 界面预览
+
+以下截图来自本地开发环境启动后的实际界面，按功能分类展示。信息密度较高的页面（Agent 构建器、文档导入、数据源详情）采用一行两张，其余一行三张。
+
+### 登录与总览
+
+<table align="center" style="width: 100%; max-width: 1200px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>登录页</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>概览</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>应用市场</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/login.png" width="100%" alt="LangChat 登录页"></td>
+    <td><img src="docs/assets/screenshots/overview.png" width="100%" alt="LangChat 概览页，展示指标与趋势图"></td>
+    <td><img src="docs/assets/screenshots/market.png" width="100%" alt="LangChat 应用市场"></td>
+  </tr>
+</table>
+
+### Agent 应用
+
+<table align="center" style="width: 100%; max-width: 880px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>Agent 管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>构建器 · 应用配置</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/agents.png" width="100%" alt="Agent 管理列表"></td>
+    <td><img src="docs/assets/screenshots/agent-builder-config.png" width="100%" alt="Agent 构建器应用配置与聊天调试"></td>
+  </tr>
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>构建器 · API 接入</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>构建器 · 消息日志</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/agent-builder-api.png" width="100%" alt="Agent 构建器 API 接入页"></td>
+    <td><img src="docs/assets/screenshots/agent-builder-logs.png" width="100%" alt="Agent 构建器消息日志页"></td>
+  </tr>
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>构建器 · 统计报表</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>应用对话</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/agent-builder-stats.png" width="100%" alt="Agent 构建器统计报表页"></td>
+    <td><img src="docs/assets/screenshots/market-chat.png" width="100%" alt="应用市场中的 Agent 对话页"></td>
+  </tr>
+</table>
+
+### 知识库与文档导入
+
+<table align="center" style="width: 100%; max-width: 880px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>知识库管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>导入文档 · 上传文件</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/knowledges.png" width="100%" alt="知识库管理页"></td>
+    <td><img src="docs/assets/screenshots/knowledge-import-upload.png" width="100%" alt="知识库导入文档的上传文件步骤"></td>
+  </tr>
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>导入文档 · 分段配置</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>导入文档 · 执行向量化</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/knowledge-import-chunking.png" width="100%" alt="知识库导入文档的分段配置步骤"></td>
+    <td><img src="docs/assets/screenshots/knowledge-import-vectorize.png" width="100%" alt="知识库导入文档的执行向量化步骤"></td>
+  </tr>
+</table>
+
+### 智能问数与图片能力
+
+<table align="center" style="width: 100%; max-width: 1200px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>智能问数</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>图片生成</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>图片识别</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/data-analysis.png" width="100%" alt="智能问数页"></td>
+    <td><img src="docs/assets/screenshots/studio-image.png" width="100%" alt="图片生成页"></td>
+    <td><img src="docs/assets/screenshots/studio-ocr.png" width="100%" alt="图片识别页"></td>
+  </tr>
+</table>
+
+### 数据源
+
+<table align="center" style="width: 100%; max-width: 880px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>数据源管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>数据源详情 · 表内省</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/datasources.png" width="100%" alt="数据源管理页"></td>
+    <td><img src="docs/assets/screenshots/datasource-introspection.png" width="100%" alt="数据源详情页，展示数据库表内省结果"></td>
+  </tr>
+</table>
+
+### 模型与扩展能力
+
+<table align="center" style="width: 100%; max-width: 1200px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>模型管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>向量存储</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>技能管理</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/models.png" width="100%" alt="模型管理页"></td>
+    <td><img src="docs/assets/screenshots/vector-stores.png" width="100%" alt="向量存储管理页"></td>
+    <td><img src="docs/assets/screenshots/skills.png" width="100%" alt="技能管理页"></td>
+  </tr>
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>MCP 管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>模型监控</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/mcp.png" width="100%" alt="MCP 管理页"></td>
+    <td><img src="docs/assets/screenshots/model-monitor.png" width="100%" alt="模型监控页"></td>
+  </tr>
+</table>
+
+### 权限与治理
+
+<table align="center" style="width: 100%; max-width: 880px; border-collapse: separate; border-spacing: 12px 4px;">
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>用户管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>角色管理</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/users.png" width="100%" alt="用户管理页"></td>
+    <td><img src="docs/assets/screenshots/roles.png" width="100%" alt="角色管理页，展示菜单授权标签"></td>
+  </tr>
+  <tr>
+    <td align="center" style="padding-bottom: 4px;"><b>菜单管理</b></td>
+    <td align="center" style="padding-bottom: 4px;"><b>关于</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/menus.png" width="100%" alt="菜单管理页"></td>
+    <td><img src="docs/assets/screenshots/about.png" width="100%" alt="关于页面"></td>
+  </tr>
+</table>
+
 ## 技术架构
 
 ```mermaid
